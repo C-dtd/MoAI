@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
+    <script>
+        const socket = io('/chatroom'); 
+    </script>
+</head>
+<body>
+    userId: {{userId}} <br>
+    roomId: {{roomId}}
+    <div class="msg-form">
+        <textarea id="msg"></textarea>
+        <button id="submit">submit</button>
+    </div>
+    <div class="msg-cont">
+        
+    </div>
+    <script>
+        socket.emit('joined', {'name': 'testid'});
+
+        socket.on('msg', (msg) => {
+            const cont = document.querySelector('.msg-cont');
+            cont.innerText += msg.name +':\n' +msg.message +'\n';
+        });
+
+        document.querySelector('#submit').addEventListener('click', (e) => {
+            const userMsg = document.querySelector('#msg');
+            socket.emit('msg', {'name': 'testid', 'message': userMsg.value});
+            userMsg.value = '';
+            return false;
+        });
+
+        
+    </script>
+</body>
+</html>

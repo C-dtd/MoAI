@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+        id: <span id="userId">{{current_user.get_id()}}</span>
+        <a href='/logout'><button>logout</button></a><br>
+        <input type="text" name="roomId" id="roomId">
+        <button id="enter">enter</button>
+    {% else %}
+        <input type="text" name="userId" id="userId">
+        <button id="login">login</button>
+    {% endif %}
+    <script>
+        
+
+        if (document.querySelector('#login') != null) {
+            document.querySelector('#login').addEventListener('click', async () => {
+                const userIdInput = document.querySelector('#userId');
+                if (userIdInput.value == '') {
+                    return false;
+                } else {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            "content-type": 'application/json'
+                        },
+                        body: JSON.stringify({
+                            'userId': userIdInput.value
+                        })
+                    });
+                    const res = await response.json();
+                    
+                    if (res.result != 0) {
+                        location.href = '/';
+                    }
+                }
+            });
+        }
+        if (document.querySelector('#enter') != null) {
+            document.querySelector('#enter').addEventListener('click', async () => {
+                const roomIdInput = document.querySelector('#roomId');
+                const userIdSpan = document.querySelector('#userId');
+                if (roomIdInput.value == '') {
+                    return false;
+                } else {
+                    sendPost('./chatroom', {'roomId': roomIdInput.value, 'userId': userIdSpan.innerText});
+                }
+            });
+        }
+
+        function sendPost(url, params) {
+            var form = document.createElement('form');
+            form.setAttribute('method', 'post');
+            form.setAttribute('target', '_self');
+            form.setAttribute('action', url);
+            document.charset = "UTF-8";
+
+            for (var key in params) {
+                var hiddenField = document.createElement('input');
+                hiddenField.setAttribute('type', 'hidden');
+                hiddenField.setAttribute('name', key);
+                hiddenField.setAttribute('value', params[key]);
+                form.appendChild(hiddenField);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+    
+</body>
+</html>
