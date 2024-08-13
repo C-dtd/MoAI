@@ -4,37 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
     <script>
         const socket = io('/chatroom'); 
     </script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        main {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        article.my-chat, article.other-chat {
+            width: 60%;
+        }
+        article.my-chat {
+            margin-left: 40%;
+        }
+    </style>
 </head>
 <body>
-    userId: {{userId}} <br>
-    roomId: {{roomId}}
-    <div class="msg-form">
-        <textarea id="msg"></textarea>
-        <button id="submit">submit</button>
-    </div>
-    <div class="msg-cont">
-        
-    </div>
+    <header class="container">
+        roomId: </span>{{roomId}}</span><br>
+        userId: <span id="user-id">{{userId}}</span>
+    </header>
+    <main class="container">
+        <div class="msg-cont">
+        </div>
+    </main>
+    <footer class="container">
+        <div class="msg-form" role="group">
+            <textarea id="msg"></textarea>
+            <button id="submit">submit</button>
+        </div>
+    </footer>
     <script>
-        socket.emit('joined', {'name': 'testid'});
+        const userId = document.querySelector('#user-id');
+        socket.emit('joined', {'name': userId.textContent});
 
         socket.on('msg', (msg) => {
+            const userId = document.querySelector('#user-id');
             const cont = document.querySelector('.msg-cont');
-            cont.innerText += msg.name +':\n' +msg.message +'\n';
-        });
+            const chatbox = document.createElement('article');
+            if (msg.name == userId.textContent) {
+                chatbox.className += 'my-chat';
+            } else {
+                chatbox.className += 'other-chat';
+            }
+            const header = document.createElement('header');
+            header.innerText = msg.name;
+            const main = document.createElement('main');
+            main.innerText = msg.message;
 
+            chatbox.appendChild(header);
+            chatbox.appendChild(main);
+            cont.appendChild(chatbox);
+        });
         document.querySelector('#submit').addEventListener('click', (e) => {
+            const userId = document.querySelector('#user-id');
             const userMsg = document.querySelector('#msg');
-            socket.emit('msg', {'name': 'testid', 'message': userMsg.value});
+            socket.emit('msg', {'name': userId.textContent, 'message': userMsg.value});
             userMsg.value = '';
             return false;
         });
-
-        
     </script>
 </body>
 </html>

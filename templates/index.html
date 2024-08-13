@@ -4,20 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        
+    </style>
 </head>
 <body>
-    {% if current_user.is_authenticated %}
-        id: <span id="userId">{{current_user.get_id()}}</span>
-        <a href='/logout'><button>logout</button></a><br>
-        <input type="text" name="roomId" id="roomId">
-        <button id="enter">enter</button>
-    {% else %}
-        <input type="text" name="userId" id="userId">
-        <button id="login">login</button>
-    {% endif %}
+    <main class="container">
+        {% if current_user.is_authenticated %}
+            <nav>
+                <span>id: <span id="userId">{{current_user.get_id()}}</span></span>
+                <a href='/logout'><button>logout</button></a>
+            </nav>
+            Room Id: 
+            <div role='group'>
+                <input type="text" name="roomId" id="roomId">
+                <button id="enter">enter</button>
+            </div>
+        {% else %}
+            Id: 
+            <div role="group">
+                <input type="text" name="userId" id="userId">
+                <button id="login">login</button>
+            </div>
+        {% endif %}
+    </main>
     <script>
-        
-
         if (document.querySelector('#login') != null) {
             document.querySelector('#login').addEventListener('click', async () => {
                 const userIdInput = document.querySelector('#userId');

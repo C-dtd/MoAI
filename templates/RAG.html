@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>Document</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: row;
+        }
+        aside {
+            width: 25%;
+            height: 100%;
+            padding: 1rem;
+        }
+        #chat-room {
+            width: 75%;
+            height: 100%;
+            padding: 1rem;
+        }
+        #file-list {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <aside>
+            <article>
+                <label for="upload_file">
+                    <div role="button">upload</div>
+                </label>
+                <input type="file" name="upload_file" id="upload_file" accept=".pdf" multiple style="display: none;">
+                <div id="file-list">no file...</div>
+            </article>
+            <button style="width: 100%;" onclick="upload();">input</button>
+        </aside>
+        <section id="chat-room">
+        </section>
+    </main>
+    <script>
+        const file_input = document.querySelector('#upload_file');
+        const file_list = document.querySelector('#file-list');
+        file_input.addEventListener('change', (e) => {
+            let fileList = file_input.files;
+            if (fileList.length == 0) {
+                file_list.innerText = 'no file...';
+            } else {
+                file_list.innerText = '';
+                for (let i=0; i<fileList.length; i++) {
+                    file_list.innerText += fileList[i].name +'\n';
+                }
+            }
+        });
+        async function upload() {
+            if (file_input.files.length == 0) {
+                return false;
+            }
+            const form = new FormData();
+            for (let i=0; i<file_input.files.length; i++) {
+                form.append(`pdf${i}`, file_input.files[i]);
+            }
+            const response = await fetch('/pdfprocess', {
+                method: 'POST',
+                body: form
+            });
+            const res = await response.json();
+        }
+    </script>
+</body>
+</html>
