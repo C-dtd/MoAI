@@ -44,14 +44,22 @@
                 <input type="file" name="upload_file" id="upload_file" accept=".pdf" multiple style="display: none;">
                 <div id="file-list">no file...</div>
             </article>
-            <button style="width: 100%;" onclick="upload();">input</button>
+            <button style="width: 100%;" onclick="upload();" id="process-button">process</button>
         </aside>
         <section id="chat-room">
+            <div role="group">
+                <input type="text" id="question">
+                <button id="question-button" onclick="ask();">ask</button>
+            </div>
+            <div class="qa-cont">
+
+            </div>
         </section>
     </main>
     <script>
         const file_input = document.querySelector('#upload_file');
         const file_list = document.querySelector('#file-list');
+        const process_button = document.querySelector('#process-button');
         file_input.addEventListener('change', (e) => {
             let fileList = file_input.files;
             if (fileList.length == 0) {
@@ -71,11 +79,43 @@
             for (let i=0; i<file_input.files.length; i++) {
                 form.append(`pdf${i}`, file_input.files[i]);
             }
+            process_button.setAttribute('aria-busy', true);
             const response = await fetch('/pdfprocess', {
                 method: 'POST',
                 body: form
             });
             const res = await response.json();
+            process_button.setAttribute('aria-busy', false);
+        }
+        async function ask() {
+            const question = document.querySelector('#question');
+            const question_button = document.querySelector('#question-button');
+
+            if (question.value != '') {
+                question_button.setAttribute('aria-busy', true);
+                const response = await fetch('/question', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'question': question.value
+                    })
+                });
+                const res = await response.json();
+                question_button.setAttribute('aria-busy', false);
+                const cont = document.querySelector('.qa-cont');
+                const chatbox = document.createElement('article');
+                const header = document.createElement('header');
+                const main = document.createElement('main');
+                header.innerText = question.value;
+                main.innerText = res.result;
+
+                chatbox.appendChild(header);
+                chatbox.appendChild(main);
+                cont.appendChild(chatbox);
+                question.value = '';
+            }
         }
     </script>
 </body>
