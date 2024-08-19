@@ -16,15 +16,23 @@
             display: flex;
             flex-direction: row;
         }
+        footer {
+            flex-grow: 0;
+        }
         aside {
             width: 25%;
             height: 100%;
             padding: 1rem;
         }
-        #chat-room {
+        .msg-cont {
+            overflow-y: auto;
+        }
+        #qa-section {
             width: 75%;
-            height: 100%;
+            height: 100vh;
             padding: 1rem;
+            display: flex;
+            flex-direction: column;
         }
         #file-list {
             overflow: hidden;
@@ -46,14 +54,17 @@
             </article>
             <button style="width: 100%;" onclick="upload();" id="process-button">process</button>
         </aside>
-        <section id="chat-room">
-            <div role="group">
-                <input type="text" id="question">
-                <button id="question-button" onclick="ask();">ask</button>
-            </div>
-            <div class="qa-cont">
-
-            </div>
+        <section id="qa-section">
+            <main class="container" style="overflow-y: auto">
+                <div class="msg-cont">
+                </div>
+            </main>
+            <footer class="container">
+                <div class="qa-form" role="group">
+                    <input type="text" id="question">
+                    <button id="question-button" onclick="ask();">ask</button>
+                </div>
+            </footer>
         </section>
     </main>
     <script>
@@ -104,7 +115,7 @@
                 });
                 const res = await response.json();
                 question_button.setAttribute('aria-busy', false);
-                const cont = document.querySelector('.qa-cont');
+                const cont = document.querySelector('.msg-cont');
                 const chatbox = document.createElement('article');
                 const header = document.createElement('header');
                 const main = document.createElement('main');
