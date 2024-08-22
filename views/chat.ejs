@@ -31,6 +31,16 @@
     </header>
     <main class="container">
         <div class="msg-cont">
+        <% chat_log.forEach((row) => { %>
+            <article class=<%= (row.user_id=='my_id') ? 'my-chat' : 'other-chat' %>>
+                <header>
+                    <%= row.user_id %>
+                </header>
+                <main>
+                    <%= row.chat %>
+                </main>
+            </article>
+            <% }) %>
         </div>
     </main>
     <footer class="container">

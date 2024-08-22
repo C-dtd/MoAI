@@ -19,7 +19,7 @@ const db = new Pool({
 app.use(cookieParser());
 app.use(session({
     resave: true,
-    // saveUninstallized: false,
+    saveUninstallized: false,
     secret: 'secret'
 }));
 app.use(express.json());
@@ -36,17 +36,26 @@ server.listen(port, function() {
 
 io.on('connection', (socket) => {
     socket.on('msg', (msg) => {
+        console.log(msg);
+        const data = db.query(
+            "insert into chat_logs (id, user_id, room_id, chat) values (nextval('seq_chat_id'), $1, $2, $3)",
+            [msg.name, '0', msg.message]
+        );
         io.emit('msg', msg);
     })
 });
 
-app.get('/chat', function(req, res) {
-    res.sendFile(__dirname +'/html/chat.html');
+app.get('/chat', async function(req, res) {
+    const chat_log = await db.query("select * from chat_logs where room_id='0'");
+    res.render('chat.ejs', {chat_log: chat_log.rows});
 });
 
 app.get('/db', async function(req, res) {
-    const data = await db.query('select * from products');
+    const data = await db.query("select * from chat_logs where room_id='0'");
     res.send(data.rows);
+    data.rows.forEach((row) => {
+        console.log(row);
+    })
 });
 
 app.get('/', function(req, res) {
