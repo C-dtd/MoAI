@@ -5,6 +5,7 @@ const io = require('socket.io')(server);
 const { Pool } = require('pg');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const { log } = require('console');
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -37,6 +38,11 @@ app.use('/html', express.static(__dirname + '/html'));
 
 // 페이지 연결 
 app.get('/login', function(req, res) {
+    const { user } = req.session;
+    if (user) {
+        res.redirect('/');
+        return;
+    }
     res.sendFile(__dirname + '/html/login.html'); // Serve login.html
 });
 
@@ -45,7 +51,13 @@ app.get('/register', function(req, res){
 })
 
 app.get('/register_confirm', function(req, res){
-    res.sendFile(__dirname + '/html/register_confirm.html');  // register html
+    const { name } = req.session;
+    if (name) {
+        delete req.session.name;
+        res.render('register_confirm.ejs', name );  // register html
+    } else {
+        res.send('error');
+    }
 })
 
 app.get('/find_password', function(req, res){
@@ -104,20 +116,41 @@ app.get('/db', async function(req, res) {
 });
 
 app.get('/', function(req, res) {
-    // const { user } = req.session;
-    // if (user) {
-    //     res.render('login', { user });
-    //     return;
-    // }
-    res.render('index.ejs');
+    const { user } = req.session;
+    if (user) {
+        res.render('login', user);
+        return;
+    }
+    res.send('');
 });
-app.post('/', function(req, res) {
-    const { name } = req.body;
-    req.session.user = name;
-    console.log(req.body);
-    res.redirect('/');
-})
 
+app.post('/login', async (req, res) => {
+    const { id, password } = req.body;
+    const data = await db.query(
+        "select * from users where user_id=$1 and user_pw=$2",
+        [ id, password ]
+    );
+    const user_id = data.rows[0].user_id;
+    const user_name = data.rows[0].user_name;
+    req.session.user = { user_id, user_name };
+
+    if (data.rows.length === 1) {
+        res.redirect('/');
+    } else {
+        res.redirect('#');
+    }
+});
+
+app.post('/register', function(req, res) {
+    const { id, name, phoneHead, phoneFront, phoneBack, password } = req.body;
+    let phone = `${phoneHead}-${phoneFront}-${phoneBack}`;
+    req.session.name = { name };
+    db.query(
+        "insert into users values ($1, $2, $3, '-', '-', $4)",
+        [id, password, name, phone]
+    )
+    res.redirect('/register_confirm');
+});
 
 // 지금 해야될 거
 // 1. 로그인 페이지 만들기 X

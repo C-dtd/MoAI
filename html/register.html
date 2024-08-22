@@ -13,43 +13,43 @@
     <main class="container">
         <img class="main-image" src="https://via.placeholder.com/650x740" alt="Main Image">
         <h2 class="title">회원가입</h2>
-        <div class="content">
-            <div class="input-group">
-                <label for="username">아이디</label>
-                <input type="text" id="username" value="smhrd">
-            </div>
-            <div class="input-group">
-                <label for="name">이름</label>
-                <input type="text" id="name" value="Lorem lorem">
-            </div>
-            <div class="input-group">
-                <label for="phone-front">전화번호</label>
-                <div role="group">
-                    <input type="text" id="phone-head" value="010">
-                    <span class="phone-seperator">-</span>
-                    <input type="text" id="phone-front" value="">
-                    <span class="phone-seperator">-</span>
-                    <input type="text" id="phone-back" value="">
+        <form action="#" method="post">
+            <div class="content">
+                <div class="input-group">
+                    <label for="username">아이디</label>
+                    <input type="text" id="username" placeholder="Id" name="id">
                 </div>
-                <div role="group">
-                    <input type="text" id="verification-code" placeholder="6자리 숫자 입력">
-                    <button style="white-space: nowrap;">인증번호 발송</button>
+                <div class="input-group">
+                    <label for="name">이름</label>
+                    <input type="text" id="name" placeholder="name" name="name">
                 </div>
+                <div class="input-group">
+                    <label for="phone-front">전화번호</label>
+                    <div role="group">
+                        <input type="text" id="phone-head" value="010" name="phoneHead">
+                        <span class="phone-seperator">-</span>
+                        <input type="text" id="phone-front" value="" name="phoneFront">
+                        <span class="phone-seperator">-</span>
+                        <input type="text" id="phone-back" value="" name="phoneBack">
+                    </div>
+                    <div role="group">
+                        <input type="text" id="verification-code" placeholder="6자리 숫자 입력">
+                        <button style="white-space: nowrap;">인증번호 발송</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div role="group" style="margin: 0px">
+                        <label for="password">비밀번호</label>
+                        <span class="password-strength">Strong...</span>
+                    </div>
+                    <div class="input-box">
+                        <input type="password" id="password" placeholder="password" name='password'>
+                    </div>
+                </div>
+                <input type="submit" value="회원가입">
+                <!-- <button class="submit-button" type="submit">회원가입</button> -->
             </div>
-            <div class="input-group">
-                <div role="group" style="margin: 0px">
-                    <label for="password">비밀번호</label>
-                    <span class="password-strength">Strong...</span>
-                </div>
-                <div class="input-box">
-                    <input type="password" id="password" placeholder="비밀번호 입력">
-                </div>
-            </div>
-            <button class="submit-button">회원가입</button>
-        </div>
-        <!-- <div class="verification-button">
-            <div class="verification-background"></div>
-        </div> -->
+        </form>
     </main>
 </body>
 </html>

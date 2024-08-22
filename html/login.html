@@ -13,29 +13,31 @@
   <main class="container">
     <img class="main-image" src="https://via.placeholder.com/650x740" />
     <h2 class="title">로그인</h2>
+    <form action="#" method="post">
     <div class="content">
-      <div class="input-group">
-        <label for="username">아이디</label>
-        <input type="text" id="username" class="input-box" placeholder="smhrd" />
-      </div>
-      <div class="input-group">
-        <label for="password">비밀번호</label>
+        <div class="input-group">
+          <label for="username">아이디</label>
+          <input type="text" id="username" class="input-box" placeholder="Id" name="id"/>
+        </div>
+        <div class="input-group">
+          <label for="password">비밀번호</label>
+          <div role="group">
+            <input type="password" id="password" class="input-box" placeholder="Password" name="password"/>
+            <button class="show-password" style="white-space: nowrap;">show</button>
+          </div>
+        </div>
         <div role="group">
-          <input type="password" id="password" class="input-box" placeholder="비밀번호 입력" />
-          <button class="show-password" style="white-space: nowrap;">show</button>
+          <div class="remember-me">
+            <input type="checkbox" id="remember"/>
+            <label for="remember">아이디 기억하기</label>
+          </div>
+          <a class="forgot-password" href="#">비밀번호가 생각나지 않나요?</a>
         </div>
-      </div>
-      <div role="group">
-        <div class="remember-me">
-          <input type="checkbox" id="remember" />
-          <label for="remember">아이디 기억하기</label>
+        <div class="signup-link">
+          계정이 없으신가요? <a href="/register">회원가입</a>
         </div>
-        <a class="forgot-password" href="#">비밀번호가 생각나지 않나요?</a>
+        <input type="submit" class="login-button" value="로그인">
       </div>
-      <div class="signup-link">
-        계정이 없으신가요? <a href="#">회원가입</a>
-      </div>
-      <button class="login-button">로그인</button>
-    </div>
+    </form>
   </main>
 </body>
