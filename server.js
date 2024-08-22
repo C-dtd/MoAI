@@ -31,14 +31,40 @@ app.set('view engine', 'ejs');
 
 const port = 8000;
 
-// Serve static files from 'css' and 'html' directories
+// 정적 파일들 html, css 연결 도구
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/html', express.static(__dirname + '/html'));
 
-// Route to serve the login page
+// 페이지 연결 
 app.get('/login', function(req, res) {
     res.sendFile(__dirname + '/html/login.html'); // Serve login.html
 });
+
+app.get('/register', function(req, res){
+    res.sendFile(__dirname + '/html/register.html');  // register html
+})
+
+app.get('/register_confirm', function(req, res){
+    res.sendFile(__dirname + '/html/register_confirm.html');  // register html
+})
+
+app.get('/find_password', function(req, res){
+    res.sendFile(__dirname + '/html/find_password.html');  // register html
+})
+
+app.get('/find_password', function(req, res){
+    res.sendFile(__dirname + '/html/find_password.html');  // register html
+})
+
+app.get('/find_passwordauth', function(req, res){
+    res.sendFile(__dirname + '/html/find_passwordauth.html');  // register html
+})
+
+app.get('/find_password_success', function(req, res){
+    res.sendFile(__dirname + '/html/find_password_success.html');  // register html
+})
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Route to serve other static files or API endpoints
 app.get('/db', async function(req, res) {
