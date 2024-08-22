@@ -55,14 +55,17 @@ io.on('connection', (socket) => {
         console.log(msg);
         const data = db.query(
             "insert into chat_logs (id, user_id, room_id, chat) values (nextval('seq_chat_id'), $1, $2, $3)",
-            [msg.name, '0', msg.message]
+            [msg.name, 'test_chat_room', msg.message]
         );
         io.emit('msg', msg);
     });
 });
 
 app.get('/chat', async function(req, res) {
-    const chat_log = await db.query("select * from chat_logs where room_id='0'");
+    const chat_log = await db.query(
+        "select * from chat_logs where room_id=$1",
+        ['test_chat_room']
+    );
     res.render('chat.ejs', {chat_log: chat_log.rows});
 });
 
