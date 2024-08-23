@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadButton = document.getElementById('uploadButton');
     const viewButton = document.getElementById('viewButton');
     const modalDrawButton = document.getElementById('modalDrawButton');
+    const morepage = document.querySelector('#morepage');
     const modalDownloadButton = document.getElementById('modalDownloadButton');
     const modalCanvas = document.getElementById('modalCanvas');
     const fileModal = document.getElementById('fileModal');
@@ -42,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.beginPath();
             ctx.moveTo(lastX/ratio, lastY/ratio);
             ctx.lineTo(e.offsetX/ratio, e.offsetY/ratio);
-            ctx.strokeStyle = 'red'; // Color of the drawing
+            ctx.strokeStyle = 'black'; // Color of the drawing
             ctx.lineWidth = 2; // Thickness of the drawing
             ctx.stroke();
             lastX = e.offsetX;
@@ -55,9 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
         fileReader.onload = async () => {
             const typedarray = new Uint8Array(fileReader.result);
             const pdf = await pdfjsLib.getDocument(typedarray).promise;
-            const page = await pdf.getPage(1);
+            const numPage = pdf._pdfInfo.numPages;
+            const pages = [];
+            for (let i=0; i<numPage; i++) {
+                pages[i] = await pdf.getPage(i +1);
+            }
+            
+            const page = pages[0];
             const viewport = page.getViewport({ scale: 1 });
-
             if (viewport.width > window.innerWidth*0.8) {
                 ratio = window.innerWidth*0.8/viewport.width;
             } else {
@@ -67,14 +73,29 @@ document.addEventListener('DOMContentLoaded', () => {
             modalCanvas.height = viewport.height;
             modalCanvas.width = viewport.width;
             modalCanvas.style = `width: ${viewport.width *ratio}px;`;
-
             const renderContext = {
                 canvasContext: ctx,
                 viewport: viewport
             };
             await page.render(renderContext).promise;
-
             initializeCanvas();
+            morepage.innerHTML = '';
+            pages.slice(1).forEach((page) => {
+                const viewport = page.getViewport({ scale: 1 });
+                const canv = document.createElement('canvas');
+                const context = canv.getContext('2d');
+
+                canv.height = viewport.height;
+                canv.width = viewport.width;
+                canv.style = `width: ${viewport.width *ratio}px;`;
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext).promise;
+
+                morepage.appendChild(canv);
+            });
         };
         fileReader.readAsArrayBuffer(file);
     }
@@ -104,8 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const pdfDoc = await PDFLib.PDFDocument.create();
         const existingPdfBytes = await fetch(URL.createObjectURL(uploadedFile)).then(res => res.arrayBuffer());
         const existingPdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-        const [firstPage] = await pdfDoc.copyPages(existingPdfDoc, [0]);
-        pdfDoc.addPage(firstPage);
+
+        const numPages = existingPdfDoc.getPageCount();
+        const pageIndices = Array.from({length: numPages}, (_, i) => i);
+        const copiedPages = await pdfDoc.copyPages(existingPdfDoc, pageIndices);
+        copiedPages.forEach((page) => {
+            pdfDoc.addPage(page);
+        })
         
         // Get image data from canvas
         const imgData = modalCanvas.toDataURL('image/png');
@@ -155,11 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('지원되지 않는 파일 형식입니다. PDF 또는 PNG 파일을 업로드하세요.');
             }
             fileModal.style.display = 'block';
-            if (uploadedFile.type === 'application/pdf') {
-                renderPDF(uploadedFile);
-            } else if (uploadedFile.type === 'image/png') {
-                renderPNG(uploadedFile);
-            }
         } else {
             alert('파일을 선택하세요.');
         }
@@ -206,11 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closeModal.addEventListener('click', () => {
         fileModal.style.display = 'none';
+        fileInput.value = '';
     });
 
     window.addEventListener('click', (event) => {
         if (event.target === fileModal) {
             fileModal.style.display = 'none';
+            fileInput.value = '';
         }
     });
 });
