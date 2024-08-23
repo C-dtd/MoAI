@@ -3,64 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입 페이지</title>
+    <title>register</title>
     <link rel="stylesheet" href="./css/register.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar"></div>
-        <div class="icon-large" id="icon-1"></div>
-        <div class="icon-medium" id="icon-2"></div>
-        <div class="icon-small" id="icon-3"></div>
-        <div class="icon-small" id="icon-4"></div>
-        <div class="icon-medium" id="icon-5"></div>
-        <div class="icon-tiny" id="icon-6"></div>
-        <img class="main-image" src="https://via.placeholder.com/653x739" alt="Main Image">
-        <div class="title">MoAI</div>
-        <div class="form-container">
-            <div class="form-title">회원가입</div>
-            <div class="input-group">
-                <label for="username">아이디</label>
-                <div class="input-box">
-                    <input type="text" id="username" value="smhrd" readonly>
-                    <div class="input-indicator"></div>
+    <header class="container">MoAI</header>
+    <div class="sidebar"></div>
+    <main class="container">
+        <img class="main-image" src="https://via.placeholder.com/650x740" alt="Main Image">
+        <h2 class="title">회원가입</h2>
+        <form action="#" method="post">
+            <div class="content">
+                <div class="input-group">
+                    <label for="username">아이디</label>
+                    <input type="text" id="username" placeholder="Id" name="id">
                 </div>
-            </div>
-            <div class="input-group">
-                <label for="name">이름</label>
-                <div class="input-box">
-                    <input type="text" id="name" value="Lorem lorem" readonly>
-                    <div class="input-indicator"></div>
+                <div class="input-group">
+                    <label for="name">이름</label>
+                    <input type="text" id="name" placeholder="name" name="name">
                 </div>
-            </div>
-            <div class="input-group">
-                <label for="verification-code">인증번호</label>
-                <div class="input-box">
-                    <input type="text" id="verification-code" placeholder="6자리 숫자 입력">
-                    <div class="input-indicator"></div>
-                </div>
-            </div>
-            <div class="input-group">
-                <label for="phone">전화번호</label>
-                <div class="input-box">
-                    <input type="text" id="phone" value="010-xxxx-xxxx" readonly>
-                </div>
-            </div>
-            <div class="input-group">
-                <label for="password">비밀번호</label>
-                <div class="input-box">
-                    <input type="password" id="password" placeholder="비밀번호 입력">
-                    <div class="password-strength">
-                        <div class="strength-indicator" id="password-strength">Strong..</div>
+                <div class="input-group">
+                    <label for="phone-front">전화번호</label>
+                    <div role="group">
+                        <input type="text" id="phone-head" value="010" name="phoneHead">
+                        <span class="phone-seperator">-</span>
+                        <input type="text" id="phone-front" value="" name="phoneFront">
+                        <span class="phone-seperator">-</span>
+                        <input type="text" id="phone-back" value="" name="phoneBack">
+                    </div>
+                    <div role="group">
+                        <input type="text" id="verification-code" placeholder="6자리 숫자 입력">
+                        <button style="white-space: nowrap;">인증번호 발송</button>
                     </div>
                 </div>
+                <div class="input-group">
+                    <div role="group" style="margin: 0px">
+                        <label for="password">비밀번호</label>
+                        <span class="password-strength">Strong...</span>
+                    </div>
+                    <div class="input-box">
+                        <input type="password" id="password" placeholder="password" name='password'>
+                    </div>
+                </div>
+                <input type="submit" value="회원가입">
+                <!-- <button class="submit-button" type="submit">회원가입</button> -->
             </div>
-            <button class="submit-button">회원가입</button>
-        </div>
-        <div class="verification-button">
-            <div class="verification-background"></div>
-            <div class="verification-text">인증</div>
-        </div>
-    </div>
+        </form>
+    </main>
 </body>
 </html>

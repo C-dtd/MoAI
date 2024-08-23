@@ -1,159 +1,47 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: #FFFFFE;
-}
-
-.container {
-    width: 1440px;
-    height: 900px;
-    position: relative;
-}
-
-.sidebar {
-    width: 501px;
-    height: 900px;
-    left: 939px;
-    top: 0px;
-    position: absolute;
-    background: #0A2FB6;
-}
-
-.icon-circle {
-    position: absolute;
-    border-radius: 9999px;
-    border: 1px rgba(255, 255, 255, 0.50) solid;
-}
-
-.icon-circle-1 {
-    width: 47px;
-    height: 45px;
-    left: 1324px;
-    top: 877px;
-}
-
-.icon-circle-2 {
-    width: 66px;
-    height: 63px;
-    left: 1315px;
-    top: 536px;
-}
-
-.icon-circle-3 {
-    width: 27px;
-    height: 26px;
-    left: 1154px;
-    top: 850px;
-}
-
-.icon-circle-4 {
-    width: 27px;
-    height: 26px;
-    left: 1367px;
-    top: 44px;
-}
-
-.icon-circle-5 {
-    width: 41px;
-    height: 39px;
-    left: 1041px;
-    top: 61px;
-}
-
-.icon-circle-6 {
-    width: 14px;
-    height: 13px;
-    left: 983px;
-    top: 837px;
-}
-
-.main-image {
-    width: 653px;
-    height: 739px;
-    left: 714px;
-    top: 80px;
-    position: absolute;
-    background: linear-gradient(0deg, #C4C4C4 0%, #C4C4C4 100%);
-    border-radius: 20px;
-}
-
-.header {
-    left: 48px;
-    top: 33px;
-    position: absolute;
+header {
     color: #0A2FB6;
     font-size: 30px;
     font-family: Roboto;
     font-weight: 700;
     word-wrap: break-word;
 }
-
-.content {
-    width: 399px;
-    height: 365px;
-    left: 152px;
-    top: 259px;
-    position: absolute;
-}
-
-.completion-message {
-    left: 87px;
+.sidebar {
+    width: 500px;
+    height: 100vh;
     top: 0px;
-    position: absolute;
-    color: black;
-    font-size: 35px;
-    font-family: Open Sans;
-    font-weight: 600;
-    word-wrap: break-word;
-}
-
-.welcome-message {
-    width: 391px;
-    height: 61px;
-    padding: 6px 12px;
-    left: 0px;
-    top: 119px;
-    position: absolute;
-    background: white;
-    box-shadow: 0px 1px 3px rgba(25, 33, 61, 0.10);
-    border-radius: 8px;
-    border: 1px black solid;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.welcome-text {
-    color: black;
-    font-size: 12px;
-    font-family: Inter;
-    font-weight: 400;
-    line-height: 15.60px;
-    text-align: center;
-}
-
-.login-button {
-    width: 399px;
-    height: 70px;
-    left: 0px;
-    top: 295px;
+    right: 0px;
     position: absolute;
     background: #0A2FB6;
-    box-shadow: 0px 4px 30px rgba(38, 58, 67, 0.15);
-    border-radius: 6px;
+}
+.main-image {
+    width: 650px;
+    height: 740px;
+    right: 100px;
+    position: absolute;
+    background: linear-gradient(0deg, #C4C4C4 0%, #C4C4C4 100%);
+    border-radius: 20px;
+}
+.content {
+    width: calc(100% - 750px);
+    height: 740px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+.welcome-message {
+    width: 80%;
+    height: 60px;
+    padding: 6px 12px;
+    box-shadow: 0px 1px 3px rgba(25, 33, 61, 0.10);
+    border-radius: 8px;
+    border: 1px var(--pico-contrast-border) solid;
+    background-color: var(--pico-contrast-background);
     display: flex;
     align-items: center;
     justify-content: center;
 }
-
-.login-text {
-    width: 103px;
-    height: 59px;
-    color: white;
-    font-size: 20px;
-    font-family: Nunito Sans;
-    font-weight: 700;
-    line-height: 31.30px;
+.welcome-text {
+    color: var(--pico-contrast-inverse);
     text-align: center;
 }

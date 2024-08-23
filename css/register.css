@@ -1,212 +1,53 @@
-body {
-    margin: 0;
-    padding : 0;
-    height: 100%;
-    font-family: 'Nunito Sans', sans-serif;
+header {
+    color: #0A2FB6;
+    font-size: 30px;
+    font-family: Roboto;
+    font-weight: 700;
+    word-wrap: break-word;
 }
-
-.container {
-    width: 100%;
-    height: 100vh;
-    position: relative;
-    background: #FFFFFE;
-}
-
 .sidebar {
-    width: 35%;
-    height: 100%;
+    width: 500px;
+    height: 100vh;
+    top: 0px;
+    right: 0px;
     position: absolute;
     background: #0A2FB6;
-    right:0;
 }
-
-.icon-large {
-    width: 47px;
-    height: 45px;
-    position: absolute;
-    border-radius: 9999px;
-    border: 1px rgba(255, 255, 255, 0.50) solid;
-    left: 1324px;
-    top: 877px;
-}
-
-.icon-medium {
-    width: 66px;
-    height: 63px;
-    position: absolute;
-    border-radius: 9999px;
-    border: 1px rgba(255, 255, 255, 0.50) solid;
-    left: 1315px;
-    top: 536px;
-}
-
-.icon-small {
-    width: 27px;
-    height: 26px;
-    position: absolute;
-    border-radius: 9999px;
-    border: 1px rgba(255, 255, 255, 0.50) solid;
-}
-
-#icon-3 {
-    left: 1154px;
-    top: 850px;
-}
-
-#icon-4 {
-    left: 1367px;
-    top: 44px;
-}
-
-#icon-5 {
-    left: 1041px;
-    top: 61px;
-}
-
-#icon-6 {
-    left: 983px;
-    top: 837px;
-}
-
 .main-image {
-    width: 45%;
-    max-width: 653px; /* Max width for large screens */
-    height: auto; /* Maintain aspect ratio */
+    width: 650px;
+    height: 740px;
+    right: 100px;
     position: absolute;
     right: 10%;
     top: 10%;
     border-radius: 20px;
-    background: linear-gradient(0deg, #c4c4c4 0%, #c4c4c4 100%);
 }
-
 .title {
-    left: 48px;
-    top: 33px;
-    position: absolute;
-    color: #0A2FB6;
-    font-size: 30px;
-    font-weight: 700;
+  margin: 0px;
+  height: 40px;
+  width: calc(100% - 750px);
+  text-align: center;
 }
-
-.form-container {
-    width: 401px;
-    height: 760px;
-    position: absolute;
-    left: 150px;
-    top: 90px;
+.content {
+    width: calc(100% - 750px);
+    height: 740px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
 }
-
-.form-title {
-    width: 129px;
-    height: 61px;
-    color: black;
-    font-size: 35px;
-    font-weight: 600;
-}
-
 .input-group {
-    width: 399px;
-    margin-bottom: 30px;
+    width: 80%;
 }
-
 .input-group label {
     display: block;
-    color: #263A43;
     font-size: 20px;
     font-weight: 600;
     margin-bottom: 5px;
 }
-
-.input-box {
-    width: 399px;
-    background: white;
-    border-radius: 6px;
-    border: 0.60px #B1B1B1 solid;
-    position: relative;
+.phone-seperator {
+    padding: 10px;
 }
-
-.input-box input {
-    width: 100%;
-    border: none;
-    padding: 15px;
-    font-size: 17px;
-    color: black;
-    background: transparent;
-    border-radius: 6px;
-}
-
-.input-indicator {
-    height: 3px;
-    background: #54E28D;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-}
-
 .password-strength {
-    position: absolute;
-    left: 0;
-    top: 100%;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-.strength-indicator {
-    width: 108px;
-    height: 31.77px;
-    background: #D4FFE4;
-    border-radius: 18px;
-    color: #008A27;
-    font-size: 12px;
-    text-align: center;
-    line-height: 31.77px;
-}
-
-.submit-button {
-    width: 399px;
-    height: 88.96px;
-    background: #0A2FB6;
-    box-shadow: 0px 4px 30px rgba(38, 58, 67, 0.15);
-    border-radius: 6px;
-    color: white;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 31.30px;
-    border: none;
-    cursor: pointer;
-}
-
-.verification-button {
-    width: 52px;
-    height: 57px;
-    position: absolute;
-    left: 561px;
-    top: 486px;
-}
-
-.verification-background {
-    width: 52px;
-    height: 57px;
-    background: linear-gradient(180deg, #2B7AFB 0%, #2174FD 100%, #213BFD 100%);
-    box-shadow: 0px 2px 1px rgba(255, 255, 255, 0.22) inset;
-    border-radius: 8px;
-    border: 1px #174BD2 solid;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.verification-text {
-    width: 48.47px;
-    height: 49.27px;
-    position: absolute;
-    text-align: center;
-    color: white;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 31.30px;
+    text-align: right;
 }

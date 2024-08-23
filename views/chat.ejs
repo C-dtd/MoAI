@@ -53,9 +53,12 @@
         const socket = io(); 
         const userId = document.querySelector('#user-id');
         // socket.emit('joined', {'name': userId.textContent});
+        const cont = document.querySelector('.msg-cont');
+        const chat_main = document.querySelector('main.container');
+        chat_main.scrollTop = chat_main.scrollHeight;
         
+
         socket.on('msg', (msg) => {
-            const cont = document.querySelector('.msg-cont');
             const chatbox = document.createElement('article');
             if (msg.name == userId.value) {
                 chatbox.className += 'my-chat';
@@ -70,6 +73,7 @@
             chatbox.appendChild(header);
             chatbox.appendChild(main);
             cont.appendChild(chatbox);
+            chat_main.scrollTop = chat_main.scrollHeight;
         });
         document.querySelector('#submit').addEventListener('click', (e) => {
             const userMsg = document.querySelector('#msg');
