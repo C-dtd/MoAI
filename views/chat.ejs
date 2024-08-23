@@ -27,12 +27,14 @@
 <body>
     <header class="container">
         <!-- roomId: </span>{{roomId}}</span><br> -->
-        <input type="text" id="user-id" placeholder="username" value="my_id"></input>
+        <!-- <input type="text" id="user-id" placeholder="username" value="my_id"></input> -->
+        room: <span id="room-id">test_chat_room</span><br>
+        id: <span id="user-id"><%= user.user_id %></span>
     </header>
     <main class="container">
         <div class="msg-cont">
         <% chat_log.forEach((row) => { %>
-            <article class="<%= ((row.user_id=='my_id') ? 'my-chat' : 'other-chat') %> <%= row.type %>">
+            <article class="<%= ((row.user_id==user.user_id) ? 'my-chat' : 'other-chat') %> <%= row.type %>">
                 <header>
                     <%= row.user_id %>
                 </header>
@@ -40,7 +42,9 @@
                     <% if (row.type == 'text') { %>
                         <%= row.chat %>
                     <% } else if (row.type == 'img') { %> 
-                        <img src="<%= row.chat %>" alt="img">
+                        <img src="<%= row.chat %>" alt="deleted img" class="chat-img">
+                    <% } else if (row.type == 'payment') { %>
+                        <a href="#">결재 요청</a>
                     <% } %>
                 </main>
             </article>
@@ -49,25 +53,38 @@
     </main>
     <footer class="container">
         <div class="msg-form" role="group">
-            <button id="imgUpload"><label for="img-input">img</label></button>
             <textarea type="text" id="msg"></textarea>
             <button id="submit">submit</button>
         </div>
+        <div role="group">
+            <button id="imgUpload"><label for="img-input">이미지 첨부</label></button>
+            <button id="paymentUpload"><label for="payment-input">전자 결재 요청</label></button>
+        </div>
     </footer>
     <input type="file" id="img-input" style="display: none;" accept="image/*">
+    <input type="file" id="payment-input" style="display: none;" accept="application/pdf, image/png">
     <script>
         const socket = io(); 
         const userId = document.querySelector('#user-id');
-        // socket.emit('joined', {'name': userId.textContent});
+        const roomId = document.querySelector('#room-id');
         const cont = document.querySelector('.msg-cont');
         const chat_main = document.querySelector('main.container');
         const imgInput = document.querySelector('#img-input');
+        const paymentInput = document.querySelector('#payment-input');
         const allowExt = ['png', 'pjp', 'jpg', 'jpeg', 'jfif', 'webp', 'bmp'];
-        chat_main.scrollTop = chat_main.scrollHeight;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const imgs = document.querySelectorAll('img');
+            imgs.forEach((img) => {
+                img.addEventListener('load', () => {
+                    chat_main.scrollTop = chat_main.scrollHeight;
+                });
+            });
+        });
 
-        socket.on('msg', (msg) => {
+        socket.on('msg', async (msg) => {
             const chatbox = document.createElement('article');
-            if (msg.name == userId.value) {
+            if (msg.name == userId.innerText) {
                 chatbox.className += 'my-chat';
             } else {
                 chatbox.className += 'other-chat';
@@ -83,39 +100,79 @@
             } else if (msg.type == 'img') {
                 const img = document.createElement('img');
                 img.setAttribute('src', '/'+msg.message);
+                img.className += 'chat-img';
+                img.addEventListener('load', () => {
+                    chat_main.scrollTop = chat_main.scrollHeight;
+                });
                 main.appendChild(img);
+            } else if (msg.type == 'payment') {
+                const anchor = document.createElement('a');
+                anchor.setAttribute('href', '/payment/'+msg.message);
+                anchor.innerText = '결재 요청';
+                main.appendChild(anchor);
             }
             chatbox.appendChild(main);
             cont.appendChild(chatbox);
-
             chat_main.scrollTop = chat_main.scrollHeight;
+                                   
         });
 
         document.querySelector('#submit').addEventListener('click', (e) => {
             const userMsg = document.querySelector('#msg');
-            socket.emit('msg', {name: userId.value, message: userMsg.value, type: 'text'});
+
+            if (userMsg.value == '') {
+                return;
+            }
+
+            socket.emit('msg', {name: userId.innerText, message: userMsg.value, type: 'text', room: roomId.innerText});
             userMsg.value = '';
-            return false;
         });
 
         imgInput.addEventListener('input', async (e) => {
-            let formData = new FormData();
-            formData.append('file', imgInput.files[0]);
-
             if (!allowExt.includes(imgInput.files[0].name.split('.').pop())) {
-                document.imgInput.value = '';
+                imgInput.value = '';
                 return false;
             }
 
+            let formData = new FormData();
+            formData.append('file', imgInput.files[0]);
             const response = await fetch('/upload', {
                 method: 'POST',
                 body: formData
             });
             const res = await response.json();
-            console.log(res);
             
             imgInput.value = '';
-            socket.emit('msg', {name: userId.value, message: res.path, type: 'img'});
+            socket.emit('msg', {name: userId.innerText, message: res.path, type: 'img', room: roomId.innerText});
+        });
+
+        paymentInput.addEventListener('input', async (e) => {
+            if (!['pdf', 'png'].includes(paymentInput.files[0].name.split('.').pop())) {
+                paymentInput.value = '';
+                return false;
+            }
+
+            let formData = new FormData();
+            formData.append('file', paymentInput.files[0]);
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const res = await response.json();
+            paymentInput.value = '';
+            console.log(res.path);
+            const responsePayment = await fetch('/payment_req', {
+                method: 'POST',
+                headers: {
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    path: res.path,
+                })
+            });
+            const resPayment =  await responsePayment.json();
+            console.log(resPayment);
+            socket.emit('msg', {name: userId.innerText, message: resPayment.uuid, type: 'payment', room: roomId.innerText});
         });
     </script>
 </body>

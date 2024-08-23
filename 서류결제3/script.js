@@ -181,6 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('지원되지 않는 파일 형식입니다. PDF 또는 PNG 파일을 업로드하세요.');
             }
             fileModal.style.display = 'block';
+            // if (uploadedFile.type === 'application/pdf') {
+            //     renderPDF(uploadedFile);
+            // } else if (uploadedFile.type === 'image/png') {
+            //     renderPNG(uploadedFile);
+            // }
         } else {
             alert('파일을 선택하세요.');
         }
@@ -237,40 +242,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -8,7 +8,7 @@ const session = require('express-session');
 const { log } = require('console');
 const multer = require('multer');
 const path = require('path');
-
+const { v4 } = require('uuid');
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -35,7 +35,7 @@ const upload = multer({ storage: storage });
 app.use(cookieParser());
 app.use(session({
     resave: true,
-    saveUninstallized: false,
+    saveUninitialized: false,
     secret: 'secret'
 }));
 app.use(express.json());
@@ -92,33 +92,6 @@ app.get('/index', function(req, res){
     res.sendFile(__dirname + '/서류결제2/index.html');  // register html
 })
 
-// app.post('/upload', async (req, res) => {
-//     if (!req.files || !req.files.file) {
-//         return res.status(400).send('No file uploaded.');
-//     }
-
-//     const file = req.files.file;
-//     const fileName = `public/${file.name}`;
-
-//     try {
-//         const { data, error } = await supabase
-//             .storage
-//             .from('uploads') // Supabase Storage bucket name
-//             .upload(fileName, file.data, {
-//                 contentType: file.mimetype
-//             });
-
-//         if (error) {
-//             throw error;
-//         }
-
-//         res.status(200).send('File uploaded successfully');
-//     } catch (error) {
-//         res.status(500).send('Error uploading file: ' + error.message);
-//     }
-// });
-// 슈퍼베이스 업로드 위한 엔드포인트 설정하기
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Route to serve other static files or API endpoints
@@ -130,20 +103,26 @@ server.listen(port, function() {
 io.on('connection', (socket) => {
     socket.on('msg', (msg) => {
         console.log(msg);
-        const data = db.query(
+        db.query(
             "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
-            [msg.name, 'test_chat_room', msg.message, msg.type]
+            [msg.name, msg.room, msg.message, msg.type]
         );
         io.emit('msg', msg);
     });
 });
 
 app.get('/chat', async function(req, res) {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/');
+    } else {
+        console.log(user.user_id);
+    }
     const chat_log = await db.query(
         "select * from chat_logs where room_id=$1",
         ['test_chat_room']
     );
-    res.render('chat.ejs', {chat_log: chat_log.rows});
+    res.render('chat.ejs', {chat_log: chat_log.rows, user: user});
 });
 
 app.get('/db', async function(req, res) {
@@ -205,7 +184,44 @@ app.post('/upload', upload.single('file'), function(req, res) {
     );
 });
 
-// 지금 해야될 거
-// 1. 로그인 페이지 만들기 X
-// 2. 회원가입 페이지 만들고 연결
-// 3. 회원가입 정보 데이터베이스 로드
+app.post('/payment_req', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send('invalid reqeust');
+        return;
+    }
+    const path = req.body.path;
+    const id = v4();
+
+    await db.query(
+        "insert into payment (id, uploader, path) values ($1, $2, $3)",
+        [ id, user.user_id, path ]
+    );
+    
+    res.send( {uuid: id} );
+});
+
+app.get('/payment/:uuid', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send('invalid reqeust');
+        return;
+    }
+    const id = req.params.uuid;
+    const data = await db.query(
+        "select * from payment where id=$1",
+        [ id ]
+    );
+    console.log(data.rows[0]);
+    res.render('payment.ejs', { uuid: id })
+});
+
+app.get('/payment_file/:uuid', async (req, res) => {
+    const id = req.params.uuid;
+    const data = await db.query(
+        "select * from payment where id=$1",
+        [ id ]
+    );
+    const file = data.rows[0];
+    res.download(file.path);
+});
