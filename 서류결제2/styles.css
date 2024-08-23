@@ -1,0 +1,21 @@
+/* 기존 스타일 유지 */
+
+/* Completion Section */
+#completionSection {
+    margin-top: 20px;
+}
+
+#completionDetails {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#completionImage {
+    max-width: 100%;
+    height: auto;
+    margin-top: 20px;
+}
+
+.hidden {
+    display: none;
+}

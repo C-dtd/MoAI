@@ -8,6 +8,15 @@ const session = require('express-session');
 const { log } = require('console');
 // Database configuration
 
+const fileUpload = require('express-fileupload');
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config(); // 환경 변수 로드
+
+//슈퍼베이스 파일 업로드 위한 정의작업
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+// 슈퍼베이스 파일 업로드 위한 클라이언트 setup
+
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
     host: 'aws-0-ap-southeast-1.pooler.supabase.com',
@@ -27,14 +36,16 @@ app.use(session({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+app.use(fileUpload()); // 슈퍼베이스 파일 업로드 미들웨어 추가
 app.set('view engine', 'ejs');
 
 const port = 8000;
 
 // 정적 파일들 html, css 연결 도구
+app.use('/js', express.static(__dirname + '/js'));
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/html', express.static(__dirname + '/html'));
+app.use('/서류결제2', express.static(__dirname + '/서류결제2'));
 
 // 페이지 연결 
 app.get('/login', function(req, res) {
@@ -69,13 +80,40 @@ app.get('/find_password_success', function(req, res){
     res.sendFile(__dirname + '/html/find_password_success.html');  // register html
 })
 
+app.get('/index', function(req, res){
+    res.sendFile(__dirname + '/서류결제2/index.html');  // register html
+})
+
+app.post('/upload', async (req, res) => {
+    if (!req.files || !req.files.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+
+    const file = req.files.file;
+    const fileName = `public/${file.name}`;
+
+    try {
+        const { data, error } = await supabase
+            .storage
+            .from('uploads') // Supabase Storage bucket name
+            .upload(fileName, file.data, {
+                contentType: file.mimetype
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        res.status(200).send('File uploaded successfully');
+    } catch (error) {
+        res.status(500).send('Error uploading file: ' + error.message);
+    }
+});
+// 슈퍼베이스 업로드 위한 엔드포인트 설정하기
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Route to serve other static files or API endpoints
-app.get('/db', async function(req, res) {
-    const data = await db.query('select * from products');
-    res.send(data.rows);
-});
 
 server.listen(port, function() {
     log('Server host in http://localhost:' + port);
