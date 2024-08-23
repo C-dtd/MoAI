@@ -11,14 +11,14 @@ const path = require('path');
 
 // Database configuration
 
-const fileUpload = require('express-fileupload');
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config(); // 환경 변수 로드
+// const fileUpload = require('express-fileupload');
+// const { createClient } = require('@supabase/supabase-js');
+// require('dotenv').config(); // 환경 변수 로드
 
 //슈퍼베이스 파일 업로드 위한 정의작업
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-// 슈퍼베이스 파일 업로드 위한 클라이언트 setup
+// const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+// // 슈퍼베이스 파일 업로드 위한 클라이언트 setup
 
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -50,7 +50,7 @@ app.use(session({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(fileUpload()); // 슈퍼베이스 파일 업로드 미들웨어 추가
+// app.use(fileUpload()); // 슈퍼베이스 파일 업로드 미들웨어 추가
 app.set('view engine', 'ejs');
 
 const port = 8000;
@@ -102,31 +102,31 @@ app.get('/index', function(req, res){
     res.sendFile(__dirname + '/서류결제2/index.html');  // register html
 })
 
-app.post('/upload', async (req, res) => {
-    if (!req.files || !req.files.file) {
-        return res.status(400).send('No file uploaded.');
-    }
+// app.post('/upload', async (req, res) => {
+//     if (!req.files || !req.files.file) {
+//         return res.status(400).send('No file uploaded.');
+//     }
 
-    const file = req.files.file;
-    const fileName = `public/${file.name}`;
+//     const file = req.files.file;
+//     const fileName = `public/${file.name}`;
 
-    try {
-        const { data, error } = await supabase
-            .storage
-            .from('uploads') // Supabase Storage bucket name
-            .upload(fileName, file.data, {
-                contentType: file.mimetype
-            });
+//     try {
+//         const { data, error } = await supabase
+//             .storage
+//             .from('uploads') // Supabase Storage bucket name
+//             .upload(fileName, file.data, {
+//                 contentType: file.mimetype
+//             });
 
-        if (error) {
-            throw error;
-        }
+//         if (error) {
+//             throw error;
+//         }
 
-        res.status(200).send('File uploaded successfully');
-    } catch (error) {
-        res.status(500).send('Error uploading file: ' + error.message);
-    }
-});
+//         res.status(200).send('File uploaded successfully');
+//     } catch (error) {
+//         res.status(500).send('Error uploading file: ' + error.message);
+//     }
+// });
 // 슈퍼베이스 업로드 위한 엔드포인트 설정하기
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,11 +200,11 @@ app.post('/register', function(req, res) {
     res.redirect('/register_confirm');
 });
 
-app.get('/upload', (req, res) => {
+app.get('/upload_', (req, res) => {
     res.render('upload.ejs');
 });
 
-app.post('/upload', upload.single('file'), function(req, res) {
+app.post('/upload_', upload.single('file'), function(req, res) {
     console.log(req.file);
     res.redirect('#');
 });
