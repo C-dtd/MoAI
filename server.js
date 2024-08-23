@@ -6,6 +6,9 @@ const { Pool } = require('pg');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const { log } = require('console');
+const multer = require('multer');
+const path = require('path');
+
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -17,6 +20,17 @@ const db = new Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000
 });
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function(req, file, cb) {
+        cb(null, Date.now() +path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 app.use(cookieParser());
 app.use(session({
@@ -71,13 +85,11 @@ app.get('/find_password_success', function(req, res){
     res.sendFile(__dirname + '/html/find_password_success.html');  // register html
 })
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+app.get('/calendar', function(req, res) {
+    res.render('calendar.ejs');
+})
 
-// Route to serve other static files or API endpoints
-app.get('/db', async function(req, res) {
-    const data = await db.query('select * from products');
-    res.send(data.rows);
-});
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 server.listen(port, function() {
     log('Server host in http://localhost:' + port);
@@ -144,6 +156,15 @@ app.post('/register', function(req, res) {
         [id, password, name, phone]
     )
     res.redirect('/register_confirm');
+});
+
+app.get('/upload', (req, res) => {
+    res.render('upload.ejs');
+});
+
+app.post('/upload', upload.single('file'), function(req, res) {
+    console.log(req.file);
+    res.redirect('#');
 });
 
 // 지금 해야될 거
