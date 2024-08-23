@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const { log } = require('console');
 // Database configuration
+
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
     host: 'aws-0-ap-southeast-1.pooler.supabase.com',
@@ -64,9 +65,6 @@ app.get('/find_password', function(req, res){
     res.sendFile(__dirname + '/html/find_password.html');  // register html
 })
 
-app.get('/find_password', function(req, res){
-    res.sendFile(__dirname + '/html/find_password.html');  // register html
-})
 
 app.get('/find_passwordauth', function(req, res){
     res.sendFile(__dirname + '/html/find_passwordauth.html');  // register html
@@ -130,11 +128,15 @@ app.post('/login', async (req, res) => {
         "select * from users where user_id=$1 and user_pw=$2",
         [ id, password ]
     );
-    const user_id = data.rows[0].user_id;
-    const user_name = data.rows[0].user_name;
-    req.session.user = { user_id, user_name };
+    // const user_id = data.rows[0].user_id;
+    // const user_name = data.rows[0].user_name;
+    // req.session.user = { user_id, user_name };
 
     if (data.rows.length === 1) {
+        const user_id = data.rows[0].user_id;
+        const user_name = data.rows[0].user_name;
+        req.session.user = { user_id, user_name };
+    
         res.redirect('/');
     } else {
         res.redirect('#');
