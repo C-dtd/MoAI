@@ -30,7 +30,6 @@ app.use(express.urlencoded({ extended: false }));
 
 app.set('view engine', 'ejs');
 
-
 const port = 8000;
 
 // 정적 파일들 html, css 연결 도구
@@ -61,10 +60,6 @@ app.get('/register_confirm', function(req, res){
     }
 })
 
-app.get('/find_password', function(req, res){
-    res.sendFile(__dirname + '/html/find_password.html');  // register html
-})
-
 
 app.get('/find_passwordauth', function(req, res){
     res.sendFile(__dirname + '/html/find_passwordauth.html');  // register html
@@ -83,7 +78,7 @@ app.get('/db', async function(req, res) {
 });
 
 server.listen(port, function() {
-    console.log('Server host in http://localhost:' + port);
+    log('Server host in http://localhost:' + port);
 });
 
 io.on('connection', (socket) => {
@@ -128,15 +123,10 @@ app.post('/login', async (req, res) => {
         "select * from users where user_id=$1 and user_pw=$2",
         [ id, password ]
     );
-    // const user_id = data.rows[0].user_id;
-    // const user_name = data.rows[0].user_name;
-    // req.session.user = { user_id, user_name };
-
     if (data.rows.length === 1) {
         const user_id = data.rows[0].user_id;
         const user_name = data.rows[0].user_name;
         req.session.user = { user_id, user_name };
-    
         res.redirect('/');
     } else {
         res.redirect('#');
