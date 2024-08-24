@@ -44,7 +44,7 @@
                     <% } else if (row.type == 'img') { %> 
                         <img src="<%= row.chat %>" alt="deleted img" class="chat-img">
                     <% } else if (row.type == 'payment') { %>
-                        <a href="#">결재 요청</a>
+                        <a href="/payment/<%= row.chat %>">결재 요청</a>
                     <% } %>
                 </main>
             </article>

@@ -179,8 +179,7 @@ app.get('/upload_', (req, res) => {
     res.render('upload.ejs');
 });
 
-app.post('/upload_', upload.single('file'), function(req, res) {
-    console.log(req.file);
+app.post('/upload', upload.single('file'), function(req, res) {
     const file = req.file;
     res.send(
         { 
@@ -207,6 +206,27 @@ app.post('/payment_req', async (req, res) => {
     res.send( {uuid: id} );
 });
 
+app.post('/payment_res', upload.single('file'), async (req, res) => {
+    const { user } = req.session;
+
+    if (!user) {
+        res.send('invalid request');
+        return;
+    }
+    // console.log('payment_res');
+    // console.log(req.body.uuid);
+    const file = req.file;
+
+    const data = await db.query(
+        "update payment set app_at=now(), app=$1, app_path=$2 where id=$3",
+        [ user.user_id, file.path, req.body.uuid ]
+    );
+
+    res.send(
+        { result: 'ok'}
+    );
+});
+
 app.get('/payment/:uuid', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -218,8 +238,12 @@ app.get('/payment/:uuid', async (req, res) => {
         "select * from payment where id=$1",
         [ id ]
     );
-    console.log(data.rows[0]);
-    res.render('payment.ejs', { uuid: id })
+    let applied = false;
+    console.log(data.rows[0].app);
+    if (data.rows[0].app) {
+        applied = true;
+    }
+    res.render('payment.ejs', { uuid: id, applied: applied })
 });
 
 app.get('/payment_file/:uuid', async (req, res) => {
@@ -228,6 +252,9 @@ app.get('/payment_file/:uuid', async (req, res) => {
         "select * from payment where id=$1",
         [ id ]
     );
-    const file = data.rows[0];
-    res.download(file.path);
+    if (data.rows[0].app) {
+        res.download(data.rows[0].app_path);
+    } else {
+        res.download(data.rows[0].path);
+    }
 });
