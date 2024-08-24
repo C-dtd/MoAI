@@ -72,13 +72,18 @@
         const imgInput = document.querySelector('#img-input');
         const paymentInput = document.querySelector('#payment-input');
         const allowExt = ['png', 'pjp', 'jpg', 'jpeg', 'jfif', 'webp', 'bmp'];
-        
+        const regURL = new RegExp("(http|https|ftp|telnet|news|irc)://([-/.a-zA-Z0-9_~#%$?&=:200-377()]+)","gi");
+
         document.addEventListener('DOMContentLoaded', () => {
             const imgs = document.querySelectorAll('img');
             imgs.forEach((img) => {
                 img.addEventListener('load', () => {
                     chat_main.scrollTop = chat_main.scrollHeight;
                 });
+            });
+            const chats = document.querySelectorAll('article>main');
+            chats.forEach((chat) => {
+                chat.innerHTML = chat.innerHTML.replace(regURL, "<a class='artist-portfolio' href='$1://$2' target='_blank'>$1://$2</a>");
             });
         });
 
@@ -97,6 +102,7 @@
             const main = document.createElement('main');
             if (msg.type == 'text') {
                 main.innerText = msg.message;
+                main.innerHTML = main.innerHTML.replace(regURL, "<a class='artist-portfolio' href='$1://$2' target='_blank'>$1://$2</a>");
             } else if (msg.type == 'img') {
                 const img = document.createElement('img');
                 img.setAttribute('src', '/'+msg.message);
@@ -114,7 +120,6 @@
             chatbox.appendChild(main);
             cont.appendChild(chatbox);
             chat_main.scrollTop = chat_main.scrollHeight;
-                                   
         });
 
         document.querySelector('#submit').addEventListener('click', (e) => {
