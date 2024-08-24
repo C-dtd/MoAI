@@ -258,35 +258,37 @@ app.get('/payment_file/:uuid', async (req, res) => {
     }
 });
 
+function dateParser(str) {
+    function leftpad (str, len, ch) {
+        str = String(str);
+        var i = -1;
+        if (!ch && ch !== 0) ch = '';
+        len = len - str.length;
+        while (++i < len) {
+            str = ch + str;
+        }
+        return str;
+    }
+
+    let date = new Date(str.toString());
+    let res_ = '';
+
+    res_ += leftpad(date.getFullYear(), 4, 0) +'-';
+    res_ += leftpad(date.getMonth()+1, 2, 0) +'-';
+    res_ += leftpad(date.getDate(), 2, 0) +'T';
+    res_ += leftpad(date.getHours(), 2, 0) +':';
+    res_ += leftpad(date.getMinutes(), 2, 0) +":";
+    res_ += leftpad(date.getSeconds(), 2, 0);
+
+    return res_;
+}
+
 // 이벤트 데이터를 처리하는 API 엔드포인트
 app.post('/api/events', async (req, res) => {
     console.log(req.body);
     // const { id, title, category, start, end, state, location, isReadOnly } = req.body;
     const { end, id, isAllday, isPrivate, location, start, state, title } = req.body;
-    function dateParser(str) {
-        function leftpad (str, len, ch) {
-            str = String(str);
-            var i = -1;
-            if (!ch && ch !== 0) ch = '';
-            len = len - str.length;
-            while (++i < len) {
-                str = ch + str;
-            }
-            return str;
-        }
-
-        let date = new Date(str.toString());
-        let res_ = '';
-
-        res_ += leftpad(date.getFullYear(), 4, 0) +'-';
-        res_ += leftpad(date.getMonth()+1, 2, 0) +'-';
-        res_ += leftpad(date.getDate(), 2, 0) +'T';
-        res_ += leftpad(date.getHours(), 2, 0) +':';
-        res_ += leftpad(date.getMinutes(), 2, 0) +":";
-        res_ += leftpad(date.getSeconds(), 2, 0);
-
-        return res_;
-    }
+    
     try {
         // PostgreSQL에 이벤트 데이터를 저장
         await db.query(
@@ -317,5 +319,48 @@ app.delete('/api/events/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting event:', error);
         res.status(500).json({ message: 'Failed to delete event from the database' });
+    }
+});
+
+// 데이터 수정 엔드포인트 추가
+app.put('/api/events/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, start, end, location, isAllday, state } = req.body;
+
+    try {
+        const result = await db.query(
+            `UPDATE calandars
+             SET title = $1, start_date = $2, end_date = $3, location = $4, isallday = $5, state = $6
+             WHERE id = $7
+             RETURNING *`,
+            [title, dateParse(start.d.d), dateParse(end.d.d), location, isAllday, state, id]
+        );
+
+        if (result.rowCount === 0) {
+            res.status(404).json({ message: 'Event not found' });
+        } else {
+            res.status(200).json(result.rows[0]);
+        }
+    } catch (error) {
+        console.error('Error updating event in the database:', error);
+        res.status(500).json({ message: 'Failed to update event in the database' });
+    }
+});
+
+
+// 특정 사용자의 이벤트 가져오기 API
+app.get('/api/events/:user_id', async (req, res) => {
+    const { user_id } = req.params;
+
+    try {
+        const result = await db.query(
+            'SELECT * FROM calandars WHERE user_id = $1',
+            [user_id]
+        );
+        console.log(result.rows);
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching events from the database:', error);
+        res.status(500).json({ message: 'Failed to fetch events from the database' });
     }
 });

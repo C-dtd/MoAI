@@ -40,20 +40,37 @@
             
             useEffect(() => {
                 const calendarInstance = calendarRef.current.getInstance();
-                const initialSchedules = [
-                    {
-                        id: uuid(),
-                        title: '전체일정 이벤트',
-                        category: 'allday',
-                        start: '2024-08-22T00:00:00',
-                        end: '2024-08-22T23:59:59',
-                        state: 'Free',
-                        location: 'home',
-                        isReadOnly: false,
-                    },
-                ];
+                const userId = 'user_id'; // 실제로 로그인한 사용자로 대체
+
+                const loadEvents = async () => {
+                    try {
+                        const response = await fetch(`/api/events/${userId}`);
+                        if (response.ok) {
+                            const events = await response.json();
+                            //console.log('Loaded events:', events);
+                            events.forEach((event) => {
+                                const eventObj = {
+                                    ...event,
+                                    start: event.start_date,
+                                    end: event.end_date,
+                                    isAllday: event.isallday,
+                                }
+                                calendarInstance.createEvents([eventObj]);                                
+                            });
+            
+                            //calendarInstance.createEvents(events);
+                        } else {
+                            console.log('Failed to load events from the server');
+                        }
+                    } catch (error) {
+                        console.error('Error loading events:', error);
+                    }
+                };
+        
+                loadEvents();
+
                 // 캘린더에 기본 일정 추가
-                calendarInstance.createEvents(initialSchedules);
+                // calendarInstance.createEvents(initialSchedules);
 
                 // 팝업에서 일정 생성하기 전에 호출되는 함수 & DB에 데이터 전송도 같이
                 const handleBeforeCreateEvent = async (eventObj) => {
@@ -84,12 +101,38 @@
                     }
                 };
 
-                const handleBeforeUpdateEvent = ({ event, changes }) => {
+                const handleBeforeUpdateEvent = async ({ event, changes }) => {
                     console.log('Updating event:', event);
                     console.log('Changes:', changes);
-
-                    calendarInstance.updateEvent(event.id, event.calendarId, changes);
+                
+                    const updatedEvent = {
+                        ...event,
+                        ...changes,  // 기존 이벤트 객체에 변경된 부분만 덮어씌우기
+                    };
+                
+                    try {
+                        const response = await fetch(`/api/events/${event.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updatedEvent),
+                        });
+                
+                        if (response.ok) {
+                            const updatedEventFromServer = await response.json();
+                            console.log('Updated event from server:', updatedEventFromServer);
+                
+                            // 서버에서 받아온 데이터로 캘린더 이벤트 업데이트
+                            calendarInstance.updateEvent(event.id, event.calendarId, changes);
+                        } else {
+                            console.log('Failed to update event on the server');
+                        }
+                    } catch (error) {
+                        console.error('Error updating event:', error);
+                    }
                 };
+                
 
                 const handleBeforeDeleteEvent = async ({ id, calendarId }) => {
                     console.log('Deleting event:', id);
