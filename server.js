@@ -282,13 +282,13 @@ function dateParser(str) {
 app.post('/api/events', async (req, res) => {
     console.log(req.body);
     // const { id, title, category, start, end, state, location, isReadOnly } = req.body;
-    const { end, id, isAllday, isPrivate, location, start, state, title } = req.body;
+    const { end, id, isAllday, isPrivate, location, start, state, title, calendarId } = req.body;
     
     try {
         // PostgreSQL에 이벤트 데이터를 저장
         await db.query(
-            'INSERT INTO calandars(id, user_id, start_date, end_date, title, location, isallday, state) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-            [id, 'user_id', dateParser(start.d.d), dateParser(end.d.d), title, location, isAllday, state]
+            'INSERT INTO calandars(id, user_id, start_date, end_date, title, location, isallday, state, calendar_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+            [id, 'user_id', dateParser(start.d.d), dateParser(end.d.d), title, location, isAllday, state, calendarId ]
             
         );
 
