@@ -257,3 +257,47 @@ app.get('/payment_file/:uuid', async (req, res) => {
         res.download(data.rows[0].path);
     }
 });
+
+// 이벤트 데이터를 처리하는 API 엔드포인트
+app.post('/api/events', async (req, res) => {
+    console.log(req.body);
+    // const { id, title, category, start, end, state, location, isReadOnly } = req.body;
+    const { end, id, isAllday, isPrivate, location, start, state, title } = req.body;
+    function dateParser(str) {
+        function leftpad (str, len, ch) {
+            str = String(str);
+            var i = -1;
+            if (!ch && ch !== 0) ch = '';
+            len = len - str.length;
+            while (++i < len) {
+                str = ch + str;
+            }
+            return str;
+        }
+
+        let date = new Date(str.toString());
+        let res_ = '';
+
+        res_ += leftpad(date.getFullYear(), 4, 0) +'-';
+        res_ += leftpad(date.getMonth()+1, 2, 0) +'-';
+        res_ += leftpad(date.getDate(), 2, 0) +'T';
+        res_ += leftpad(date.getHours(), 2, 0) +':';
+        res_ += leftpad(date.getMinutes(), 2, 0) +":";
+        res_ += leftpad(date.getSeconds(), 2, 0);
+
+        return res_;
+    }
+    try {
+        // PostgreSQL에 이벤트 데이터를 저장
+        await db.query(
+            'INSERT INTO calandars(id, user_id, start_date, end_date, title, location, isallday, state) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+            [id, 'user_id', dateParser(start.d.d), dateParser(end.d.d), title, location, isAllday, state]
+            
+        );
+
+        res.status(201).json({ message: 'Event successfully saved to the database' });
+    } catch (error) {
+        console.error('Error saving event to the database:', error);
+        res.status(500).json({ message: 'Failed to save event to the database' });
+    }
+});

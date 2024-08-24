@@ -27,29 +27,8 @@
                 return v.toString(16);
             });
         }
-        function leftpad (str, len, ch) {
-            str = String(str);
-            var i = -1;
-            if (!ch && ch !== 0) ch = '';
-            len = len - str.length;
-            while (++i < len) {
-                str = ch + str;
-            }
-            return str;
-        }
-        function dateParser(str) {
-            let date = new Date(str.toString());
-            res = '';
-
-            res += leftpad(date.getFullYear(), 4, 0) +'-';
-            res += leftpad(date.getMonth()+1, 2, 0) +'-';
-            res += leftpad(date.getDate(), 2, 0) +'T';
-            res += leftpad(date.getHours(), 2, 0) +':';
-            res += leftpad(date.getMinutes(), 2, 0) +":";
-            res += leftpad(date.getSeconds(), 2, 0);
-
-            return res;
-        }
+        
+        
     </script>
     <!-- JSX로 React 컴포넌트 작성 및 createRoot 사용 -->
     <script type="text/babel">
@@ -76,15 +55,33 @@
                 // 캘린더에 기본 일정 추가
                 calendarInstance.createEvents(initialSchedules);
 
-                // 팝업에서 일정 생성하기 전에 호출되는 함수
-                const handleBeforeCreateEvent = (eventObj) => {
+                // 팝업에서 일정 생성하기 전에 호출되는 함수 & DB에 데이터 전송도 같이
+                const handleBeforeCreateEvent = async (eventObj) => {
                     const newEvent = {
                         ...eventObj,
                         id: uuid(), // 고유 ID 생성
+                        
                     };
                     console.log('create', newEvent);
-                    // console.log(dateParser(newEvent.start.d.d));
+                    // //console.log(dateParser(newEvent.start.d.d));
+                    console.log(newEvent);
                     calendarInstance.createEvents([newEvent]);
+
+                    const response = await fetch('/api/events', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(newEvent),
+                    });
+
+                    if (response.ok) {
+                        console.log('서버로 이벤트 보내는 거 성공적임');
+                        // 캘린더에 이벤트를 추가
+                        calendarInstance.createEvents([newEvent]);
+                    } else {
+                        console.log('Failed to send event to the server');
+                    }
                 };
 
                 const handleBeforeUpdateEvent = ({ event, changes }) => {
