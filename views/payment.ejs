@@ -41,7 +41,6 @@
 
         /* Modal styles */
         .modal {
-            display: none; /* Hidden by default */
             position: fixed;
             z-index: 1;
             left: 0;
@@ -100,14 +99,17 @@
     <!-- Modal for viewing and editing -->
     <div id="fileModal" class="modal">
         <div class="modal-content">
-            <%= applied %>
             <!-- <span class="close">&times;</span> -->
             <canvas id="modalCanvas"></canvas>
-            <% if (applied) { %>
-                <button id="modalDownloadButton" disabled>승인 완료</button>
-            <% } else { %>
-                <button id="modalDownloadButton">승인</button>
-            <% } %>
+            <div>
+                <% if (applied) { %>
+                    <button id="modalDownloadButton" disabled>승인 완료</button>
+                    <button id="DownloadButton">다운로드</button>
+                <% } else { %>
+                    <button id="modalDownloadButton">승인</button>
+                    <button id="DownloadButton" disabled>다운로드</button>
+                <% } %>
+            </div>
             <div id="morepage"></div>
         </div>
     </div>
@@ -121,24 +123,18 @@
 
     <!-- Include custom script -->
     <script>
-        
-
         document.addEventListener('DOMContentLoaded', () => {
         // Set the path to the PDF.js worker script
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.1.81/pdf.worker.min.js';
         const fileInput = document.getElementById('fileInput');
-        const uploadButton = document.getElementById('uploadButton');
-        const viewButton = document.getElementById('viewButton');
-        const modalDrawButton = document.getElementById('modalDrawButton');
         const morepage = document.querySelector('#morepage');
         const modalDownloadButton = document.getElementById('modalDownloadButton');
+        const fileDownloadButton = document.querySelector('#DownloadButton');
         const modalCanvas = document.getElementById('modalCanvas');
-        const fileModal = document.getElementById('fileModal');
-        const closeModal = document.querySelector('.close');
         const ctx = modalCanvas.getContext('2d');
         
         let uploadedFile = "";
-        
+
         async function fileDownload() {
             response = await fetch('/payment_file/<%= uuid %>');
             const resBlob = await response.blob();
@@ -148,7 +144,6 @@
             } else if (uploadedFile.type === 'image/png') {
                 renderPNG(uploadedFile);
             }
-            fileModal.style.display = 'block';
         }
         fileDownload();
             
@@ -156,39 +151,91 @@
         let lastX = 0;
         let lastY = 0;
         let ratio = 1;
+        
+        
+        <% if (applied) { %>
+            function initializeCanvas() {
+                modalCanvas.addEventListener('mousedown', (e) => {
+                    if (isDrawing) {
+                        lastX = e.offsetX;
+                        lastY = e.offsetY;
+                        modalCanvas.addEventListener('mousemove', draw);
+                        console.log(ratio);
+                    }
+                });
 
-        function initializeCanvas() {
-            modalCanvas.addEventListener('mousedown', (e) => {
+                modalCanvas.addEventListener('mouseup', () => {
+                    modalCanvas.removeEventListener('mousemove', draw);
+                });
+
+                modalCanvas.addEventListener('mouseleave', () => {
+                    modalCanvas.removeEventListener('mousemove', draw);
+                });
+            }
+
+            function draw(e) {
                 if (isDrawing) {
+                    ctx.beginPath();
+                    ctx.moveTo(lastX/ratio, lastY/ratio);
+                    ctx.lineTo(e.offsetX/ratio, e.offsetY/ratio);
+                    ctx.strokeStyle = 'black'; // Color of the drawing
+                    ctx.lineWidth = 2; // Thickness of the drawing
+                    ctx.stroke();
                     lastX = e.offsetX;
                     lastY = e.offsetY;
-                    modalCanvas.addEventListener('mousemove', draw);
-                    console.log(ratio);
+                }
+            }
+            
+            modalDownloadButton.addEventListener('click', async () => {
+                if (uploadedFile) {
+                    if (uploadedFile.type === 'application/pdf') {
+                        try {
+                            const pdfDoc = await applyDrawingToPDF();
+                            const pdfBytes = await pdfDoc.save();
+                            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                            const apliedPdf = new File([pdfBytes], 'aplied.pdf', { type: 'application/pdf' });
+                            const formData = new FormData();
+                            formData.append('file', apliedPdf);
+                            formData.append('uuid', "<%= uuid %>");
+                            const response = await fetch('/payment_res', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const res = await response.json();
+                            modalDownloadButton.disabled = true;
+                            modalDownloadButton.innerText = "승인 완료";
+                            isDrawing = false;
+                        } catch (error) {
+                            console.error('Error generating PDF:', error);
+                        }
+                    } else if (uploadedFile.type === 'image/png') {
+                        try {
+                            const imgData = modalCanvas.toDataURL('image/png');
+                            const imgRes = await fetch(imgData);
+                            const blob = await imgRes.blob();
+                            const apliedPng = new File([blob], 'aplied.png', { type: 'image/png'});
+
+                            const formData = new FormData();
+                            formData.append('file', apliedPng);
+                            formData.append('uuid', "<%= uuid %>");
+                            const response = await fetch('/payment_res', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const res = await response.json();
+                            modalDownloadButton.disabled = true;
+                            modalDownloadButton.innerText = "승인 완료";
+                            isDrawing = false;
+                        } catch (error) {
+                            console.error('Error generating PNG:', error);
+                        }
+                    }
+                } else {
+                    alert('먼저 파일을 업로드하고 수정하세요.');
                 }
             });
-
-            modalCanvas.addEventListener('mouseup', () => {
-                modalCanvas.removeEventListener('mousemove', draw);
-            });
-
-            modalCanvas.addEventListener('mouseleave', () => {
-                modalCanvas.removeEventListener('mousemove', draw);
-            });
-        }
-
-        function draw(e) {
-            if (isDrawing) {
-                ctx.beginPath();
-                ctx.moveTo(lastX/ratio, lastY/ratio);
-                ctx.lineTo(e.offsetX/ratio, e.offsetY/ratio);
-                ctx.strokeStyle = 'black'; // Color of the drawing
-                ctx.lineWidth = 2; // Thickness of the drawing
-                ctx.stroke();
-                lastX = e.offsetX;
-                lastY = e.offsetY;
-            }
-        }
-
+        <% } %>
+        
         async function renderPDF(file) {
             const fileReader = new FileReader();
             fileReader.onload = async () => {
@@ -289,54 +336,19 @@
 
             return pdfDoc;
         }
+        fileDownloadButton.addEventListener('click', async () => {
+            response = await fetch('/payment_file/<%= uuid %>');
+            const resBlob = await response.blob();
+            const downloadFile = await new File([resBlob], 'payment', { type: resBlob.type });
+            const url = URL.createObjectURL(downloadFile);
 
-        modalDownloadButton.addEventListener('click', async () => {
-            if (uploadedFile) {
-                if (uploadedFile.type === 'application/pdf') {
-                    try {
-                        const pdfDoc = await applyDrawingToPDF();
-                        const pdfBytes = await pdfDoc.save();
-                        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                        const apliedPdf = new File([pdfBytes], 'aplied.pdf', { type: 'application/pdf' });
-                        const formData = new FormData();
-                        formData.append('file', apliedPdf);
-                        formData.append('uuid', "<%= uuid %>");
-                        const response = await fetch('/payment_res', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        const res = await response.json();
-                        modalDownloadButton.disabled = true;
-                        modalDownloadButton.innerText = "승인 완료";
-                        isDrawing = false;
-                    } catch (error) {
-                        console.error('Error generating PDF:', error);
-                    }
-                } else if (uploadedFile.type === 'image/png') {
-                    try {
-                        const imgData = modalCanvas.toDataURL('image/png');
-                        const imgRes = await fetch(imgData);
-                        const blob = await imgRes.blob();
-                        const apliedPng = new File([blob], 'aplied.png', { type: 'image/png'});
-
-                        const formData = new FormData();
-                        formData.append('file', apliedPng);
-                        formData.append('uuid', "<%= uuid %>");
-                        const response = await fetch('/payment_res', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        const res = await response.json();
-                        modalDownloadButton.disabled = true;
-                        modalDownloadButton.innerText = "승인 완료";
-                        isDrawing = false;
-                    } catch (error) {
-                        console.error('Error generating PNG:', error);
-                    }
-                }
-            } else {
-                alert('먼저 파일을 업로드하고 수정하세요.');
-            }
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = downloadFile.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         });
     });
     </script>

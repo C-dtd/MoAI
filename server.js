@@ -233,7 +233,6 @@ app.get('/payment/:uuid', async (req, res) => {
         [ id ]
     );
     let applied = false;
-    console.log(data.rows[0].app);
     if (data.rows[0].app) {
         applied = true;
     }
