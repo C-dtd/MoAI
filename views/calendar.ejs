@@ -62,6 +62,20 @@
         const App = () => {
             const calendarRef = useRef(null);
             const [currentMonth, setCurrentMonth] = useState('');
+            const [calendars] = useState([
+                {
+                id: "cal1",
+                name: "My Calendar",
+                backgroundColor: "#FF5733",
+                borderColor: "#FF5733",
+                },
+                {
+                id: "cal2",
+                name: "Company",
+                backgroundColor: '#33FF57',
+                borderColor: '#33FF57',
+                }
+            ]);
 
             useEffect(() => {
                 const updateMonth = () => {
@@ -268,6 +282,7 @@
                         week={calendarOptions.week}  // 주간 옵션 전달
                         month={calendarOptions.month} // 월간 옵션 전달
                         template={calendarOptions.template} // 템플릿 옵션 추가
+                        calendars={calendars}
                     />
                 </div>
             );
