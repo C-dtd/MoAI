@@ -142,10 +142,10 @@ app.get('/db', async function(req, res) {
 app.get('/', function(req, res) {
     const { user } = req.session;
     if (user) {
-        res.render('login', user);
+        res.render('main_iframe', user);
         return;
     }
-    res.send('');
+    res.redirect('/login');
 });
 
 app.post('/login', async (req, res) => {

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Page with createRoot</title>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React와 ReactDOM을 CDN에서 로드 -->
+    <script src="https://unpkg.com/react/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom/umd/react-dom.development.js"></script>
+    
+    <!-- Babel을 사용하여 브라우저에서 JSX를 변환 -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@toast-ui/react-calendar"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/@toast-ui/calendar/dist/toastui-calendar.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/tui-date-picker/dist/tui-date-picker.css">
+    <link rel="stylesheet" href="https://unpkg.com/tui-time-picker/dist/tui-time-picker.css">
+
+    <script>
+        function uuid() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        function leftpad (str, len, ch) {
+            str = String(str);
+            var i = -1;
+            if (!ch && ch !== 0) ch = '';
+            len = len - str.length;
+            while (++i < len) {
+                str = ch + str;
+            }
+            return str;
+        }
+        function dateParser(str) {
+            let date = new Date(str.toString());
+            res = '';
+
+            res += leftpad(date.getFullYear(), 4, 0) +'-';
+            res += leftpad(date.getMonth()+1, 2, 0) +'-';
+            res += leftpad(date.getDay(), 2, 0) +'T';
+            res += leftpad(date.getHours(), 2, 0) +':';
+            res += leftpad(date.getMinutes(), 2, 0) +":";
+            res += leftpad(date.getSeconds(), 2, 0);
+
+            return res;
+        }
+    </script>
+    <!-- JSX로 React 컴포넌트 작성 및 createRoot 사용 -->
+    <script type="text/babel">
+        const { useRef, useEffect } = React;
+        const { ReactCalendar } = tui;
+        // React 컴포넌트 정의
+        const App = () => {
+            const calendarRef = useRef(null);
+            
+            useEffect(() => {
+                const calendarInstance = calendarRef.current.getInstance();
+                const initialSchedules = [
+                    {
+                        id: uuid(),
+                        title: '전체일정 이벤트',
+                        category: 'allday',
+                        start: '2024-08-22T00:00:00',
+                        end: '2024-08-22T23:59:59',
+                        state: 'Free',
+                        location: 'home',
+                        isReadOnly: false,
+                    },
+                ];
+                // 캘린더에 기본 일정 추가
+                calendarInstance.createEvents(initialSchedules);
+
+                // 팝업에서 일정 생성하기 전에 호출되는 함수
+                const handleBeforeCreateEvent = (eventObj) => {
+                    const newEvent = {
+                        ...eventObj,
+                        id: uuid(), // 고유 ID 생성
+                    };
+                    console.log('create', eventObj);
+                    console.log(dateParser(eventObj.start.d.d));
+                    calendarInstance.createEvents([newEvent]);
+                };
+
+                const handleBeforeUpdateEvent = ({ event, changes }) => {
+                    console.log('Updating event:', event);
+                    console.log('Changes:', changes);
+
+                    calendarInstance.updateEvent(event.id, event.calendarId, changes);
+                };
+
+                const handleBeforeDeleteEvent = ({ id, calendarId }) => {
+                    console.log('Deleting event:', id);
+                    calendarInstance.deleteEvent(id, calendarId);
+                };
+
+                calendarInstance.on('beforeCreateEvent', handleBeforeCreateEvent);
+                calendarInstance.on('beforeUpdateEvent', handleBeforeUpdateEvent);
+                calendarInstance.on('beforeDeleteEvent', handleBeforeDeleteEvent);
+            }, []);
+
+            const calendarOptions = {
+                week: {
+                    dayNames: ['월', '화', '수', '목', '금', '토', '일'], // 요일 이름을 한글로 설정
+                    startDayOfWeek: 0, // 일요일을 시작으로 설정 (0=일요일, 1=월요일)
+                    narrowWeekend: true, // 주말을 좁게 표시
+                },
+                month: {
+                    dayNames: ['일', '월', '화', '수', '목', '금', '토'], // 월간 보기에서 요일 이름 설정
+                },
+                template: {
+                    popupIsAllday() {
+                        return '하루종일';
+                    },
+                }
+            };
+            return (
+                <div className="App">
+                    <h1>My Calendar</h1>
+                    <ReactCalendar
+                        ref={calendarRef}
+                        height='500px'
+                        view="month"
+                        useFormPopup={true}  // 팝업을 사용하도록 설정
+                        useDetailPopup={true}
+                        week={calendarOptions.week}  // 주간 옵션 전달
+                        month={calendarOptions.month} // 월간 옵션 전달
+                        template={calendarOptions.template} // 템플릿 옵션 추가
+                    />
+                </div>
+            );
+        };
+
+        // ReactDOM.createRoot 사용하여 렌더링
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+
+        root.render(
+            <React.StrictMode>
+                <App />
+            </React.StrictMode>
+        );
+    </script>
+</body>
+</html>
