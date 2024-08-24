@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toast UI Editor Example</title>
+  <!-- Toast UI Editor CSS -->
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+  <link rel="stylesheet" href="https://uicdn.toast.com/tui-color-picker/latest/tui-color-picker.min.css"/>
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.css"
+  />
+</head>
+<body>
+  <!-- 에디터가 렌더링될 div -->
+  <div id="editor" style="width: 600pxs;"></div>
+  <br>
+  <button id="saveBtn">저장</button>
+
+  <!-- Toast UI Editor JS -->
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+   <!-- Color Picker -->
+  <script src="https://uicdn.toast.com/tui-color-picker/latest/tui-color-picker.min.js"></script>
+  <!-- Editor -->
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+  <!-- Editor's Plugin -->
+  <script src="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.js"></script>
+
+
+  <script>
+    // 에디터 초기화
+    const { Editor } = toastui;
+    const { colorSyntax } = Editor.plugin;
+    const editor = new toastui.Editor({
+      el: document.querySelector('#editor'),
+      height: '500px',
+      initialEditType: 'wysiwyg',
+      previewStyle: 'vertical',
+      hideModeSwitch: true,
+      plugins: [colorSyntax]
+    });
+
+    
+
+    document.getElementById('saveBtn').addEventListener('click', function() {
+        try {
+          // Markdown 내용을 HTML로 변환
+          const htmlContent = editor.getHTML();
+
+          // HTML을 DOCX 파일로 변환
+          const converted = htmlDocx.asBlob(htmlContent);
+          
+          // 파일 다운로드
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(converted);
+          link.download = 'document.docx';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          console.log('DOCX 파일 다운로드가 시작되었습니다.');
+
+        } catch (error) {
+          console.error('DOCX 파일 다운로드 중 오류 발생:', error);
+        }
+      });
+  </script>
+</body>
+</html>
