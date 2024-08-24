@@ -123,13 +123,23 @@
 </script>
 <!-- JSX로 React 컴포넌트 작성 및 createRoot 사용 -->
 <script type="text/babel">
-    const { useRef, useEffect } = React;
+    const { useRef, useEffect,useState } = React;
     const { ReactCalendar } = tui;
     // React 컴포넌트 정의
     const App = () => {
         const calendarRef = useRef(null);
-        
+        const [currentMonth, setCurrentMonth] = useState('');
+
         useEffect(() => {
+            const updateMonth = () => {
+            if (calendarRef.current) {
+                const calendarInstance = calendarRef.current.getInstance();
+                const viewDate = calendarInstance.getDate();
+                setCurrentMonth(`${viewDate.getFullYear()}년 ${viewDate.getMonth() + 1}월`);
+            }
+            };
+
+            updateMonth();
             const calendarInstance = calendarRef.current.getInstance();
             const initialSchedules = [
                 {
@@ -190,11 +200,58 @@
                 popupIsAllday() {
                     return '하루종일';
                 },
+                locationPlaceholder() {
+                    return '장소';
+                },
+                titlePlaceholder() {
+                    return '일정 제목';
+                },
+                popupSave() {
+                    return '일정 추가';
+                },
+                popupEdit() {
+                    return '수정';
+                },
+                popupDelete(){
+                    return '삭제';
+                }
             }
         };
+
+        const handleNext = () => {
+            const calendarInstance = calendarRef.current.getInstance();
+            calendarInstance.next();
+            updateMonth();
+        };
+
+        const handlePrev = () => {
+            const calendarInstance = calendarRef.current.getInstance();
+            calendarInstance.prev();
+            updateMonth();
+        };
+
+        const handleToday = () => {
+            const calendarInstance = calendarRef.current.getInstance();
+            calendarInstance.today();
+            updateMonth();
+        };
+
+        const updateMonth = () => {
+            if (calendarRef.current) {
+            const calendarInstance = calendarRef.current.getInstance();
+            const viewDate = calendarInstance.getDate();
+            setCurrentMonth(`${viewDate.getFullYear()}년 ${viewDate.getMonth() + 1}월`);
+            }
+        };
+
         return (
             <div className="App">
-                <h1>My Calendar</h1>
+                <h1 align="center">{currentMonth}</h1>
+                <div className="controls">
+                    <button className="control-button" onClick={handlePrev}>이전 달</button>
+                    <button className="control-button" onClick={handleNext}>다음 달</button>
+                    <button className="control-button" onClick={handleToday}>오늘</button>
+                </div>
                 <ReactCalendar
                     ref={calendarRef}
                     height='500px'
