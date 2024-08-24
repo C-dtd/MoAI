@@ -4,6 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>React Page with createRoot</title>
+    <style>
+        .control-button {
+            background-color: #f0f0f0; /* 버튼 배경 색상 (밝은 회색) */
+            border: 1px solid #ddd; /* 연한 테두리 */
+            color: #333; /* 텍스트 색상 (어두운 회색) */
+            padding: 8px 16px; /* 패딩 조정 */
+            margin: 0 5px; /* 버튼 간의 간격 */
+            border-radius: 20px; /* 완전한 둥근 모서리 */
+            font-size: 14px; /* 폰트 크기 */
+            cursor: pointer; /* 마우스 커서 변경 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 가벼운 그림자 효과 */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 호버 애니메이션 */
+        }
+        
+        .control-button:hover {
+            background-color: #e0e0e0; /* 호버 시 배경 색상 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* 호버 시 그림자 효과 */
+        }
+        
+        .control-button:focus {
+            outline: none; /* 포커스 시 외곽선 제거 */
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1); /* 포커스 시 그림자 효과 */
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
@@ -32,13 +56,23 @@
     </script>
     <!-- JSX로 React 컴포넌트 작성 및 createRoot 사용 -->
     <script type="text/babel">
-        const { useRef, useEffect } = React;
+        const { useRef, useEffect, useState } = React;
         const { ReactCalendar } = tui;
         // React 컴포넌트 정의
         const App = () => {
             const calendarRef = useRef(null);
-            
+            const [currentMonth, setCurrentMonth] = useState('');
+
             useEffect(() => {
+                const updateMonth = () => {
+                if (calendarRef.current) {
+                    const calendarInstance = calendarRef.current.getInstance();
+                    const viewDate = calendarInstance.getDate();
+                    setCurrentMonth(`${viewDate.getFullYear()}년 ${viewDate.getMonth() + 1}월`);
+                }
+                };
+
+                updateMonth();
                 const calendarInstance = calendarRef.current.getInstance();
                 const initialSchedules = [
                     {
@@ -113,12 +147,59 @@
                 template: {
                     popupIsAllday() {
                         return '하루종일';
+                    },                    
+                    locationPlaceholder() {
+                        return '장소';
                     },
+                    titlePlaceholder() {
+                        return '일정 제목';
+                    },
+                    popupSave() {
+                        return '일정 추가';
+                    },
+                    popupEdit() {
+                        return '수정';
+                    },
+                    popupDelete(){
+                        return '삭제';
+                    }
                 }
             };
+
+            const handleNext = () => {
+                const calendarInstance = calendarRef.current.getInstance();
+                calendarInstance.next();
+                updateMonth();
+            };
+
+            const handlePrev = () => {
+                const calendarInstance = calendarRef.current.getInstance();
+                calendarInstance.prev();
+                updateMonth();
+            };
+
+            const handleToday = () => {
+                const calendarInstance = calendarRef.current.getInstance();
+                calendarInstance.today();
+                updateMonth();
+            };
+
+            const updateMonth = () => {
+                if (calendarRef.current) {
+                const calendarInstance = calendarRef.current.getInstance();
+                const viewDate = calendarInstance.getDate();
+                setCurrentMonth(`${viewDate.getFullYear()}년 ${viewDate.getMonth() + 1}월`);
+                }
+            };
+        
             return (
                 <div className="App">
-                    <h1>My Calendar</h1>
+                    <h1 align="center">{currentMonth}</h1>
+                    <div className="controls">
+                        <button className="control-button" onClick={handlePrev}>이전 달</button>
+                        <button className="control-button" onClick={handleNext}>다음 달</button>
+                        <button className="control-button" onClick={handleToday}>오늘</button>
+                    </div>
                     <ReactCalendar
                         ref={calendarRef}
                         height='500px'
