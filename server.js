@@ -50,6 +50,8 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/html', express.static(__dirname + '/html'));
 app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use('/서류결제2', express.static(__dirname + '/서류결제2'));
+app.use("/main_css", express.static(__dirname + '/main_css'));
+app.use("/image", express.static(__dirname + '/image'));
 
 // 페이지 연결 
 app.get('/login', function(req, res) {
@@ -90,6 +92,10 @@ app.get('/calendar', function(req, res) {
 
 app.get('/index', function(req, res){
     res.sendFile(__dirname + '/서류결제2/index.html');  // register html
+})
+
+app.get('/main', function(req, res){
+    res.sendFile(__dirname + '/main_html/main.html');  // register html
 })
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

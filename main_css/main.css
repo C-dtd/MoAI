@@ -60,11 +60,11 @@ body {
     gap: 12px;
 }
 
-.action-icon {
+/* .action-icon {
     width: 16px;
     height: 16px;
     border: 1.3px solid #666F8D;
-}
+} */
 
 .search-bar {
     margin-top: 40px;
@@ -84,11 +84,11 @@ body {
     gap: 4px;
 }
 
-.search-input .search-icon {
+/* .search-input .search-icon {
     width: 13px;
     height: 13px;
     border: 1.2px solid #666F8D;
-}
+} */
 
 .search-input input {
     border: none;
@@ -131,11 +131,11 @@ body {
     background: #F7F8FA;
 }
 
-.menu-icon {
+/* .menu-icon {
     width: 16px;
     height: 16px;
     border: 1.4px solid #666F8D;
-}
+} */
 
 .menu-label {
     color: #666F8D;
