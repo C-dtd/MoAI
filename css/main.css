@@ -182,6 +182,7 @@ div.main {
     font-size: 35px;
     font-family: 'Open Sans', sans-serif;
     font-weight: 600;
+    margin: 0;
     padding: 32px 0;
     display: flex;
     flex-direction: column;
@@ -192,10 +193,12 @@ div.main {
     flex-grow: 1;
 }
 
-.chatroom, .noteroom {
+.right-content {
     display: flex;
     flex-direction: column;
     margin: 20px 0;
-    padding: 0 10px;
-    overflow-y: scroll;
+    padding: 10px;
+    overflow-y: auto;
+    flex-grow: 1;
+    height: 100%;
 }

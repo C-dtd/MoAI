@@ -9,6 +9,7 @@ const { log } = require('console');
 const multer = require('multer');
 const path = require('path');
 const { v4 } = require('uuid');
+const { send } = require('process');
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -113,11 +114,20 @@ io.on('connection', (socket) => {
     });
 });
 
+app.post('/newroom', async (req, res) => {
+    const { members } = req.body;
+    res.send('');
+});
+
 //메인 페이지
-app.get('/', function(req, res) {
+app.get('/', async (req, res) => {
     const { user } = req.session;
     if (user) {
-        res.render('main_iframe', user);
+        const data = await db.query(
+            "select user_id, user_name from users where user_id != $1",
+            [ user.user_id ]
+        )
+        res.render('main_iframe', {user: user, members: data.rows });
         return;
     }   
     res.redirect('/login');
