@@ -296,3 +296,21 @@ app.post('/api/events', async (req, res) => {
         res.status(500).json({ message: 'Failed to save event to the database' });
     }
 });
+
+// 데이터 삭제 엔드포인트 추가
+app.delete('/api/events/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const result = await db.query('DELETE FROM calandars WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rowCount > 0) {
+            res.status(200).json({ message: 'Event deleted successfully', deletedEvent: result.rows[0] });
+        } else {
+            res.status(404).json({ message: 'Event not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        res.status(500).json({ message: 'Failed to delete event from the database' });
+    }
+});
