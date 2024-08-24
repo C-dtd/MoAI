@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat and Calendar Interface</title>
-    <link rel="stylesheet" href="../main_css/main.css">
+    <link rel="stylesheet" href="./css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     
     
@@ -70,14 +70,41 @@
     </aside>
     <main class="main-content">
         <section class="calendar">
-            <iframe src="./html/calendar.html" frameborder="0" style="height: 100%;"></iframe>
+            <iframe src="/calendar" frameborder="0" style="height: 100%;"></iframe>
         </section>
-        <section class="note-section">
-            메모장
-        </section>
-        <section class="chat-section">
-            채팅방
-        </section>
+        <div style="display: flex; flex-direction: column; width: 40%;">
+            <section class="chat-section">
+                <header>채팅방</header>
+                <main class="chatroom">
+                        <button class="outline">방 이름</button>
+                        <button class="outline">방 이름</button>
+                        <button class="outline">방 이름</button>
+                        <button class="outline">방 이름</button>
+                        <button class="outline">방 이름</button>
+                        <button class="outline">방 이름</button>
+                        <button class="outline">방 이름</button>
+                        <button class="outline">방 이름</button>
+                </main>
+                <footer>
+                    <button>새 채팅방</button>
+                </footer>
+            </section>
+            <section class="note-section">
+                <header>메모장</header>
+                <main class="noteroom">
+                    <button class="outline">메모 제목</button>
+                    <button class="outline">메모 제목</button>
+                    <button class="outline">메모 제목</button>
+                    <button class="outline">메모 제목</button>
+                    <button class="outline">메모 제목</button>
+                    <button class="outline">메모 제목</button>
+                    <button class="outline">메모 제목</button>
+                </main>
+                <footer>
+                    <button>새 메모</button>
+                </footer>
+            </section>
+        </div>
     </main>
 </div>
 </body>

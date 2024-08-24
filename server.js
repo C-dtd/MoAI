@@ -144,7 +144,7 @@ app.get('/', function(req, res) {
     if (user) {
         res.render('main_iframe', user);
         return;
-    }
+    }   
     res.redirect('/login');
 });
 

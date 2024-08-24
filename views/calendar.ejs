@@ -43,7 +43,7 @@
 
             res += leftpad(date.getFullYear(), 4, 0) +'-';
             res += leftpad(date.getMonth()+1, 2, 0) +'-';
-            res += leftpad(date.getDay(), 2, 0) +'T';
+            res += leftpad(date.getDate(), 2, 0) +'T';
             res += leftpad(date.getHours(), 2, 0) +':';
             res += leftpad(date.getMinutes(), 2, 0) +":";
             res += leftpad(date.getSeconds(), 2, 0);
@@ -71,9 +71,6 @@
                         state: 'Free',
                         location: 'home',
                         isReadOnly: false,
-                        color: 'red',
-                        borderColor: 'blue',
-                        backgroundColor: 'green'
                     },
                 ];
                 // 캘린더에 기본 일정 추가
@@ -85,8 +82,8 @@
                         ...eventObj,
                         id: uuid(), // 고유 ID 생성
                     };
-                    console.log('create', eventObj);
-                    console.log(dateParser(eventObj.start.d.d));
+                    console.log('create', newEvent);
+                    // console.log(dateParser(newEvent.start.d.d));
                     calendarInstance.createEvents([newEvent]);
                 };
 
