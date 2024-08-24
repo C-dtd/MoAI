@@ -53,7 +53,7 @@ app.use('/서류결제2', express.static(__dirname + '/서류결제2'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
 
-// 페이지 연결 
+// 정적 페이지 연결 
 app.get('/login', function(req, res) {
     const { user } = req.session;
     if (user) {
@@ -77,17 +77,12 @@ app.get('/register_confirm', function(req, res){
     }
 })
 
-
 app.get('/find_passwordauth', function(req, res){
     res.sendFile(__dirname + '/html/find_passwordauth.html');  // register html
 })
 
 app.get('/find_password_success', function(req, res){
     res.sendFile(__dirname + '/html/find_password_success.html');  // register html
-})
-
-app.get('/calendar', function(req, res) {
-    res.render('calendar.ejs');
 })
 
 app.get('/index', function(req, res){
@@ -98,14 +93,15 @@ app.get('/main', function(req, res){
     res.sendFile(__dirname + '/main_html/main.html');  // register html
 })
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Route to serve other static files or API endpoints
-
 server.listen(port, function() {
     log('Server host in http://localhost:' + port);
 });
 
+app.get('/calendar', function(req, res) {
+    res.render('calendar.ejs');
+})
+
+//소켓 통신 (채팅 부분)
 io.on('connection', (socket) => {
     socket.on('msg', (msg) => {
         console.log(msg);
@@ -117,6 +113,17 @@ io.on('connection', (socket) => {
     });
 });
 
+//메인 페이지
+app.get('/', function(req, res) {
+    const { user } = req.session;
+    if (user) {
+        res.render('main_iframe', user);
+        return;
+    }   
+    res.redirect('/login');
+});
+
+//채팅페이지 (임시)
 app.get('/chat', async function(req, res) {
     const { user } = req.session;
     if (!user) {
@@ -131,23 +138,12 @@ app.get('/chat', async function(req, res) {
     res.render('chat.ejs', {chat_log: chat_log.rows, user: user});
 });
 
-app.get('/db', async function(req, res) {
-    const data = await db.query("select * from chat_logs where room_id='0'");
-    res.send(data.rows);
-    // data.rows.forEach((row) => {
-    //     console.log(row);
-    // });
-});
+// app.get('/db', async function(req, res) {
+//     const data = await db.query("select * from chat_logs where room_id='0'");
+//     res.send(data.rows);
+// });
 
-app.get('/', function(req, res) {
-    const { user } = req.session;
-    if (user) {
-        res.render('main_iframe', user);
-        return;
-    }   
-    res.redirect('/login');
-});
-
+//로그인시 아이디랑 비밀번호 확인 후 로그인 동작
 app.post('/login', async (req, res) => {
     const { id, password } = req.body;
     const data = await db.query(
@@ -164,6 +160,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
+//회원 가입시 정보 db에 저장
 app.post('/register', function(req, res) {
     const { id, name, phoneHead, phoneFront, phoneBack, password } = req.body;
     let phone = `${phoneHead}-${phoneFront}-${phoneBack}`;
@@ -175,20 +172,18 @@ app.post('/register', function(req, res) {
     res.redirect('/register_confirm');
 });
 
-app.get('/upload_', (req, res) => {
-    res.render('upload.ejs');
-});
-
+//post formdata로 파일(key: file)이 업로드될때 ./uploads에 저장. 저장된 경로 반환
 app.post('/upload', upload.single('file'), function(req, res) {
     const file = req.file;
     res.send(
-        { 
+        {
             result: 'ok',
             path: file.path
         }
     );
 });
 
+//결재 요청 보내기
 app.post('/payment_req', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -197,7 +192,6 @@ app.post('/payment_req', async (req, res) => {
     }
     const path = req.body.path;
     const id = v4();
-
     await db.query(
         "insert into payment (id, uploader, path) values ($1, $2, $3)",
         [ id, user.user_id, path ]
@@ -206,6 +200,7 @@ app.post('/payment_req', async (req, res) => {
     res.send( {uuid: id} );
 });
 
+//결재 요청 응답
 app.post('/payment_res', upload.single('file'), async (req, res) => {
     const { user } = req.session;
 
@@ -213,20 +208,19 @@ app.post('/payment_res', upload.single('file'), async (req, res) => {
         res.send('invalid request');
         return;
     }
-    // console.log('payment_res');
-    // console.log(req.body.uuid);
     const file = req.file;
 
-    const data = await db.query(
+    await db.query(
         "update payment set app_at=now(), app=$1, app_path=$2 where id=$3",
         [ user.user_id, file.path, req.body.uuid ]
     );
 
     res.send(
-        { result: 'ok'}
+        { result: 'ok' }
     );
 });
 
+//결재 요청 url
 app.get('/payment/:uuid', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -245,6 +239,7 @@ app.get('/payment/:uuid', async (req, res) => {
     res.render('payment.ejs', { uuid: id, applied: applied })
 });
 
+//결재 요청 url의 파일 다운로드 링크
 app.get('/payment_file/:uuid', async (req, res) => {
     const id = req.params.uuid;
     const data = await db.query(
@@ -299,5 +294,23 @@ app.post('/api/events', async (req, res) => {
     } catch (error) {
         console.error('Error saving event to the database:', error);
         res.status(500).json({ message: 'Failed to save event to the database' });
+    }
+});
+
+// 데이터 삭제 엔드포인트 추가
+app.delete('/api/events/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const result = await db.query('DELETE FROM calandars WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rowCount > 0) {
+            res.status(200).json({ message: 'Event deleted successfully', deletedEvent: result.rows[0] });
+        } else {
+            res.status(404).json({ message: 'Event not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        res.status(500).json({ message: 'Failed to delete event from the database' });
     }
 });

@@ -99,7 +99,7 @@
                     console.log('create', newEvent);
                     // //console.log(dateParser(newEvent.start.d.d));
                     console.log(newEvent);
-                    calendarInstance.createEvents([newEvent]);
+                    // calendarInstance.createEvents([newEvent]);
 
                     const response = await fetch('/api/events', {
                         method: 'POST',
@@ -125,9 +125,25 @@
                     calendarInstance.updateEvent(event.id, event.calendarId, changes);
                 };
 
-                const handleBeforeDeleteEvent = ({ id, calendarId }) => {
+                const handleBeforeDeleteEvent = async ({ id, calendarId }) => {
                     console.log('Deleting event:', id);
-                    calendarInstance.deleteEvent(id, calendarId);
+                
+                    try {
+                        // 서버로 삭제 요청 보내기
+                        const response = await fetch(`/api/events/${id}`, {
+                            method: 'DELETE',
+                        });
+                
+                        if (response.ok) {
+                            // 서버에서 삭제 성공 시 클라이언트의 캘린더에서 이벤트 삭제
+                            console.log('Event deleted successfully from the server');
+                            calendarInstance.deleteEvent(id, calendarId);
+                        } else {
+                            console.log('Failed to delete event from the server');
+                        }
+                    } catch (error) {
+                        console.error('Error deleting event:', error);
+                    }
                 };
 
                 calendarInstance.on('beforeCreateEvent', handleBeforeCreateEvent);
