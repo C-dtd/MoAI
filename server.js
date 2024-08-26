@@ -23,7 +23,7 @@ const db = new Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000
 });
-
+//테스트 커밋용
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, 'uploads/');
