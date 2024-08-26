@@ -90,22 +90,28 @@
                 </footer>
             </section>
             <section class="note-section">
-                <header>메모장</header>
+                <iframe src="/memo" frameborder="0" style="height: 100%;"></iframe>
+                <header></header>
                 <main class="noteroom">
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
+                    <div id = "note-container">
+                        <!-- 메모가 표시될 부분 -->
+                        <div id="memoList"></div>
+                    </div>
                 </main>
-                <footer>
-                    <button>새 메모</button>
-                </footer>
+                <!-- <footer>
+                    <button onclick="openMemo()">새 메모</button>
+                </footer> -->
             </section>
         </div>
     </main>
 </div>
+
+<script>
+    function openMemo() {
+        window.open('./views/memo.ejs', '_blank', 'width=800,height=600');
+    }
+  </script>
+
 </body>
 </html>
+

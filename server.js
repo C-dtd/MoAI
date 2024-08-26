@@ -101,6 +101,10 @@ app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
 })
 
+app.get('/memo', function(req, res) {
+    res.render('memo.ejs');
+})
+
 //소켓 통신 (채팅 부분)
 io.on('connection', (socket) => {
     socket.on('msg', (msg) => {
@@ -357,5 +361,88 @@ app.get('/api/events/:user_id', async (req, res) => {
     } catch (error) {
         console.error('Error fetching events from the database:', error);
         res.status(500).json({ message: 'Failed to fetch events from the database' });
+    }
+});
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 메모 기능 설정들 //
+
+// 메모 생성하기
+app.post('/api/memo', async (req, res) => {
+    const { user_id, title, content } = req.body;
+    try {
+        const result = await db.query(
+            'INSERT INTO memo (user_id, title, content) VALUES ($1, $2, $3) RETURNING *',
+            [user_id, title, content]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error creating memo:', error);
+        res.status(500).json({ message: 'Failed to create memo' });
+    }
+});
+
+// 메모 목록 조회하기
+app.get('/api/memo/:user_id', async (req, res) => {
+    const { user_id } = req.params;
+    try {
+        const result = await db.query('SELECT * FROM memo WHERE user_id = $1', [user_id]);
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching memo:', error);
+        res.status(500).json({ message: 'Failed to fetch memos' });
+    }
+});
+
+// 메모 조회하기
+app.get('/api/memo/:user_id/:id', async (req, res) => {
+    const { user_id, id } = req.params;
+    try {
+        const result = await db.query('SELECT * FROM memo WHERE id = $1 AND user_id = $2', [id, user_id]);
+        if (result.rows.length > 0) {
+            res.status(200).json(result.rows[0]);
+        } else {
+            res.status(404).json({ message: 'Memo not found' });
+        }
+    } catch (error) {
+        console.error('Error fetching memo:', error);
+        res.status(500).json({ message: 'Failed to fetch memo' });
+    }
+});
+
+// 메모 수정하기
+app.put('/api/memo/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, content } = req.body;
+    try {
+        const result = await db.query(
+            'UPDATE memo SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+            [title, content, id]
+        );
+        if (result.rows.length > 0) {
+            res.status(200).json(result.rows[0]);
+        } else {
+            res.status(404).json({ message: 'Memo not found' });
+        }
+    } catch (error) {
+        console.error('Error updating memo:', error);
+        res.status(500).json({ message: 'Failed to update memo' });
+    }
+});
+
+// 메모 삭제하기
+app.delete('/api/memo/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.query('DELETE FROM memo WHERE id = $1 RETURNING *', [id]);
+        if (result.rows.length > 0) {
+            res.status(200).json({ message: 'Memo deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Memo not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting memo:', error);
+        res.status(500).json({ message: 'Failed to delete memo' });
     }
 });
