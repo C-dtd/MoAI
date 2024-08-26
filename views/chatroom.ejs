@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    
+    <title>Document</title>
+    <style>
+        body {
+            height: 100vh;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        body>header, body>footer {
+            padding: 0;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            /* margin: 20px 0; */
+            padding: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+            height: 100%;
+        }
+        main a button {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h3>채팅방</h3>
+    </header>
+    <main>
+        <% chatroomList.forEach((chatroom) => { %>
+            <a href="/chat/<%= chatroom.id %>">
+                <button class="outline chat-room">
+                    <%= chatroom.room_name %>
+                </button>
+            </a>
+        <% }); %>
+    </main>
+    <footer>
+        <a href="/newchatroom"><button id="new-chat-room">새 채팅방</button></a>
+    </footer>
+<script>
+const newChatButton = document.querySelector('#new-chat-room');
+// const rooms = document.querySelectorAll('.chat-room');
+
+// rooms.forEach((room) => {
+//     room.addEventListener('click', (e) => {
+//         location.href = '/chat'
+//     });
+// });
+</script>
+</body>
+</html>

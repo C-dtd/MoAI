@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    
+    <title>Document</title>
+    <style>
+        body {
+            height: 100vh;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        body>header, body>footer {
+            padding: 0;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            /* margin: 20px 0; */
+            padding: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        footer>[role=group] {
+            margin: 0;
+        }
+        #goBack {
+            position: absolute;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button id="goBack" onclick="history.back();"><</button>
+        <h3>채팅방</h3>
+    </header>
+    <main>
+        <% userList.forEach((user) => { %>
+            <label>
+                <input type="checkbox" name="<%= user.user_name %>" class="invite">
+                <%= user.user_name %>
+            </label>
+            <hr>
+        <% }); %>
+    </main>
+    <footer>
+        <div role="group">
+            <input type="text" placeholder="room name" style="width: auto;" id="room_name">
+                <button id="new-chat-room">개설</button>
+        </div>
+    </footer>
+<script>
+const createRoomButton = document.querySelector('#new-chat-room');
+const roomnameInput = document.querySelector('#room_name');
+const goBack = document.querySelector('#goBack');
+createRoomButton.addEventListener('click', async () => {
+    const userCheckList = document.querySelectorAll('.invite');
+    let inviteList = [];
+    userCheckList.forEach((user) => {
+        if (user.checked) {
+            inviteList.push(user.name);
+        }
+    });
+    console.log(inviteList);
+    if (inviteList.length == 0) {
+        return;
+    }
+    const response = await fetch('/newroom', {
+        method: 'POST',
+        headers: {
+            "content-type": "application/json"
+        },
+        body: JSON.stringify({
+            inviteList: inviteList,
+            roomName: roomnameInput.value,
+        })
+    });
+    // const res = await response.json();
+});
+</script>
+</body>
+</html>
