@@ -13,6 +13,21 @@
     min-height: 100vh;
 } */
 
+#img-modal {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#modal-content {
+    max-width: 80%;
+}
+
 div.main {
     border-radius: 16px;
     display: flex;

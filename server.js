@@ -321,6 +321,16 @@ app.post('/payment_res', upload.single('file'), async (req, res) => {
     }
     const file = req.file;
 
+    const data = await db.query(
+        "select app from payment where id=$1",
+        [ id ]
+    );
+    if (data.rows[0].app) {
+        res.send(
+            {result: false}
+        );
+    }
+
     await db.query(
         "update payment set app_at=now(), app=$1, app_path=$2 where id=$3",
         [ user.user_id, file.path, req.body.uuid ]
