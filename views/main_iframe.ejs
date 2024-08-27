@@ -6,8 +6,6 @@
     <title>Chat and Calendar Interface</title>
     <link rel="stylesheet" href="./css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    
-    
 </head>
 <body>
 <div style="display: flex;">
@@ -95,55 +93,19 @@
         </div>
     </main>
 </div>
+<div id="img-modal" style="display: none;">
+    <img src="" alt="modal-content" id="modal-content">
+</div>
 <script>
-// const newChatButton = document.querySelector('#new-chat-room');
-// const createRoomButton = document.querySelector('#chat-room-create');
-// const chatroomCreate = document.querySelector('.chatroom-create');
-// const chatRoomList = document.querySelector('.chatroom');
-// const newChatroom = document.querySelector('.newchatroom');
-// const roomnameInput = document.querySelector('#room_name');
-
-// newChatButton.addEventListener('click', () => {
-//     newChatroom.style.display = 'block';
-//     chatRoomList.style.display = 'none';
-//     newChatButton.style.display = 'none';
-//     chatroomCreate.style.display = 'inline-flex';
-// });
-
-// createRoomButton.addEventListener('click', async () => {
-//     const userCheckList = document.querySelectorAll('.invite');
-//     let inviteList = [];
-//     userCheckList.forEach((user) => {
-//         if (user.checked) {
-//             inviteList.push(user.name);
-//         }
-//     });
-//     console.log(inviteList);
-//     if (inviteList.length == 0) {
-//         return;
-//     }
-//     const response = await fetch('/newroom', {
-//         method: 'POST',
-//         headers: {
-//             "content-type": "application/json"
-//         },
-//         body: JSON.stringify({
-//             inviteList: inviteList,
-//             roomName: roomnameInput.value,
-//         })
-//     });
-//     // const res = await response.json();
-//     newChatroom.style.display = 'none';
-//     chatRoomList.style.display = 'flex';
-//     newChatButton.style.display = 'inline-block';
-//     chatroomCreate.style.display = 'none';
-// });
-
-// async function chatroomListUpdate() {
-//     const response = await fetch('/chatroomlist');
-//     const res = await response.json();
-//     console.log(res);
-// };
+const imgModal = document.querySelector('#img-modal');
+const modalContent = document.querySelector('#modal-content');
+function modalOpen(src) {
+    imgModal.style.display='flex';
+    modalContent.setAttribute('src', src);
+}
+imgModal.addEventListener('click', () => {
+    imgModal.style.display='none';
+});
 
 </script>
 </body>
