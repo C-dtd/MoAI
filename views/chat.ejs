@@ -8,9 +8,13 @@
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body {
+            height: 100vh;
+            text-align: center;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+        }
+        body>header, body>footer {
+            padding: 0;
         }
         main {
             flex-grow: 1;
@@ -22,27 +26,32 @@
         article.my-chat {
             margin-left: 40%;
         }
+        #goBack {
+            position: absolute;
+            left: 10px;
+        }
+        footer>[role=group] {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
-    <header class="container">
-        <!-- roomId: </span>{{roomId}}</span><br> -->
-        <!-- <input type="text" id="user-id" placeholder="username" value="my_id"></input> -->
-        room: <span id="room-id">test_chat_room</span><br>
-        id: <span id="user-id"><%= user.user_id %></span>
+    <header>
+        <button id="goBack" onclick="history.back();"><</button>
+        <h3><%= room.room_name %></h3>
     </header>
-    <main class="container">
+    <main>
         <div class="msg-cont">
         <% chat_log.forEach((row) => { %>
             <article class="<%= ((row.user_id==user.user_id) ? 'my-chat' : 'other-chat') %> <%= row.type %>">
                 <header>
-                    <%= row.user_id %>
+                    <%= row.user_name %>
                 </header>
                 <main>
                     <% if (row.type == 'text') { %>
                         <%= row.chat %>
                     <% } else if (row.type == 'img') { %> 
-                        <img src="<%= row.chat %>" alt="deleted img" class="chat-img">
+                        <img src="/<%= row.chat %>" alt="deleted img" class="chat-img">
                     <% } else if (row.type == 'payment') { %>
                         <a href="/payment/<%= row.chat %>">결재 요청</a>
                     <% } %>
@@ -51,28 +60,27 @@
             <% }) %>
         </div>
     </main>
-    <footer class="container">
-        <div class="msg-form" role="group">
-            <textarea type="text" id="msg"></textarea>
-            <button id="submit">submit</button>
-        </div>
+    <footer>
         <div role="group">
             <button id="imgUpload"><label for="img-input">이미지 첨부</label></button>
             <button id="paymentUpload"><label for="payment-input">전자 결재 요청</label></button>
+        </div>
+        <div class="msg-form" role="group">
+            <textarea type="text" id="msg"></textarea>
+            <button id="submit">submit</button>
         </div>
     </footer>
     <input type="file" id="img-input" style="display: none;" accept="image/*">
     <input type="file" id="payment-input" style="display: none;" accept="application/pdf, image/png">
     <script>
-        const socket = io(); 
-        const userId = document.querySelector('#user-id');
-        const roomId = document.querySelector('#room-id');
+        const socket = io();
         const cont = document.querySelector('.msg-cont');
-        const chat_main = document.querySelector('main.container');
+        const chat_main = document.querySelector('main');
         const imgInput = document.querySelector('#img-input');
         const paymentInput = document.querySelector('#payment-input');
         const allowExt = ['png', 'pjp', 'jpg', 'jpeg', 'jfif', 'webp', 'bmp'];
         const regURL = new RegExp("(http|https|ftp|telnet|news|irc)://([-/.a-zA-Z0-9_~#%$?&=:200-377()]+)","gi");
+        const room_id = '<%= room.id %>';
 
         document.addEventListener('DOMContentLoaded', () => {
             const imgs = document.querySelectorAll('img');
@@ -85,18 +93,22 @@
             chats.forEach((chat) => {
                 chat.innerHTML = chat.innerHTML.replace(regURL, "<a class='artist-portfolio' href='$1://$2' target='_blank'>$1://$2</a>");
             });
+            socket.emit('join', room_id);
         });
 
         socket.on('msg', async (msg) => {
             const chatbox = document.createElement('article');
-            if (msg.name == userId.innerText) {
+            const response = await fetch('/session/user_id');
+            const res = await response.text();
+            console.log(res);
+            if (msg.user_id == res) {
                 chatbox.className += 'my-chat';
             } else {
                 chatbox.className += 'other-chat';
             }
             chatbox.className += ' ' +msg.type;
             const header = document.createElement('header');
-            header.innerText = msg.name;
+            header.innerText = msg.user_name;
             chatbox.appendChild(header);
             
             const main = document.createElement('main');
@@ -129,7 +141,7 @@
                 return;
             }
 
-            socket.emit('msg', {name: userId.innerText, message: userMsg.value, type: 'text', room: roomId.innerText});
+            socket.emit('msg', {message: userMsg.value, type: 'text', room: room_id});
             userMsg.value = '';
         });
 
@@ -148,7 +160,7 @@
             const res = await response.json();
             
             imgInput.value = '';
-            socket.emit('msg', {name: userId.innerText, message: res.path, type: 'img', room: roomId.innerText});
+            socket.emit('msg', {message: res.path, type: 'img', room: room_id});
         });
 
         paymentInput.addEventListener('input', async (e) => {
@@ -177,7 +189,7 @@
             });
             const resPayment =  await responsePayment.json();
             console.log(resPayment);
-            socket.emit('msg', {name: userId.innerText, message: resPayment.uuid, type: 'payment', room: roomId.innerText});
+            socket.emit('msg', {message: resPayment.uuid, type: 'payment', room: room_id});
         });
     </script>
 </body>

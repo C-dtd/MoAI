@@ -9,6 +9,9 @@ const { log } = require('console');
 const multer = require('multer');
 const path = require('path');
 const { v4 } = require('uuid');
+const { send } = require('process');
+const sharedSession = require('socket.io-express-session');
+
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -20,7 +23,7 @@ const db = new Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000
 });
-
+//테스트 커밋용
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, 'uploads/');
@@ -31,15 +34,18 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
-app.use(cookieParser());
-app.use(session({
+const _session = session({
     resave: true,
     saveUninitialized: false,
     secret: 'secret'
-}));
+});
+
+app.use(cookieParser());
+app.use(_session);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+io.use(sharedSession(_session, {autoSave: true}));
+
 app.set('view engine', 'ejs');
 
 const port = 8000;
@@ -99,47 +105,148 @@ server.listen(port, function() {
 
 app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
-})
+});
 
-app.get('/memo', function(req, res) {
-    res.render('memo.ejs');
-})
-
-//소켓 통신 (채팅 부분)
-io.on('connection', (socket) => {
-    socket.on('msg', (msg) => {
-        console.log(msg);
-        db.query(
-            "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
-            [msg.name, msg.room, msg.message, msg.type]
-        );
-        io.emit('msg', msg);
+app.get('/chatroomframe', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/login');
+        return;
+    }
+    const chatroomList = await db.query(
+        "select * from rooms where id in (select room_id from room_users where user_id = $1)",
+        [ user.user_id ]
+    )
+    res.render('chatroom', {
+        user: user, 
+        chatroomList: chatroomList.rows 
     });
 });
 
-//메인 페이지
-app.get('/', function(req, res) {
+app.get('/newchatroom', async (req, res) => {
     const { user } = req.session;
-    if (user) {
-        res.render('main_iframe', user);
+    if (!user) {
+        res.redirect('/login');
         return;
-    }   
-    res.redirect('/login');
+    }
+    const userList = await db.query(
+        "select user_id, user_name from users where user_id != $1",
+        [ user.user_id ]
+    );
+    res.render('newchatroom', {
+        user: user, 
+        userList: userList.rows
+    });
+});
+
+//소켓 통신 (채팅 부분)
+io.on('connection', (socket) => {
+    socket.on('join', (roomId) => {
+        socket.join(roomId);
+    })
+
+    socket.on('msg', (msg) => {
+        console.log(msg);
+        const { user } = socket.handshake.session;
+        console.log(user);
+
+        db.query(
+            "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
+            [user.user_id, msg.room, msg.message, msg.type]
+        );
+        io.to(msg.room).emit('msg', {...msg, user_id: user.user_id, user_name: user.user_name});
+    });
+});
+
+app.post('/newroom', async (req, res) => {
+    const { user } = req.session;
+    if ( !user ) {
+        res.send({
+            result: false,
+        });
+        return;
+    }
+    const { inviteList, roomName } = req.body;
+    inviteList.push(user.user_name);
+    const room_id = v4();
+    const is_group = (inviteList.length != 2);
+    console.log(inviteList);
+
+    db.query(
+        'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
+        [room_id, roomName, is_group]
+    );
+    
+    inviteList.forEach((id) => {
+        db.query(
+            'insert into room_users (room_id, user_id) values ($1, (select user_id from users where user_name=$2))',
+            [room_id, id]
+        );
+    });
+    res.send({result: true});
+});
+
+app.get('/chatroomlist', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send({
+            result: false,
+        });
+        return;
+    }
+    const chatroomList = await db.query(
+        'select * from rooms where id in (select room_id from room_users where user_id = $1)',
+        [ user.user_id ]
+    );
+    res.send( chatroomList.rows );
+});
+
+//메인 페이지
+app.get('/', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/login');
+        return;
+    }
+    const userList = await db.query(
+        "select user_id, user_name from users where user_id != $1",
+        [ user.user_id ]
+    )
+    const chatroomList = await db.query(
+        "select * from rooms where id in (select room_id from room_users where user_id = $1)",
+        [ user.user_id ]
+    )
+    res.render('main_iframe', {
+        user: user, 
+        members: userList.rows, 
+        chatroomList: chatroomList.rows 
+    });
 });
 
 //채팅페이지 (임시)
-app.get('/chat', async function(req, res) {
+app.get('/chat/:id', async function(req, res) {
     const { user } = req.session;
+    const room_id = req.params.id;
     if (!user) {
         res.redirect('/');
-    } else {
-        console.log(user.user_id);
     }
+    const user_check = await db.query(
+        "select id from room_users where room_id=$1 and user_id=$2",
+        [ room_id, user.user_id ]
+    )
+    if (!user_check) {
+        res.redirect('/');
+    }
+    const room = await db.query(
+        "select * from rooms where id=$1",
+        [ room_id ]
+    )
+    console.log(room.rows[0]);
     const chat_log = await db.query(
-        "select * from chat_logs where room_id=$1",
-        ['test_chat_room']
+        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1",
+        [ room_id ]
     );
-    res.render('chat.ejs', {chat_log: chat_log.rows, user: user});
+    res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, user: user});
 });
 
 // app.get('/db', async function(req, res) {
@@ -356,7 +463,7 @@ app.get('/api/events/:user_id', async (req, res) => {
             'SELECT * FROM calandars WHERE user_id = $1',
             [user_id]
         );
-        console.log(result.rows);
+        // console.log(result.rows);
         res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching events from the database:', error);
@@ -364,85 +471,20 @@ app.get('/api/events/:user_id', async (req, res) => {
     }
 });
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// 메모 기능 설정들 //
-
-// 메모 생성하기
-app.post('/api/memo', async (req, res) => {
-    const { user_id, title, content } = req.body;
-    try {
-        const result = await db.query(
-            'INSERT INTO memo (user_id, title, content) VALUES ($1, $2, $3) RETURNING *',
-            [user_id, title, content]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.error('Error creating memo:', error);
-        res.status(500).json({ message: 'Failed to create memo' });
+app.get('/session/user_id', (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send('');
+        return;
     }
+    res.send(user.user_id);
 });
 
-// 메모 목록 조회하기
-app.get('/api/memo/:user_id', async (req, res) => {
-    const { user_id } = req.params;
-    try {
-        const result = await db.query('SELECT * FROM memo WHERE user_id = $1', [user_id]);
-        res.status(200).json(result.rows);
-    } catch (error) {
-        console.error('Error fetching memo:', error);
-        res.status(500).json({ message: 'Failed to fetch memos' });
+app.get('/session/user_name', (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send('');
+        return;
     }
-});
-
-// 메모 조회하기
-app.get('/api/memo/:user_id/:id', async (req, res) => {
-    const { user_id, id } = req.params;
-    try {
-        const result = await db.query('SELECT * FROM memo WHERE id = $1 AND user_id = $2', [id, user_id]);
-        if (result.rows.length > 0) {
-            res.status(200).json(result.rows[0]);
-        } else {
-            res.status(404).json({ message: 'Memo not found' });
-        }
-    } catch (error) {
-        console.error('Error fetching memo:', error);
-        res.status(500).json({ message: 'Failed to fetch memo' });
-    }
-});
-
-// 메모 수정하기
-app.put('/api/memo/:id', async (req, res) => {
-    const { id } = req.params;
-    const { title, content } = req.body;
-    try {
-        const result = await db.query(
-            'UPDATE memo SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
-            [title, content, id]
-        );
-        if (result.rows.length > 0) {
-            res.status(200).json(result.rows[0]);
-        } else {
-            res.status(404).json({ message: 'Memo not found' });
-        }
-    } catch (error) {
-        console.error('Error updating memo:', error);
-        res.status(500).json({ message: 'Failed to update memo' });
-    }
-});
-
-// 메모 삭제하기
-app.delete('/api/memo/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await db.query('DELETE FROM memo WHERE id = $1 RETURNING *', [id]);
-        if (result.rows.length > 0) {
-            res.status(200).json({ message: 'Memo deleted successfully' });
-        } else {
-            res.status(404).json({ message: 'Memo not found' });
-        }
-    } catch (error) {
-        console.error('Error deleting memo:', error);
-        res.status(500).json({ message: 'Failed to delete memo' });
-    }
+    res.send(user.user_name);
 });
