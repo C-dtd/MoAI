@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>React Page with createRoot</title>
+    <link rel="stylesheet" href="../css/pico_color.css">
     <style>
         .control-button {
             background-color: #f0f0f0; /* 버튼 배경 색상 (밝은 회색) */
@@ -128,9 +129,9 @@
                         id: uuid(), // 고유 ID 생성
                         
                     };
-                    console.log('create', newEvent);
+                    // console.log('create', newEvent);
                     // //console.log(dateParser(newEvent.start.d.d));
-                    console.log(newEvent);
+                    // console.log(newEvent);
                     // calendarInstance.createEvents([newEvent]);
 
                     const response = await fetch('/api/events', {
@@ -237,6 +238,12 @@
                     popupDelete(){
                         return '삭제';
                     }
+                },
+                theme: {
+                    common: { 
+                        backgroundColor: '--pico-background-color',
+                        dayName: { color: '--pico-color' }
+                    }
                 }
             };
 
@@ -284,6 +291,7 @@
                         month={calendarOptions.month} // 월간 옵션 전달
                         template={calendarOptions.template} // 템플릿 옵션 추가
                         calendars={calendars}
+                        theme={calendarOptions.theme}
                     />
                 </div>
             );

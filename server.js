@@ -171,6 +171,10 @@ app.post('/newroom', async (req, res) => {
     const room_id = v4();
     const is_group = (inviteList.length != 2);
     console.log(inviteList);
+    // console.log(roomName == '');
+    if (roomName == '') {
+        roomName = 'chatroom';
+    }
 
     db.query(
         'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
@@ -184,21 +188,6 @@ app.post('/newroom', async (req, res) => {
         );
     });
     res.send({result: true});
-});
-
-app.get('/chatroomlist', async (req, res) => {
-    const { user } = req.session;
-    if (!user) {
-        res.send({
-            result: false,
-        });
-        return;
-    }
-    const chatroomList = await db.query(
-        'select * from rooms where id in (select room_id from room_users where user_id = $1)',
-        [ user.user_id ]
-    );
-    res.send( chatroomList.rows );
 });
 
 //메인 페이지
