@@ -78,19 +78,17 @@
                 </main>
             </section>
             <section class="note-section">
-                <header>메모장</header>
-                <main class="noteroom right-content">
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
-                    <button class="outline">메모 제목</button>
+                <iframe src="/memo" frameborder="0" style="height: 100%;"></iframe>
+                <header></header>
+                <main class="noteroom">
+                    <div id = "note-container">
+                        <!-- 메모가 표시될 부분 -->
+                        <div id="memoList"></div>
+                    </div>
                 </main>
-                <footer>
-                    <button>새 메모</button>
-                </footer>
+                <!-- <footer>
+                    <button onclick="openMemo()">새 메모</button>
+                </footer> -->
             </section>
         </div>
     </main>
@@ -112,3 +110,4 @@ imgModal.addEventListener('click', () => {
 </script>
 </body>
 </html>
+
