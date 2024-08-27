@@ -223,6 +223,11 @@ app.get('/', async (req, res) => {
     });
 });
 
+// 메모 페이지 라우팅
+app.get('/memo', (req, res) => {
+    res.render('memo'); // 'memo.ejs'를 'views' 폴더에 위치시켜야 합니다.
+});
+
 //채팅페이지 (임시)
 app.get('/chat/:id', async function(req, res) {
     const { user } = req.session;
