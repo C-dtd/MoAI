@@ -1,5 +1,5 @@
-const express =  require('express');
-const app = express();
+const express =  require('express');   // express 모듈 가져오기
+const app = express();                 // express 모듈 가져와서 app 인스턴스 생성
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const { Pool } = require('pg');
@@ -12,10 +12,10 @@ const { v4 } = require('uuid');
 const { send } = require('process');
 const sharedSession = require('socket.io-express-session');
 const twilio = require('twilio');
-
 const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
 const verificationCodes = {};
-// Database configuration
+
+// db 객체에 데이터베이스 슈퍼베이스 username, host, database, password 지정 후 대입
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
     host: 'aws-0-ap-southeast-1.pooler.supabase.com',
@@ -26,18 +26,20 @@ const db = new Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000
 });
-//테스트 커밋용
+
+//테스트 커밋용, 업로드 파일 디스크에 저장할 수 있도록 함. 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, 'uploads/');
+        cb(null, 'uploads/');           // 파일 'uploads/' 디렉토리 쪽에 저장
     },
     filename: function(req, file, cb) {
         cb(null, Date.now()+path.extname(file.originalname));
     }
 });
 
+// upload 객체 multer로 만들기 
 const upload = multer({ storage: storage });
-const _session = session({
+const _session = session({          // 세션 제작
     resave: true,
     saveUninitialized: false,
     secret: 'secret'
@@ -62,7 +64,10 @@ app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
 
-// 정적 페이지 연결 
+
+////////////////////////////////////////////////////////////////
+// 정적 페이지 연결하기 문단
+
 app.get('/login', function(req, res) {
     const { user } = req.session;
     if (user) {
@@ -73,7 +78,7 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/find_password', function(req, res){
-    res.sendFile(__dirname + '/html/find_password.html');  // register html
+    res.sendFile(__dirname + '/html/find_password.html');  // 비밀번호 찾기 페이지 제공
 })
 
 app.get('/find_passwordauth', function(req, res) {
@@ -86,8 +91,35 @@ app.get('/find_password_success', function(req, res) {
 
 
 app.get('/register', function(req, res){
-    res.sendFile(__dirname + '/html/register.html');  // register html
+    res.sendFile(__dirname + '/html/register.html');  // 회원가입 페이지 제공
 })
+
+app.get('/index', function(req, res){
+    res.sendFile(__dirname + '/서류결제2/index.html');  // register html
+})
+
+app.get('/main', function(req, res){
+    res.sendFile(__dirname + '/main_html/main.html');  // register html
+})
+
+// 정적 페이지 연결하기 문단
+//////////////////////////////////////////////////////////////////////
+
+server.listen(port, function() {
+    log('Server host in http://localhost:' + port);   // http://localhost + 위에 설정한 port(8000) 연결 후 메세지
+});
+
+
+///////////////////////////////////////////////////////////////////////
+// 라우팅 설정 부분(ejs 확장자 파일 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
+
+app.get('/calendar', function(req, res) {
+    res.render('calendar.ejs');
+});
+
+app.get('/documentsummary', function(req, res) {
+    res.render('document-summary.ejs');
+});
 
 app.get('/register_confirm', function(req, res){
     const { name } = req.session;
@@ -99,35 +131,131 @@ app.get('/register_confirm', function(req, res){
     }
 })
 
-app.get('/find_passwordauth', function(req, res){
-    res.sendFile(__dirname + '/html/find_passwordauth.html');  // register html
-})
+// 라우팅 설정 부분(ejs 확장자 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
+/////////////////////////////////////////////////////////////////////////////////
 
-app.get('/find_password_success', function(req, res){
-    res.sendFile(__dirname + '/html/find_password_success.html');  // register html
-})
 
-app.get('/index', function(req, res){
-    res.sendFile(__dirname + '/서류결제2/index.html');  // register html
-})
 
-app.get('/main', function(req, res){
-    res.sendFile(__dirname + '/main_html/main.html');  // register html
-})
+/////////////////////////////////////////////////////////////////////////////////
+// 로그인, 회원가입, 비밀번호 찾기 페이지의 엔드포인트 설정 부분
 
-server.listen(port, function() {
-    log('Server host in http://localhost:' + port);
+//로그인시 아이디랑 비밀번호 확인 후 로그인 동작
+app.post('/login', async (req, res) => {
+    const { id, password } = req.body;
+    const data = await db.query(
+        "select * from users where user_id=$1 and user_pw=$2",
+        [ id, password ]
+    );
+    if (data.rows.length === 1) {
+        const user_id = data.rows[0].user_id;
+        const user_name = data.rows[0].user_name;
+        req.session.user = { user_id, user_name };
+        res.redirect('/');
+    } else {
+        res.redirect('#');
+    }
 });
 
-app.get('/calendar', function(req, res) {
-    res.render('calendar.ejs');
+//회원 가입시 정보 db에 저장
+app.post('/register', function(req, res) {
+    const { id, name, phone, password } = req.body;
+    req.session.name = { name };
+    db.query(
+        "insert into users values ($1, $2, $3, '-', '-', $4)",
+        [id, password, name, phone]
+    )
+    res.redirect('/register_confirm');
 });
 
-app.get('/documentsummary', function(req, res) {
-    res.render('document-summary.ejs');
+
+// 비밀번호 찾기 엔드포인트
+app.post('/find_password', async (req, res) => {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        // user_id에 해당하는 사용자를 찾는 쿼리
+        const result = await db.query('SELECT user_name FROM users WHERE user_id = $1', [user_id]);
+
+        if (result.rows.length > 0) {
+            // 성공적인 응답과 리디렉션 URL 반환
+            res.json({ 
+                message: 'Password reset link has been sent.',
+                redirectTo: '/html/find_passwordauth.html' 
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error occurred:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 
+//핸드폰 인증코드 호출
+app.post('/send-verification-code', (req, res) => {
+    const { phone } = req.body;
+    const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6자리 코드 생성
+
+    twilioClient.messages
+        .create({
+            body: `Your verification code is ${verificationCode}`,
+            from: '+16194323674',
+            to: phone
+        })
+        .then((message) => {
+            verificationCodes[phone] = verificationCode;
+            res.send({ success: true });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.send({ success: false, error: 'Failed to send verification code' });
+        });
+});
+
+//인증코드 인증
+app.post('/verify-code', (req, res) => {
+    const { phone, code } = req.body;
+    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {
+        req.session.isVerified = true; // 세션에 인증 정보 저장
+        delete verificationCodes[phone]; // 인증 코드 삭제
+        res.send({success: true});
+    } else {
+        res.send({ success: false, error: 'Invalid verification code' });
+    }
+});
+
+
+//////////////////////////////////////////////////////////////////////////////
+// 메인 영역 페이지 엔드포인트 부분. 해당하는 건 여기에 넣어주시면 됩니다.
+
+app.get('/', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/login');
+        return;
+    }
+    const userList = await db.query(
+        "select user_id, user_name from users where user_id != $1",
+        [ user.user_id ]
+    )
+    const chatroomList = await db.query(
+        "select * from rooms where id in (select room_id from room_users where user_id = $1)",
+        [ user.user_id ]
+    )
+    res.render('main_iframe', {
+        user: user, 
+        members: userList.rows, 
+        chatroomList: chatroomList.rows 
+    });
+});
+
+
+// 캘린더 부분
 app.post('/calendar/share', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -159,36 +287,7 @@ app.post('/calendar/share', async (req, res) => {
     }
 });
 
-// 비밀번호 찾기 엔드포인트
-app.post('/find_password', async (req, res) => {
-    const { user_id } = req.body;
-
-    if (!user_id) {
-        return res.status(400).json({ error: 'User ID is required' });
-    }
-
-    try {
-        // user_id에 해당하는 사용자를 찾는 쿼리
-        const result = await db.query('SELECT user_name FROM users WHERE user_id = $1', [user_id]);
-
-        if (result.rows.length > 0) {
-            // 성공적인 응답과 리디렉션 URL 반환
-            res.json({ 
-                message: 'Password reset link has been sent.',
-                redirectTo: '/html/find_passwordauth.html' 
-            });
-        } else {
-            res.status(404).json({ error: 'User not found' });
-        }
-    } catch (error) {
-        console.error('Error occurred:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
-
-
+// 채팅방 부분
 app.get('/chatroomframe', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -292,30 +391,6 @@ app.post('/newroom', async (req, res) => {
     res.send({result: true});
 });
 
-
-
-//메인 페이지
-app.get('/', async (req, res) => {
-    const { user } = req.session;
-    if (!user) {
-        res.redirect('/login');
-        return;
-    }
-    const userList = await db.query(
-        "select user_id, user_name from users where user_id != $1",
-        [ user.user_id ]
-    )
-    const chatroomList = await db.query(
-        "select * from rooms where id in (select room_id from room_users where user_id = $1)",
-        [ user.user_id ]
-    )
-    res.render('main_iframe', {
-        user: user, 
-        members: userList.rows, 
-        chatroomList: chatroomList.rows 
-    });
-});
-
 // 메모 페이지 라우팅
 app.get('/memo', (req, res) => {
     res.render('memo'); // 'memo.ejs'를 'views' 폴더에 위치시켜야 합니다.
@@ -358,67 +433,6 @@ app.get('/chat/:id', async function(req, res) {
 //     const data = await db.query("select * from chat_logs where room_id='0'");
 //     res.send(data.rows);
 // });
-
-//로그인시 아이디랑 비밀번호 확인 후 로그인 동작
-app.post('/login', async (req, res) => {
-    const { id, password } = req.body;
-    const data = await db.query(
-        "select * from users where user_id=$1 and user_pw=$2",
-        [ id, password ]
-    );
-    if (data.rows.length === 1) {
-        const user_id = data.rows[0].user_id;
-        const user_name = data.rows[0].user_name;
-        req.session.user = { user_id, user_name };
-        res.redirect('/');
-    } else {
-        res.redirect('#');
-    }
-});
-
-//핸드폰 인증코드 호출
-app.post('/send-verification-code', (req, res) => {
-    const { phone } = req.body;
-    const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6자리 코드 생성
-
-    twilioClient.messages
-        .create({
-            body: `Your verification code is ${verificationCode}`,
-            from: '+16194323674',
-            to: phone
-        })
-        .then((message) => {
-            verificationCodes[phone] = verificationCode;
-            res.send({ success: true });
-        })
-        .catch((error) => {
-            console.error(error);
-            res.send({ success: false, error: 'Failed to send verification code' });
-        });
-});
-
-//인증코드 인증
-app.post('/verify-code', (req, res) => {
-    const { phone, code } = req.body;
-    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {
-        req.session.isVerified = true; // 세션에 인증 정보 저장
-        delete verificationCodes[phone]; // 인증 코드 삭제
-        res.send({success: true});
-    } else {
-        res.send({ success: false, error: 'Invalid verification code' });
-    }
-});
-
-//회원 가입시 정보 db에 저장
-app.post('/register', function(req, res) {
-    const { id, name, phone, password } = req.body;
-    req.session.name = { name };
-    db.query(
-        "insert into users values ($1, $2, $3, '-', '-', $4)",
-        [id, password, name, phone]
-    )
-    res.redirect('/register_confirm');
-});
 
 app.post('/upload', upload.single('file'), function(req, res) {
     const file = req.file;
@@ -596,6 +610,9 @@ function dateParser(str) {
 
     return res_;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+// 캘린더 db 관련 데이터베이스 처리 부분 
 
 // 이벤트 데이터를 처리하는 API 엔드포인트
 app.post('/api/events', async (req, res) => {
