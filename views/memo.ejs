@@ -40,6 +40,17 @@
       plugins: [colorSyntax]
     });
 
+    // 로컬 스토리지에서 저장된 내용 불러오기
+    const savedContent = localStorage.getItem('tui-editor-content');
+        if (savedContent) {
+            editor.setMarkdown(savedContent);
+        }
+
+        // 내용이 변경될 때 로컬 스토리지에 저장하기
+        editor.on('change', () => {
+            const content = editor.getMarkdown();
+            localStorage.setItem('tui-editor-content', content);
+        });
     
     document.getElementById('saveBtn').addEventListener('click', function() {
       try {
