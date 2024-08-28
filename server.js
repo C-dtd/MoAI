@@ -107,6 +107,11 @@ app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
 });
 
+app.get('/documentsummary', function(req, res) {
+    res.render('document-summary.ejs');
+});
+
+
 app.post('/calendar/share', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -314,7 +319,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 
 // 업로드된 파일 처리
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/upload_summary', upload.single('file'), (req, res) => {
     const file = req.file;
     if (!file) {
         return res.status(400).send({ error: '파일 업로드 실패' });
