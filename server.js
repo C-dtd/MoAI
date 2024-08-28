@@ -72,6 +72,19 @@ app.get('/login', function(req, res) {
     res.sendFile(__dirname + '/html/login.html'); // Serve login.html
 });
 
+app.get('/find_password', function(req, res){
+    res.sendFile(__dirname + '/html/find_password.html');  // register html
+})
+
+app.get('/find_passwordauth', function(req, res) {
+    res.sendFile(__dirname + '/html/find_passwordauth.html');  // 비밀번호 찾기 성공 페이지 제공
+});
+
+app.get('/find_password_success', function(req, res) {
+    res.sendFile(__dirname + '/html/find_password_success.html');  // 비밀번호 찾기 성공 페이지 제공
+});
+
+
 app.get('/register', function(req, res){
     res.sendFile(__dirname + '/html/register.html');  // register html
 })
@@ -145,6 +158,36 @@ app.post('/calendar/share', async (req, res) => {
         res.status(500).json({ message: 'Failed to save event to the database' });
     }
 });
+
+// 비밀번호 찾기 엔드포인트
+app.post('/find_password', async (req, res) => {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        // user_id에 해당하는 사용자를 찾는 쿼리
+        const result = await db.query('SELECT user_name FROM users WHERE user_id = $1', [user_id]);
+
+        if (result.rows.length > 0) {
+            // 성공적인 응답과 리디렉션 URL 반환
+            res.json({ 
+                message: 'Password reset link has been sent.',
+                redirectTo: '/html/find_passwordauth.html' 
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error occurred:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
 
 app.get('/chatroomframe', async (req, res) => {
     const { user } = req.session;
@@ -248,6 +291,8 @@ app.post('/newroom', async (req, res) => {
     });
     res.send({result: true});
 });
+
+
 
 //메인 페이지
 app.get('/', async (req, res) => {

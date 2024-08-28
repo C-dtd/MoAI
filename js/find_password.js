@@ -1,20 +1,34 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Get references to the input field and button
-    const usernameInput = document.getElementById("username");
-    const nextButton = document.querySelector("button");
+    const userIdInput = document.getElementById("user_id");
+    const submitBtn = document.getElementById("submitBtn");
 
-    // Add a click event listener to the button
-    nextButton.addEventListener("click", function () {
-        const username = usernameInput.value.trim();
+    submitBtn.addEventListener("click", function () {
+        const userId = userIdInput.value.trim();
 
-        if (username === "") {
-            alert("아이디를 입력해주세요.");  // Alert if the input is empty
-        } else {
-            // Simulate an action, like sending a request to find the password
-            alert(`아이디: ${username}의 비밀번호를 찾기 위한 요청이 전송되었습니다.`);
-            
-            // Example: Redirect to a different page (optional)
-            // window.location.href = "/password-reset-link-sent"; 
+        if (userId === "") {
+            alert("User ID is required");
+            return;
         }
+
+        fetch('/find_password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                // 서버에서 리디렉션 URL을 제공했으므로 페이지 이동
+                window.location.href = data.redirectTo;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Internal server error');
+        });
     });
 });
