@@ -1,5 +1,6 @@
 
 from pypdf import PdfReader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.chat_models import ChatOllama
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
@@ -9,27 +10,18 @@ from langchain_core.prompts.prompt import PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from docx import Document
+from flask import *
+from flask_cors import CORS
 import json
 import os
 import sys
 import datetime
 
-from pypdf import PdfReader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-from langchain_community.chat_models import ChatOllama
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain.prompts import PromptTemplate
-from docx import Document
-import torch
-import json
-import faiss
-from langchain_community.vectorstores import FAISS
-import os
-import sys
-import datetime
+app = Flask(__name__)
+# CORS(app, resources={r'*': {'origins': 'http://localhost:8000'}})
+CORS(app)
+host = 'localhost'
+port = 5100
 
 # Configuration
 ngrok = 'https://6c82-35-229-167-67.ngrok-free.app'  # Replace with your ngrok URL
@@ -47,13 +39,6 @@ embedding_model = HuggingFaceEmbeddings(
     model_kwargs={'device': device},
     encode_kwargs={'normalize_embeddings': True}
 )
-
-# # Load vector store
-# vectorstore = FAISS.load_local(
-#     'test',
-#     embedding_model,
-#     allow_dangerous_deserialization=True
-# )
 
 # Define prompt
 prompt_template = '''Use the following pieces of context to answer the question at the end.
@@ -97,27 +82,21 @@ def create_docx(response, vectorstore):
         res = conversation_chain({'question': question})
         doc.add_heading(f'\t2-{n}. {cont}', level=2)
         doc.add_paragraph(res['chat_history'][1].content)
-
+    
     # Format date to avoid issues in filenames
-    
-    
-    doc.save(f'./processed/test_processed.docx')
+    doc.save(f'./processed/{datetime.datetime.today().strftime("%g%m%d%H%M%S")}.docx')
+    return f'/processed/{datetime.datetime.today().strftime("%g%m%d%H%M%S")}.docx'
 
 def process_file(file_path):
-    if not os.path.isfile(file_path):
-        print(f'파일이 존재하지 않습니다: {file_path}')
-        return
+    # if not os.path.isfile(file_path):
+    #     print(f'파일이 존재하지 않습니다: {file_path}')
+    #     return
     
-    # Extract text from PDF
-    # reader = PdfReader(file_path)
-    # text = ""
-    # for page in reader.pages:
-    #     text += page.extract_text()
     text_sum = ''
-    files = [file_path]
+    # files = [file_path]
     
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    for file in files:
+    for file in file_path:
         reader = PdfReader(file)
         for page in reader.pages:  # 페이지 별로 텍스트 추출
             text = page.extract_text()
@@ -127,7 +106,6 @@ def process_file(file_path):
 
     # Create FAISS index
     vectorstore = FAISS.from_texts(splits, embedding_model)
-    vectorstore.save_local('test')
     
     # Assuming text processing and JSON generation happens here
     # For demonstration, we're creating a sample response
@@ -137,12 +115,22 @@ def process_file(file_path):
         'summary': '보고서 개요'
     }
 
-    create_docx(response, vectorstore)
+    return create_docx(response, vectorstore)
+
+@app.route('/summary', methods=['POST'])
+def summary():
+    
+    files = [request.files[i] for i in request.files]
+    processedFilePath = process_file(files)
+    return jsonify({
+        'result': 'ok',
+        'processedFilePath': processedFilePath
+    })
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: python ollama.py <file_path>")
-    else:
-        process_file(sys.argv[1])
-
-
+    app.run(host= host, port=port)
+    
+    # if len(sys.argv) != 2:
+    #     print("Usage: python ollama.py <file_path>")
+    # else:
+    #     process_file(sys.argv[1])

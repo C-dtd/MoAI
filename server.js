@@ -55,7 +55,7 @@ app.use('/js', express.static(__dirname + '/js'));
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/html', express.static(__dirname + '/html'));
 app.use('/uploads', express.static(__dirname + '/uploads'));
-app.use('/서류결제2', express.static(__dirname + '/서류결제2'));
+app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
 
@@ -273,6 +273,10 @@ app.get('/memo', (req, res) => {
     res.render('memo'); // 'memo.ejs'를 'views' 폴더에 위치시켜야 합니다.
 });
 
+app.get('/documentsummary', (req, res) => {
+    res.render('document-summary');
+})
+
 //채팅페이지 (임시)
 app.get('/chat/:id', async function(req, res) {
     const { user } = req.session;
@@ -334,6 +338,16 @@ app.post('/register', function(req, res) {
         [id, password, name, phone]
     )
     res.redirect('/register_confirm');
+});
+
+app.post('/upload', upload.single('file'), function(req, res) {
+    const file = req.file;
+    res.send(
+        {
+            result: 'ok',
+            path: file.path
+        }
+    );
 });
 
 // 파일 다운로드 관련 엔드포인트
