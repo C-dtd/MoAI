@@ -361,8 +361,7 @@ app.post('/verify-code', (req, res) => {
 
 //회원 가입시 정보 db에 저장
 app.post('/register', function(req, res) {
-    const { id, name, phoneHead, phoneFront, phoneBack, password } = req.body;
-    let phone = `${phoneHead}-${phoneFront}-${phoneBack}`;
+    const { id, name, phone, password } = req.body;
     req.session.name = { name };
     db.query(
         "insert into users values ($1, $2, $3, '-', '-', $4)",
