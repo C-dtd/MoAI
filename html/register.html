@@ -24,18 +24,14 @@
                     <input type="text" id="name" placeholder="name" name="name">
                 </div>
                 <div class="input-group">
-                    <label for="phone-front">전화번호</label>
-                    <div role="group">
-                        <input type="text" id="phone-head" value="010" name="phoneHead">
-                        <span class="phone-seperator">-</span>
-                        <input type="text" id="phone-front" value="" name="phoneFront">
-                        <span class="phone-seperator">-</span>
-                        <input type="text" id="phone-back" value="" name="phoneBack">
-                    </div>
-                    <div role="group">
-                        <input type="text" id="verification-code" placeholder="6자리 숫자 입력">
-                        <button style="white-space: nowrap;">인증번호 발송</button>
-                    </div>
+                    <label for="phone">전화번호</label>
+                    <input type="text" id="phone" name="phone" placeholder="Phone number">
+                    <button type="button" id="sendVerificationCode" style="white-space: nowrap;">인증번호 발송</button>
+                </div>
+                <div class="input-group">
+                    <label for="verification-code">인증번호</label>
+                    <input type="text" id="verification-code" name="verificationCode" placeholder="Verification Code">
+                    <button type="button" id="verifyCode">인증번호 확인</button>
                 </div>
                 <div class="input-group">
                     <div role="group" style="margin: 0px">
@@ -46,10 +42,11 @@
                         <input type="password" id="password" placeholder="password" name='password'>
                     </div>
                 </div>
-                <input type="submit" value="회원가입">
-                <!-- <button class="submit-button" type="submit">회원가입</button> -->
+                <button class="submit-button" type="submit">회원가입</button>
             </div>
         </form>
+
+        <script src="/js/register.js"></script>
     </main>
 </body>
 </html>
