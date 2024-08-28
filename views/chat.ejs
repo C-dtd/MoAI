@@ -27,6 +27,15 @@
         article.my-chat {
             margin-left: 40%;
         }
+        article.contrast {
+            background-color: var(--pico-contrast-background);
+            color: var(--pico-contrast-inverse);
+            --pico-card-border-color: var(--pico-contrast);
+        }
+        article.contrast header {
+            background-color: var(--pico-contrast-hover);
+            color: var(--pico-contrast-inverse);
+        }
         .header-button {
             width: 40px;
             height: 40px;
@@ -107,7 +116,7 @@
                         <a href="/payment/<%= row.chat %>" target="_blank">결재 요청</a>
                     <% } else if (row.type == 'calendar') { %>
                         일정을 공유했습니다.
-                        <article>
+                        <article class="contrast">
                             <header><%= row.chat.split('\t')[1] %></header>
                             <main><%= row.chat.split('\t')[2] %> ~ <%= row.chat.split('\t')[3] %></main>
                         </article>
@@ -216,6 +225,7 @@
                 // console.log(message);
                 main.innerText = "일정을 공유했습니다.";
                 const article = document.createElement('article');
+                article.classList = 'contrast';
                 const articleHeader = document.createElement('header');
                 articleHeader.innerText = message[1];
                 article.appendChild(articleHeader);
