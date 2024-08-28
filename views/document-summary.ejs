@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문서 요약 챗봇</title>
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <!-- 네비게이션 메뉴 -->
+            <a href="/calendar">홈으로 돌아가기</a>
+        </nav>
+    </header>
+    <main>
+        <h1>문서 요약</h1>
+        <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file-upload">파일 선택:</label>
+            <input type="file" id="file-upload" name="file" required>
+            <button type="submit">파일 업로드 및 처리</button>
+        </form>
+        <div id="result" style="margin-top: 20px;"></div>
+    </main>
+    <script>
+        const form = document.getElementById('upload-form');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault(); // 기본 폼 제출 동작 방지
+            const formData = new FormData(form);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                if (data.result === 'ok') {
+                    resultDiv.innerHTML = `
+                        <p>파일이 성공적으로 처리되었습니다.</p>
+                        <p><a href="/download/${data.processedFilePath}" download>처리된 파일 다운로드</a></p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p>파일 처리에 실패했습니다.</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<p>파일 처리 중 오류가 발생했습니다.</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
