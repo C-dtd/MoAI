@@ -331,16 +331,65 @@ app.post('/register', function(req, res) {
     res.redirect('/register_confirm');
 });
 
-//post formdata로 파일(key: file)이 업로드될때 ./uploads에 저장. 저장된 경로 반환
-app.post('/upload', upload.single('file'), function(req, res) {
+// 파일 다운로드 관련 엔드포인트
+const { exec } = require('child_process');
+const fs = require('fs');
+
+// 업로드된 파일 처리
+app.post('/upload', upload.single('file'), (req, res) => {
     const file = req.file;
-    res.send(
-        {
-            result: 'ok',
-            path: file.path
+    if (!file) {
+        return res.status(400).send({ error: '파일 업로드 실패' });
+    }
+
+    console.log('Uploaded file path:', file.path);
+
+    // 처리된 파일을 저장할 디렉토리 확인 및 생성
+    if (!fs.existsSync('processed')) {
+        fs.mkdirSync('processed');
+    }
+
+    // Python 스크립트 실행
+    exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            return res.status(500).send({ error: '파일 처리 실패' });
         }
-    );
+
+        // 처리된 파일 저장
+        const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
+        // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
+        // fs.writeFileSync(processedFilePath, stdout);
+
+        // 클라이언트에게 처리 결과와 다운로드 링크 제공
+        res.send({
+            result: 'ok',
+            originalFilePath: file.path,
+            processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
+            output: stdout,
+            error: stderr
+        });
+    });
 });
+
+// 처리된 파일 다운로드
+app.get('/download/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, 'processed', filename);
+
+    // 파일이 존재하는지 확인
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).send('파일을 찾을 수 없습니다.');
+    }
+
+    res.download(filePath, filename, (err) => {
+        if (err) {
+            console.error(`Error downloading file: ${err}`);
+            res.status(500).send('파일 다운로드 실패');
+        }
+    });
+});
+
 
 //결재 요청 보내기
 app.post('/payment_req', async (req, res) => {
