@@ -11,7 +11,10 @@ const path = require('path');
 const { v4 } = require('uuid');
 const { send } = require('process');
 const sharedSession = require('socket.io-express-session');
+const twilio = require('twilio');
 
+const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
+const verificationCodes = {};
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -316,6 +319,39 @@ app.post('/login', async (req, res) => {
         res.redirect('/');
     } else {
         res.redirect('#');
+    }
+});
+
+//핸드폰 인증코드 호출
+app.post('/send-verification-code', (req, res) => {
+    const { phone } = req.body;
+    const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6자리 코드 생성
+
+    twilioClient.messages
+        .create({
+            body: `Your verification code is ${verificationCode}`,
+            from: '+16194323674',
+            to: phone
+        })
+        .then((message) => {
+            verificationCodes[phone] = verificationCode;
+            res.send({ success: true });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.send({ success: false, error: 'Failed to send verification code' });
+        });
+});
+
+//인증코드 인증
+app.post('/verify-code', (req, res) => {
+    const { phone, code } = req.body;
+    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {
+        req.session.isVerified = true; // 세션에 인증 정보 저장
+        delete verificationCodes[phone]; // 인증 코드 삭제
+        res.send({success: true});
+    } else {
+        res.send({ success: false, error: 'Invalid verification code' });
     }
 });
 
