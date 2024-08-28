@@ -355,59 +355,61 @@ const { exec } = require('child_process');
 const fs = require('fs');
 
 // 업로드된 파일 처리
-app.post('/upload_summary', upload.single('file'), (req, res) => {
-    const file = req.file;
-    if (!file) {
-        return res.status(400).send({ error: '파일 업로드 실패' });
-    }
+// 플라스크에 합쳐져서 이거 이제 없어도 됨.
 
-    console.log('Uploaded file path:', file.path);
+// app.post('/upload_summary', upload.single('file'), (req, res) => {
+//     const file = req.file;
+//     if (!file) {
+//         return res.status(400).send({ error: '파일 업로드 실패' });
+//     }
 
-    // 처리된 파일을 저장할 디렉토리 확인 및 생성
-    if (!fs.existsSync('processed')) {
-        fs.mkdirSync('processed');
-    }
+//     console.log('Uploaded file path:', file.path);
 
-    // Python 스크립트 실행
-    exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            return res.status(500).send({ error: '파일 처리 실패' });
-        }
+//     // 처리된 파일을 저장할 디렉토리 확인 및 생성
+//     if (!fs.existsSync('processed')) {
+//         fs.mkdirSync('processed');
+//     }
 
-        // 처리된 파일 저장
-        const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
-        // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
-        // fs.writeFileSync(processedFilePath, stdout);
+//     // Python 스크립트 실행
+//     exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
+//         if (error) {
+//             console.error(`exec error: ${error}`);
+//             return res.status(500).send({ error: '파일 처리 실패' });
+//         }
 
-        // 클라이언트에게 처리 결과와 다운로드 링크 제공
-        res.send({
-            result: 'ok',
-            originalFilePath: file.path,
-            processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
-            output: stdout,
-            error: stderr
-        });
-    });
-});
+//         // 처리된 파일 저장
+//         const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
+//         // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
+//         // fs.writeFileSync(processedFilePath, stdout);
 
-// 처리된 파일 다운로드
-app.get('/download/:filename', (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, 'processed', filename);
+//         // 클라이언트에게 처리 결과와 다운로드 링크 제공
+//         res.send({
+//             result: 'ok',
+//             originalFilePath: file.path,
+//             processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
+//             output: stdout,
+//             error: stderr
+//         });
+//     });
+// });
 
-    // 파일이 존재하는지 확인
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).send('파일을 찾을 수 없습니다.');
-    }
+// // 처리된 파일 다운로드
+// app.get('/download/:filename', (req, res) => {
+//     const filename = req.params.filename;
+//     const filePath = path.join(__dirname, 'processed', filename);
 
-    res.download(filePath, filename, (err) => {
-        if (err) {
-            console.error(`Error downloading file: ${err}`);
-            res.status(500).send('파일 다운로드 실패');
-        }
-    });
-});
+//     // 파일이 존재하는지 확인
+//     if (!fs.existsSync(filePath)) {
+//         return res.status(404).send('파일을 찾을 수 없습니다.');
+//     }
+
+//     res.download(filePath, filename, (err) => {
+//         if (err) {
+//             console.error(`Error downloading file: ${err}`);
+//             res.status(500).send('파일 다운로드 실패');
+//         }
+//     });
+// });
 
 
 //결재 요청 보내기
