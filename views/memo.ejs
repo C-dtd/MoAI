@@ -7,14 +7,24 @@
   <!-- Toast UI Editor CSS -->
   <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
   <link rel="stylesheet" href="https://uicdn.toast.com/tui-color-picker/latest/tui-color-picker.min.css"/>
-  <link rel="stylesheet" href="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.css"
-  />
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.css"/>
+  <link rel="stylesheet" href="../css/pico_color.css"/>
+  <style>
+    body {
+      margin: 0;
+      padding: 0 10px;
+      height: calc(100vh - 2px);
+    }
+  </style>
 </head>
 <body>
+  <div id="editor" style="width: 100%;"></div>
   <!-- 에디터가 렌더링될 div -->
-  <div id="editor" style="width: 600px;"></div>
-  <br>
-  <button id="saveBtn">저장</button>
+  <!-- <div>
+    <br>
+    <button id="saveBtn">저장</button>
+
+  </div> -->
 
   <!-- Toast UI Editor JS -->
   <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
@@ -33,7 +43,7 @@
     const { colorSyntax } = Editor.plugin;
     const editor = new toastui.Editor({
       el: document.querySelector('#editor'),
-      height: '500px',
+      height: '100%',
       initialEditType: 'wysiwyg',
       previewStyle: 'vertical',
       hideModeSwitch: true,
@@ -52,29 +62,29 @@
             localStorage.setItem('tui-editor-content', content);
         });
     
-    document.getElementById('saveBtn').addEventListener('click', function() {
-      try {
-        // Markdown 내용을 HTML로 변환
-        const htmlContent = editor.getHTML();
-        const encodedHtmlContent = `<?xml version="1.0" encoding="UTF-8"?>${htmlContent}`;
+    // document.getElementById('saveBtn').addEventListener('click', function() {
+    //   try {
+    //     // Markdown 내용을 HTML로 변환
+    //     const htmlContent = editor.getHTML();
+    //     const encodedHtmlContent = `<?xml version="1.0" encoding="UTF-8"?>${htmlContent}`;
 
-        // Convert HTML to DOCX using html-docx-js
-        const converted = htmlDocx.asBlob(encodedHtmlContent);
+    //     // Convert HTML to DOCX using html-docx-js
+    //     const converted = htmlDocx.asBlob(encodedHtmlContent);
         
-        // 파일 다운로드
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(converted);
-        link.download = 'document.docx';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    //     // 파일 다운로드
+    //     const link = document.createElement('a');
+    //     link.href = URL.createObjectURL(converted);
+    //     link.download = 'document.docx';
+    //     document.body.appendChild(link);
+    //     link.click();
+    //     document.body.removeChild(link);
 
-        console.log('DOCX 파일 다운로드가 시작되었습니다.');
+    //     console.log('DOCX 파일 다운로드가 시작되었습니다.');
 
-      } catch (error) {
-        console.error('DOCX 파일 다운로드 중 오류 발생:', error);
-      }
-    });
+    //   } catch (error) {
+    //     console.error('DOCX 파일 다운로드 중 오류 발생:', error);
+    //   }
+    // });
    
   </script>
 </body>

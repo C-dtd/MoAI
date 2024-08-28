@@ -4,7 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>React Page with createRoot</title>
+    <link rel="stylesheet" href="../css/pico_color.css">
     <style>
+        body {
+            margin: 0;
+            padding: 0 32px;
+        }
+        .App {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            flex-grow: 0;
+            margin: 0;
+        }
+        .container {
+            flex-grow: 1;
+        }
+        .controls {
+            flex-grow: 0;
+            display: flex;
+            justify-content: center;
+            margin: 10px;
+        }
         .control-button {
             background-color: #f0f0f0; /* 버튼 배경 색상 (밝은 회색) */
             border: 1px solid #ddd; /* 연한 테두리 */
@@ -27,6 +50,18 @@
             outline: none; /* 포커스 시 외곽선 제거 */
             box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1); /* 포커스 시 그림자 효과 */
         }
+        .toastui-calendar-popup-section-item.toastui-calendar-popup-section-private.toastui-calendar-popup-button {
+            display: none;
+        }
+        .toastui-calendar-dropdown-section.toastui-calendar-calendar-section {
+            visibility: hidden;
+        }
+        .toastui-calendar-popup-section-title input.toastui-calendar-content {
+            width: 400px;
+        }
+        /* .toastui-calendar-popup-section div.toastui-calendar-popup-date-picker:nth-child(1) {
+            background-color: black;
+        } */
     </style>
 </head>
 <body>
@@ -52,7 +87,6 @@
             });
         }
         
-        
     </script>
     <!-- JSX로 React 컴포넌트 작성 및 createRoot 사용 -->
     <script type="text/babel">
@@ -64,16 +98,16 @@
             const [currentMonth, setCurrentMonth] = useState('');
             const [calendars] = useState([
                 {
-                id: "cal1",
-                name: "My Calendar",
-                backgroundColor: "#FF5733",
-                borderColor: "#FF5733",
+                    id: "cal1",
+                    name: "개인",
+                    backgroundColor: "#FF5733",
+                    borderColor: "#FF5733",
                 },
                 {
-                id: "cal2",
-                name: "Company",
-                backgroundColor: '#33FF57',
-                borderColor: '#33FF57',
+                    id: "cal2",
+                    name: "공유",
+                    backgroundColor: '#33FF57',
+                    borderColor: '#33FF57',
                 }
             ]);
 
@@ -88,25 +122,39 @@
 
                 updateMonth();
                 const calendarInstance = calendarRef.current.getInstance();
-                const userId = 'user_id'; // 실제로 로그인한 사용자로 대체
 
                 const loadEvents = async () => {
                     try {
+                        let userId = await fetch('/session/user_id');
+                        userId = await userId.text();
                         const response = await fetch(`/api/events/${userId}`);
                         if (response.ok) {
                             const events = await response.json();
                             //console.log('Loaded events:', events);
-                            events.forEach((event) => {
+                            events.myCalendar.forEach((event) => {
                                 const eventObj = {
                                     ...event,
                                     start: event.start_date,
                                     end: event.end_date,
                                     isAllday: event.isallday,
-                                    calendarId: event.calendar_id
+                                    calendarId: event.calendar_id,
+                                    attendees: [ event.user_name ],
+                                    isReadOnly: false
                                 }
                                 calendarInstance.createEvents([eventObj]);                                
                             });
-            
+                            events.shareCalendar.forEach((event) => {
+                                const eventObj = {
+                                    ...event,
+                                    start: event.start_date,
+                                    end: event.end_date,
+                                    isAllday: event.isallday,
+                                    calendarId: event.calendar_id,
+                                    attendees: [ event.user_name ],
+                                    isReadOnly: true
+                                }
+                                calendarInstance.createEvents([eventObj]);                                
+                            });
                             //calendarInstance.createEvents(events);
                         } else {
                             console.log('Failed to load events from the server');
@@ -123,14 +171,16 @@
 
                 // 팝업에서 일정 생성하기 전에 호출되는 함수 & DB에 데이터 전송도 같이
                 const handleBeforeCreateEvent = async (eventObj) => {
+                    let userName = await fetch('/session/user_name'); // 실제로 로그인한 사용자로 대체
+                    userName = await userName.text();
                     const newEvent = {
                         ...eventObj,
                         id: uuid(), // 고유 ID 생성
-                        
+                        attendees: userName
                     };
-                    console.log('create', newEvent);
+                    // console.log('create', newEvent);
                     // //console.log(dateParser(newEvent.start.d.d));
-                    console.log(newEvent);
+                    // console.log(newEvent);
                     // calendarInstance.createEvents([newEvent]);
 
                     const response = await fetch('/api/events', {
@@ -236,6 +286,12 @@
                     },
                     popupDelete(){
                         return '삭제';
+                    },
+                },
+                theme: {
+                    common: { 
+                        backgroundColor: '--pico-background-color',
+                        dayName: { color: '--pico-color' }
                     }
                 }
             };
@@ -269,14 +325,9 @@
             return (
                 <div className="App">
                     <h1 align="center">{currentMonth}</h1>
-                    <div className="controls">
-                        <button className="control-button" onClick={handlePrev}>이전 달</button>
-                        <button className="control-button" onClick={handleNext}>다음 달</button>
-                        <button className="control-button" onClick={handleToday}>오늘</button>
-                    </div>
                     <ReactCalendar
                         ref={calendarRef}
-                        height='500px'
+                        height='100%'
                         view="month"
                         useFormPopup={true}  // 팝업을 사용하도록 설정
                         useDetailPopup={true}
@@ -284,7 +335,13 @@
                         month={calendarOptions.month} // 월간 옵션 전달
                         template={calendarOptions.template} // 템플릿 옵션 추가
                         calendars={calendars}
+                        theme={calendarOptions.theme}
                     />
+                    <div className="controls">
+                        <button className="control-button" onClick={handlePrev}>이전 달</button>
+                        <button className="control-button" onClick={handleToday}>오늘</button>
+                        <button className="control-button" onClick={handleNext}>다음 달</button>
+                    </div>
                 </div>
             );
         };

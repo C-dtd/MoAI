@@ -11,7 +11,10 @@ const path = require('path');
 const { v4 } = require('uuid');
 const { send } = require('process');
 const sharedSession = require('socket.io-express-session');
+const twilio = require('twilio');
 
+const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
+const verificationCodes = {};
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -55,7 +58,7 @@ app.use('/js', express.static(__dirname + '/js'));
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/html', express.static(__dirname + '/html'));
 app.use('/uploads', express.static(__dirname + '/uploads'));
-app.use('/서류결제2', express.static(__dirname + '/서류결제2'));
+app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
 
@@ -68,6 +71,19 @@ app.get('/login', function(req, res) {
     }
     res.sendFile(__dirname + '/html/login.html'); // Serve login.html
 });
+
+app.get('/find_password', function(req, res){
+    res.sendFile(__dirname + '/html/find_password.html');  // register html
+})
+
+app.get('/find_passwordauth', function(req, res) {
+    res.sendFile(__dirname + '/html/find_passwordauth.html');  // 비밀번호 찾기 성공 페이지 제공
+});
+
+app.get('/find_password_success', function(req, res) {
+    res.sendFile(__dirname + '/html/find_password_success.html');  // 비밀번호 찾기 성공 페이지 제공
+});
+
 
 app.get('/register', function(req, res){
     res.sendFile(__dirname + '/html/register.html');  // register html
@@ -107,6 +123,72 @@ app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
 });
 
+app.get('/documentsummary', function(req, res) {
+    res.render('document-summary.ejs');
+});
+
+
+app.post('/calendar/share', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.status(404).json({ message: 'need to login' });
+    }
+    const { calendarId, roomId } = req.body;
+    const users = await db.query(
+        'select user_id from room_users where room_id=$1',
+        [roomId]
+    );
+    try {
+        users.rows.forEach((u) => {
+            if (u.user_id != user.user_id) {
+                console.log(u.user_id);
+                db.query(
+                    'insert into calendar_shared (calendar_id, user_id) values ($1, $2)',
+                    [calendarId, u.user_id]
+                );
+            }
+        });
+        db.query(
+            "update calandars set calendar_id = 'cal2' where id = $1",
+            [calendarId]
+        );
+        res.status(200).json({ message: 'success' });
+    }catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to save event to the database' });
+    }
+});
+
+// 비밀번호 찾기 엔드포인트
+app.post('/find_password', async (req, res) => {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        // user_id에 해당하는 사용자를 찾는 쿼리
+        const result = await db.query('SELECT user_name FROM users WHERE user_id = $1', [user_id]);
+
+        if (result.rows.length > 0) {
+            // 성공적인 응답과 리디렉션 URL 반환
+            res.json({ 
+                message: 'Password reset link has been sent.',
+                redirectTo: '/html/find_passwordauth.html' 
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error occurred:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
+
 app.get('/chatroomframe', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -114,9 +196,25 @@ app.get('/chatroomframe', async (req, res) => {
         return;
     }
     const chatroomList = await db.query(
-        "select * from rooms where id in (select room_id from room_users where user_id = $1)",
+        `
+        select r.*, c.chat, c.type
+        from rooms r join 
+        (select * 
+         from chat_logs 
+         where chat_at in 
+         (select max(chat_at) 
+          from chat_logs 
+          group by room_id)) c 
+        on r.id = c.room_id 
+        where r.id in 
+        (select room_id
+         from room_users
+         where user_id = $1)
+        order by c.chat_at desc
+        `,
         [ user.user_id ]
     )
+    
     res.render('chatroom', {
         user: user, 
         chatroomList: chatroomList.rows 
@@ -154,6 +252,7 @@ io.on('connection', (socket) => {
             "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
             [user.user_id, msg.room, msg.message, msg.type]
         );
+
         io.to(msg.room).emit('msg', {...msg, user_id: user.user_id, user_name: user.user_name});
     });
 });
@@ -171,6 +270,13 @@ app.post('/newroom', async (req, res) => {
     const room_id = v4();
     const is_group = (inviteList.length != 2);
     console.log(inviteList);
+    // console.log(roomName == '');
+    if (roomName == '') {
+        res.send({
+            result: false,
+        });
+        return;
+    }
 
     db.query(
         'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
@@ -186,20 +292,7 @@ app.post('/newroom', async (req, res) => {
     res.send({result: true});
 });
 
-app.get('/chatroomlist', async (req, res) => {
-    const { user } = req.session;
-    if (!user) {
-        res.send({
-            result: false,
-        });
-        return;
-    }
-    const chatroomList = await db.query(
-        'select * from rooms where id in (select room_id from room_users where user_id = $1)',
-        [ user.user_id ]
-    );
-    res.send( chatroomList.rows );
-});
+
 
 //메인 페이지
 app.get('/', async (req, res) => {
@@ -228,6 +321,10 @@ app.get('/memo', (req, res) => {
     res.render('memo'); // 'memo.ejs'를 'views' 폴더에 위치시켜야 합니다.
 });
 
+app.get('/documentsummary', (req, res) => {
+    res.render('document-summary');
+})
+
 //채팅페이지 (임시)
 app.get('/chat/:id', async function(req, res) {
     const { user } = req.session;
@@ -246,12 +343,15 @@ app.get('/chat/:id', async function(req, res) {
         "select * from rooms where id=$1",
         [ room_id ]
     )
-    console.log(room.rows[0]);
     const chat_log = await db.query(
         "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1",
         [ room_id ]
     );
-    res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, user: user});
+    const member = await db.query(
+        "select u.user_name from room_users ru join users u on ru.user_id = u.user_id where ru.room_id=$1",
+        [ room_id ]
+    )
+    res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, member: member.rows, user: user});
 });
 
 // app.get('/db', async function(req, res) {
@@ -276,10 +376,42 @@ app.post('/login', async (req, res) => {
     }
 });
 
+//핸드폰 인증코드 호출
+app.post('/send-verification-code', (req, res) => {
+    const { phone } = req.body;
+    const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6자리 코드 생성
+
+    twilioClient.messages
+        .create({
+            body: `Your verification code is ${verificationCode}`,
+            from: '+16194323674',
+            to: phone
+        })
+        .then((message) => {
+            verificationCodes[phone] = verificationCode;
+            res.send({ success: true });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.send({ success: false, error: 'Failed to send verification code' });
+        });
+});
+
+//인증코드 인증
+app.post('/verify-code', (req, res) => {
+    const { phone, code } = req.body;
+    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {
+        req.session.isVerified = true; // 세션에 인증 정보 저장
+        delete verificationCodes[phone]; // 인증 코드 삭제
+        res.send({success: true});
+    } else {
+        res.send({ success: false, error: 'Invalid verification code' });
+    }
+});
+
 //회원 가입시 정보 db에 저장
 app.post('/register', function(req, res) {
-    const { id, name, phoneHead, phoneFront, phoneBack, password } = req.body;
-    let phone = `${phoneHead}-${phoneFront}-${phoneBack}`;
+    const { id, name, phone, password } = req.body;
     req.session.name = { name };
     db.query(
         "insert into users values ($1, $2, $3, '-', '-', $4)",
@@ -288,7 +420,6 @@ app.post('/register', function(req, res) {
     res.redirect('/register_confirm');
 });
 
-//post formdata로 파일(key: file)이 업로드될때 ./uploads에 저장. 저장된 경로 반환
 app.post('/upload', upload.single('file'), function(req, res) {
     const file = req.file;
     res.send(
@@ -298,6 +429,68 @@ app.post('/upload', upload.single('file'), function(req, res) {
         }
     );
 });
+
+// 파일 다운로드 관련 엔드포인트
+const { exec } = require('child_process');
+const fs = require('fs');
+
+// 업로드된 파일 처리
+// 플라스크에 합쳐져서 이거 이제 없어도 됨.
+
+// app.post('/upload_summary', upload.single('file'), (req, res) => {
+//     const file = req.file;
+//     if (!file) {
+//         return res.status(400).send({ error: '파일 업로드 실패' });
+//     }
+
+//     console.log('Uploaded file path:', file.path);
+
+//     // 처리된 파일을 저장할 디렉토리 확인 및 생성
+//     if (!fs.existsSync('processed')) {
+//         fs.mkdirSync('processed');
+//     }
+
+//     // Python 스크립트 실행
+//     exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
+//         if (error) {
+//             console.error(`exec error: ${error}`);
+//             return res.status(500).send({ error: '파일 처리 실패' });
+//         }
+
+//         // 처리된 파일 저장
+//         const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
+//         // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
+//         // fs.writeFileSync(processedFilePath, stdout);
+
+//         // 클라이언트에게 처리 결과와 다운로드 링크 제공
+//         res.send({
+//             result: 'ok',
+//             originalFilePath: file.path,
+//             processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
+//             output: stdout,
+//             error: stderr
+//         });
+//     });
+// });
+
+// // 처리된 파일 다운로드
+// app.get('/download/:filename', (req, res) => {
+//     const filename = req.params.filename;
+//     const filePath = path.join(__dirname, 'processed', filename);
+
+//     // 파일이 존재하는지 확인
+//     if (!fs.existsSync(filePath)) {
+//         return res.status(404).send('파일을 찾을 수 없습니다.');
+//     }
+
+//     res.download(filePath, filename, (err) => {
+//         if (err) {
+//             console.error(`Error downloading file: ${err}`);
+//             res.status(500).send('파일 다운로드 실패');
+//         }
+//     });
+// });
+
 
 //결재 요청 보내기
 app.post('/payment_req', async (req, res) => {
@@ -454,7 +647,7 @@ app.put('/api/events/:id', async (req, res) => {
              SET title = $1, start_date = $2, end_date = $3, location = $4, isallday = $5, state = $6
              WHERE id = $7
              RETURNING *`,
-            [title, dateParse(start.d.d), dateParse(end.d.d), location, isAllday, state, id]
+            [title, dateParser(start.d.d), dateParser(end.d.d), location, isAllday, state, id]
         );
 
         if (result.rowCount === 0) {
@@ -474,12 +667,19 @@ app.get('/api/events/:user_id', async (req, res) => {
     const { user_id } = req.params;
 
     try {
-        const result = await db.query(
-            'SELECT * FROM calandars WHERE user_id = $1',
+        const resultSelf = await db.query(
+            'SELECT c.*, u.user_name FROM calandars c join users u on c.user_id=u.user_id WHERE c.user_id = $1',
             [user_id]
         );
+        const resultShare = await db.query(
+            'select c.*, u.user_name from calandars c join users u on c.user_id=u.user_id where c.id in (select calendar_id from calendar_shared where user_id=$1)',
+            [user_id]
+        )
         // console.log(result.rows);
-        res.status(200).json(result.rows);
+        res.status(200).json({ 
+            myCalendar: resultSelf.rows,
+            shareCalendar: resultShare.rows
+        });
     } catch (error) {
         console.error('Error fetching events from the database:', error);
         res.status(500).json({ message: 'Failed to fetch events from the database' });
