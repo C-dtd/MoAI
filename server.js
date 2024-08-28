@@ -11,7 +11,10 @@ const path = require('path');
 const { v4 } = require('uuid');
 const { send } = require('process');
 const sharedSession = require('socket.io-express-session');
+const twilio = require('twilio');
 
+const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
+const verificationCodes = {};
 // Database configuration
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',
@@ -69,6 +72,19 @@ app.get('/login', function(req, res) {
     res.sendFile(__dirname + '/html/login.html'); // Serve login.html
 });
 
+app.get('/find_password', function(req, res){
+    res.sendFile(__dirname + '/html/find_password.html');  // register html
+})
+
+app.get('/find_passwordauth', function(req, res) {
+    res.sendFile(__dirname + '/html/find_passwordauth.html');  // 비밀번호 찾기 성공 페이지 제공
+});
+
+app.get('/find_password_success', function(req, res) {
+    res.sendFile(__dirname + '/html/find_password_success.html');  // 비밀번호 찾기 성공 페이지 제공
+});
+
+
 app.get('/register', function(req, res){
     res.sendFile(__dirname + '/html/register.html');  // register html
 })
@@ -107,6 +123,11 @@ app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
 });
 
+app.get('/documentsummary', function(req, res) {
+    res.render('document-summary.ejs');
+});
+
+
 app.post('/calendar/share', async (req, res) => {
     const { user } = req.session;
     if (!user) {
@@ -137,6 +158,36 @@ app.post('/calendar/share', async (req, res) => {
         res.status(500).json({ message: 'Failed to save event to the database' });
     }
 });
+
+// 비밀번호 찾기 엔드포인트
+app.post('/find_password', async (req, res) => {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        // user_id에 해당하는 사용자를 찾는 쿼리
+        const result = await db.query('SELECT user_name FROM users WHERE user_id = $1', [user_id]);
+
+        if (result.rows.length > 0) {
+            // 성공적인 응답과 리디렉션 URL 반환
+            res.json({ 
+                message: 'Password reset link has been sent.',
+                redirectTo: '/html/find_passwordauth.html' 
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error occurred:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
 
 app.get('/chatroomframe', async (req, res) => {
     const { user } = req.session;
@@ -241,6 +292,8 @@ app.post('/newroom', async (req, res) => {
     res.send({result: true});
 });
 
+
+
 //메인 페이지
 app.get('/', async (req, res) => {
     const { user } = req.session;
@@ -323,10 +376,42 @@ app.post('/login', async (req, res) => {
     }
 });
 
+//핸드폰 인증코드 호출
+app.post('/send-verification-code', (req, res) => {
+    const { phone } = req.body;
+    const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6자리 코드 생성
+
+    twilioClient.messages
+        .create({
+            body: `Your verification code is ${verificationCode}`,
+            from: '+16194323674',
+            to: phone
+        })
+        .then((message) => {
+            verificationCodes[phone] = verificationCode;
+            res.send({ success: true });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.send({ success: false, error: 'Failed to send verification code' });
+        });
+});
+
+//인증코드 인증
+app.post('/verify-code', (req, res) => {
+    const { phone, code } = req.body;
+    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {
+        req.session.isVerified = true; // 세션에 인증 정보 저장
+        delete verificationCodes[phone]; // 인증 코드 삭제
+        res.send({success: true});
+    } else {
+        res.send({ success: false, error: 'Invalid verification code' });
+    }
+});
+
 //회원 가입시 정보 db에 저장
 app.post('/register', function(req, res) {
-    const { id, name, phoneHead, phoneFront, phoneBack, password } = req.body;
-    let phone = `${phoneHead}-${phoneFront}-${phoneBack}`;
+    const { id, name, phone, password } = req.body;
     req.session.name = { name };
     db.query(
         "insert into users values ($1, $2, $3, '-', '-', $4)",
@@ -350,59 +435,61 @@ const { exec } = require('child_process');
 const fs = require('fs');
 
 // 업로드된 파일 처리
-app.post('/upload', upload.single('file'), (req, res) => {
-    const file = req.file;
-    if (!file) {
-        return res.status(400).send({ error: '파일 업로드 실패' });
-    }
+// 플라스크에 합쳐져서 이거 이제 없어도 됨.
 
-    console.log('Uploaded file path:', file.path);
+// app.post('/upload_summary', upload.single('file'), (req, res) => {
+//     const file = req.file;
+//     if (!file) {
+//         return res.status(400).send({ error: '파일 업로드 실패' });
+//     }
 
-    // 처리된 파일을 저장할 디렉토리 확인 및 생성
-    if (!fs.existsSync('processed')) {
-        fs.mkdirSync('processed');
-    }
+//     console.log('Uploaded file path:', file.path);
 
-    // Python 스크립트 실행
-    exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            return res.status(500).send({ error: '파일 처리 실패' });
-        }
+//     // 처리된 파일을 저장할 디렉토리 확인 및 생성
+//     if (!fs.existsSync('processed')) {
+//         fs.mkdirSync('processed');
+//     }
 
-        // 처리된 파일 저장
-        const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
-        // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
-        // fs.writeFileSync(processedFilePath, stdout);
+//     // Python 스크립트 실행
+//     exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
+//         if (error) {
+//             console.error(`exec error: ${error}`);
+//             return res.status(500).send({ error: '파일 처리 실패' });
+//         }
 
-        // 클라이언트에게 처리 결과와 다운로드 링크 제공
-        res.send({
-            result: 'ok',
-            originalFilePath: file.path,
-            processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
-            output: stdout,
-            error: stderr
-        });
-    });
-});
+//         // 처리된 파일 저장
+//         const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
+//         // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
+//         // fs.writeFileSync(processedFilePath, stdout);
 
-// 처리된 파일 다운로드
-app.get('/download/:filename', (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, 'processed', filename);
+//         // 클라이언트에게 처리 결과와 다운로드 링크 제공
+//         res.send({
+//             result: 'ok',
+//             originalFilePath: file.path,
+//             processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
+//             output: stdout,
+//             error: stderr
+//         });
+//     });
+// });
 
-    // 파일이 존재하는지 확인
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).send('파일을 찾을 수 없습니다.');
-    }
+// // 처리된 파일 다운로드
+// app.get('/download/:filename', (req, res) => {
+//     const filename = req.params.filename;
+//     const filePath = path.join(__dirname, 'processed', filename);
 
-    res.download(filePath, filename, (err) => {
-        if (err) {
-            console.error(`Error downloading file: ${err}`);
-            res.status(500).send('파일 다운로드 실패');
-        }
-    });
-});
+//     // 파일이 존재하는지 확인
+//     if (!fs.existsSync(filePath)) {
+//         return res.status(404).send('파일을 찾을 수 없습니다.');
+//     }
+
+//     res.download(filePath, filename, (err) => {
+//         if (err) {
+//             console.error(`Error downloading file: ${err}`);
+//             res.status(500).send('파일 다운로드 실패');
+//         }
+//     });
+// });
 
 
 //결재 요청 보내기
