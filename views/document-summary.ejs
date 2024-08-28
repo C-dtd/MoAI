@@ -28,7 +28,7 @@
         form.addEventListener('submit', function (event) {
             event.preventDefault(); // 기본 폼 제출 동작 방지
             const formData = new FormData(form);
-            fetch('/upload', {
+            fetch('http://localhost:5100/summary', {
                 method: 'POST',
                 body: formData
             })
@@ -36,10 +36,14 @@
             .then(data => {
                 const resultDiv = document.getElementById('result');
                 if (data.result === 'ok') {
-                    resultDiv.innerHTML = `
-                        <p>파일이 성공적으로 처리되었습니다.</p>
-                        <p><a href="/download/${data.processedFilePath}" download>처리된 파일 다운로드</a></p>
-                    `;
+                    resultDiv.innerHTML = `<p>파일이 성공적으로 처리되었습니다.</p>`
+                    //     <a href="..${data.processedFilePath}" download>처리된 파일 다운로드</a>
+                    // `;
+                    const a = document.createElement('a');
+                    a.setAttribute('href',`${data.processedFilePath}`);
+                    a.innerText = '처리된 파일 다운로드';
+                    resultDiv.appendChild(a);
+                    a.click();
                 } else {
                     resultDiv.innerHTML = `<p>파일 처리에 실패했습니다.</p>`;
                 }
