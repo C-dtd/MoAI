@@ -24,9 +24,24 @@
             overflow-y: auto;
             flex-grow: 1;
             height: 100%;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
         }
-        main a button {
+        main:-webkit-scrollbar {
+            display: none;
+        }
+        article {
             width: 100%;
+            color: var(--pico-color);
+        }
+        article:hover {
+            background-color: var(--pico-text-selection-color);
+        }
+        article:hover header {
+            background-color: var(--pico-text-selection-color);
+        }
+        article main {
+            text-align: left;
         }
     </style>
 </head>
@@ -36,11 +51,22 @@
     </header>
     <main>
         <% chatroomList.forEach((chatroom) => { %>
-            <a href="/chat/<%= chatroom.id %>">
-                <button class="outline chat-room">
-                    <%= chatroom.room_name %>
-                </button>
-            </a>
+                <article class="chat-room" onclick="location.href='/chat/<%= chatroom.id %>'">
+                    <header>
+                        <%= chatroom.room_name %>
+                    </header>
+                    <main>
+                        <% if (chatroom.type == 'text') { %>
+                            <%= chatroom.chat %>
+                        <% } else if (chatroom.type == 'img') { %>
+                            이미지를 공유했습니다.
+                        <% } else if (chatroom.type == 'payment') { %>
+                            결재 요청
+                        <% } else if (chatroom.type == 'calendar') { %>
+                            일정을 공유했습니다.
+                        <% } %>
+                    </main>
+                </article>
         <% }); %>
     </main>
     <footer>
