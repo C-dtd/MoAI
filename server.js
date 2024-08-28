@@ -107,10 +107,36 @@ app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
 });
 
-app.get('/document-summary', function(req, res) {
-    res.render('document-summary.ejs');
+app.post('/calendar/share', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.status(404).json({ message: 'need to login' });
+    }
+    const { calendarId, roomId } = req.body;
+    const users = await db.query(
+        'select user_id from room_users where room_id=$1',
+        [roomId]
+    );
+    try {
+        users.rows.forEach((u) => {
+            if (u.user_id != user.user_id) {
+                console.log(u.user_id);
+                db.query(
+                    'insert into calendar_shared (calendar_id, user_id) values ($1, $2)',
+                    [calendarId, u.user_id]
+                );
+            }
+        });
+        db.query(
+            "update calandars set calendar_id = 'cal2' where id = $1",
+            [calendarId]
+        );
+        res.status(200).json({ message: 'success' });
+    }catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to save event to the database' });
+    }
 });
-
 
 app.get('/chatroomframe', async (req, res) => {
     const { user } = req.session;
@@ -159,6 +185,7 @@ io.on('connection', (socket) => {
             "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
             [user.user_id, msg.room, msg.message, msg.type]
         );
+
         io.to(msg.room).emit('msg', {...msg, user_id: user.user_id, user_name: user.user_name});
     });
 });
@@ -176,6 +203,10 @@ app.post('/newroom', async (req, res) => {
     const room_id = v4();
     const is_group = (inviteList.length != 2);
     console.log(inviteList);
+    // console.log(roomName == '');
+    if (roomName == '') {
+        roomName = 'chatroom';
+    }
 
     db.query(
         'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
@@ -189,21 +220,6 @@ app.post('/newroom', async (req, res) => {
         );
     });
     res.send({result: true});
-});
-
-app.get('/chatroomlist', async (req, res) => {
-    const { user } = req.session;
-    if (!user) {
-        res.send({
-            result: false,
-        });
-        return;
-    }
-    const chatroomList = await db.query(
-        'select * from rooms where id in (select room_id from room_users where user_id = $1)',
-        [ user.user_id ]
-    );
-    res.send( chatroomList.rows );
 });
 
 //메인 페이지
@@ -508,7 +524,7 @@ app.put('/api/events/:id', async (req, res) => {
              SET title = $1, start_date = $2, end_date = $3, location = $4, isallday = $5, state = $6
              WHERE id = $7
              RETURNING *`,
-            [title, dateParse(start.d.d), dateParse(end.d.d), location, isAllday, state, id]
+            [title, dateParser(start.d.d), dateParser(end.d.d), location, isAllday, state, id]
         );
 
         if (result.rowCount === 0) {
@@ -528,12 +544,19 @@ app.get('/api/events/:user_id', async (req, res) => {
     const { user_id } = req.params;
 
     try {
-        const result = await db.query(
-            'SELECT * FROM calandars WHERE user_id = $1',
+        const resultSelf = await db.query(
+            'SELECT c.*, u.user_name FROM calandars c join users u on c.user_id=u.user_id WHERE c.user_id = $1',
             [user_id]
         );
+        const resultShare = await db.query(
+            'select c.*, u.user_name from calandars c join users u on c.user_id=u.user_id where c.id in (select calendar_id from calendar_shared where user_id=$1)',
+            [user_id]
+        )
         // console.log(result.rows);
-        res.status(200).json(result.rows);
+        res.status(200).json({ 
+            myCalendar: resultSelf.rows,
+            shareCalendar: resultShare.rows
+        });
     } catch (error) {
         console.error('Error fetching events from the database:', error);
         res.status(500).json({ message: 'Failed to fetch events from the database' });
