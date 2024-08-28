@@ -39,12 +39,14 @@
         <h3>채팅방</h3>
     </header>
     <main>
-        <% userList.forEach((user) => { %>
+        <% userList.forEach((user, i) => { %>
             <label>
                 <input type="checkbox" name="<%= user.user_name %>" class="invite">
                 <%= user.user_name %>
             </label>
-            <hr>
+            <% if (i!=userList.length-1) { %>
+                <hr>
+            <% } %>
         <% }); %>
     </main>
     <footer>
