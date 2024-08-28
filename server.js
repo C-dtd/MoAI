@@ -145,9 +145,25 @@ app.get('/chatroomframe', async (req, res) => {
         return;
     }
     const chatroomList = await db.query(
-        "select * from rooms where id in (select room_id from room_users where user_id = $1)",
+        `
+        select r.*, c.chat, c.type
+        from rooms r join 
+        (select * 
+         from chat_logs 
+         where chat_at in 
+         (select max(chat_at) 
+          from chat_logs 
+          group by room_id)) c 
+        on r.id = c.room_id 
+        where r.id in 
+        (select room_id
+         from room_users
+         where user_id = $1)
+        order by c.chat_at desc
+        `,
         [ user.user_id ]
     )
+    
     res.render('chatroom', {
         user: user, 
         chatroomList: chatroomList.rows 
@@ -205,7 +221,10 @@ app.post('/newroom', async (req, res) => {
     console.log(inviteList);
     // console.log(roomName == '');
     if (roomName == '') {
-        roomName = 'chatroom';
+        res.send({
+            result: false,
+        });
+        return;
     }
 
     db.query(
@@ -267,12 +286,15 @@ app.get('/chat/:id', async function(req, res) {
         "select * from rooms where id=$1",
         [ room_id ]
     )
-    console.log(room.rows[0]);
     const chat_log = await db.query(
         "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1",
         [ room_id ]
     );
-    res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, user: user});
+    const member = await db.query(
+        "select u.user_name from room_users ru join users u on ru.user_id = u.user_id where ru.room_id=$1",
+        [ room_id ]
+    )
+    res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, member: member.rows, user: user});
 });
 
 // app.get('/db', async function(req, res) {

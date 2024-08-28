@@ -79,7 +79,10 @@ createRoomButton.addEventListener('click', async () => {
             roomName: roomnameInput.value,
         })
     });
-    // const res = await response.json();
+    const res = await response.json();
+    if (res.result) {
+        location.href='/chatroomframe';
+    }
 });
 </script>
 </body>

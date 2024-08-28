@@ -8,6 +8,7 @@
     <style>
         body {
             margin: 0;
+            padding: 0 32px;
         }
         .App {
             height: 100vh;
@@ -49,9 +50,18 @@
             outline: none; /* 포커스 시 외곽선 제거 */
             box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1); /* 포커스 시 그림자 효과 */
         }
+        .toastui-calendar-popup-section-item.toastui-calendar-popup-section-private.toastui-calendar-popup-button {
+            display: none;
+        }
         .toastui-calendar-dropdown-section.toastui-calendar-calendar-section {
             visibility: hidden;
         }
+        .toastui-calendar-popup-section-title input.toastui-calendar-content {
+            width: 400px;
+        }
+        /* .toastui-calendar-popup-section div.toastui-calendar-popup-date-picker:nth-child(1) {
+            background-color: black;
+        } */
     </style>
 </head>
 <body>
