@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부서 및 사원 목록</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>부서 목록</h1>
+            <ul id="department-list">
+                <li onclick="showEmployees('sales')">영업부</li>
+                <li onclick="showEmployees('hr')">인사부</li>
+                <li onclick="showEmployees('it')">IT부</li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <div id="sales" class="employee-list">
+                <h2>영업부 사원</h2>
+                <div class="employee-card">
+                    <img src="profile-pic1.jpg" class="profile-pic" data-src="profile-pic1.jpg">
+                    <div class="employee-info">
+                        <p><strong>이름:</strong> 김영희</p>
+                        <p><strong>부서:</strong> 영업부</p>
+                        <p><strong>직책:</strong> 팀장</p>
+                        <p><strong>전화번호:</strong> 010-1234-5678</p>
+                        <button class="chat-button">채팅방</button> <!-- 추가된 버튼 -->
+                    </div>
+                </div>
+                <div class="employee-card">
+                    <img src="profile-pic2.jpg" class="profile-pic" data-src="profile-pic2.jpg">
+                    <div class="employee-info">
+                        <p><strong>이름:</strong> 이철수</p>
+                        <p><strong>부서:</strong> 영업부</p>
+                        <p><strong>직책:</strong> 사원</p>
+                        <p><strong>전화번호:</strong> 010-2345-6789</p>
+                        <button class="chat-button">채팅방</button> <!-- 추가된 버튼 -->
+                    </div>
+                </div>
+            </div>
+            <div id="hr" class="employee-list">
+                <h2>인사부 사원</h2>
+                <div class="employee-card">
+                    <img src="profile-pic3.jpg" class="profile-pic" data-src="profile-pic3.jpg">
+                    <div class="employee-info">
+                        <p><strong>이름:</strong> 박지은</p>
+                        <p><strong>부서:</strong> 인사부</p>
+                        <p><strong>직책:</strong> 과장</p>
+                        <p><strong>전화번호:</strong> 010-3456-7890</p>
+                        <button class="chat-button">채팅방</button> <!-- 추가된 버튼 -->
+                    </div>
+                </div>
+                <div class="employee-card">
+                    <img src="profile-pic4.jpg" class="profile-pic" data-src="profile-pic4.jpg">
+                    <div class="employee-info">
+                        <p><strong>이름:</strong> 최민수</p>
+                        <p><strong>부서:</strong> 인사부</p>
+                        <p><strong>직책:</strong> 사원</p>
+                        <p><strong>전화번호:</strong> 010-4567-8901</p>
+                        <button class="chat-button">채팅방</button> <!-- 추가된 버튼 -->
+                    </div>
+                </div>
+            </div>
+            <div id="it" class="employee-list">
+                <h2>IT부 사원</h2>
+                <div class="employee-card">
+                    <img src="profile-pic5.jpg" class="profile-pic" data-src="profile-pic5.jpg">
+                    <div class="employee-info">
+                        <p><strong>이름:</strong> 정민호</p>
+                        <p><strong>부서:</strong> IT부</p>
+                        <p><strong>직책:</strong> 개발자</p>
+                        <p><strong>전화번호:</strong> 010-5678-9012</p>
+                        <button class="chat-button">채팅방</button> <!-- 추가된 버튼 -->
+                    </div>
+                </div>
+                <div class="employee-card">
+                    <img src="profile-pic6.jpg" class="profile-pic" data-src="profile-pic6.jpg">
+                    <div class="employee-info">
+                        <p><strong>이름:</strong> 오수진</p>
+                        <p><strong>부서:</strong> IT부</p>
+                        <p><strong>직책:</strong> 시스템 관리자</p>
+                        <p><strong>전화번호:</strong> 010-6789-0123</p>
+                        <button class="chat-button">채팅방</button> <!-- 추가된 버튼 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
