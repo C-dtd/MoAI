@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const verificationCodeInput = document.getElementById('verification-code');
     const submitBtn = document.getElementById("submitBtn");
 
+    // MoAI 로고 클릭 시 login.html로 이동
+    document.querySelector('header.container').addEventListener('click', function() {
+        window.location.href = 'login';
+    });
+    
     // 인증 상태 변수
     let isVerified = false;
 

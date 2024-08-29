@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const phoneInput = document.getElementById('phone');
     const verificationCodeInput = document.getElementById('verification-code');
 
+    // MoAI 로고 클릭 시 login.html로 이동
+    document.querySelector('header.container').addEventListener('click', function() {
+        window.location.href = 'login';
+    });
+
     // 인증번호 전송
     function sendVerificationCode() {
         const phone = phoneInput.value;
