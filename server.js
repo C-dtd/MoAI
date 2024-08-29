@@ -62,7 +62,6 @@ server.listen(port, function() {
 // 정적 파일들 html, css 연결 도구
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/css', express.static(__dirname + '/css'));
-app.use('/html', express.static(__dirname + '/html'));
 app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
@@ -116,7 +115,7 @@ app.get('/register_confirm', function(req, res){
     const { name } = req.session;
     if (name) {
         delete req.session.name;
-        res.render('register_confirm.ejs', name );  // register html
+        res.render('register_confirm.ejs', name );  // register ejs
     } else {
         res.send('error');
     }
