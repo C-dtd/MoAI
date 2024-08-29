@@ -63,7 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.addEventListener('click', () => {
             if (isVerified) {
                 // 인증이 성공했을 때만 페이지 전환
-                fetch('/find_password_success')
+                fetch('/find_passwordauth', {
+                    method: 'POST',
+                    // headers: 'applicat'
+                })
                     .then(response => response.json())
                     .then(data => {
                         window.location.href = data.redirectTo;

@@ -74,7 +74,7 @@ app.get('/login', function(req, res) {
         res.redirect('/');
         return;
     }
-    res.render('/login.ejs'); // Serve login.html
+    res.render('login.ejs'); // Serve login.html
 });
 
 app.get('/find_password', function(req, res){
@@ -188,7 +188,7 @@ app.post('/find_password', async (req, res) => {
             // 성공적인 응답과 리디렉션 URL 반환
             res.json({ 
                 message: 'Password reset link has been sent.',
-                redirectTo: '/html/find_passwordauth.html' 
+                redirectTo: 'find_passwordauth' 
             });
         } else {
             res.status(404).json({ error: 'User not found' });
@@ -234,9 +234,9 @@ app.post('/verify-code', (req, res) => {
 });
 
 // 인증이 완료된 후 클라이언트에 리디렉션 URL을 제공하는 엔드포인트
-app.get('/find_passwordauth', (req, res) => {
+app.post('/find_passwordauth', (req, res) => {
     if (req.session.isVerified) {
-        res.json({ redirectTo: '/find_password_success.html' });
+        res.json({ redirectTo: '/find_password_success' });
     } else {
         res.status(400).json({ error: 'Authentication not completed' });
     }
