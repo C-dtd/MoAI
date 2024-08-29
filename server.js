@@ -58,7 +58,6 @@ const port = 8000;
 // 정적 파일들 html, css 연결 도구
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/css', express.static(__dirname + '/css'));
-app.use('/html', express.static(__dirname + '/html'));
 app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
@@ -74,7 +73,7 @@ app.get('/login', function(req, res) {
         res.redirect('/');
         return;
     }
-    res.render('/login.ejs'); // Serve login.html
+    res.render('login.ejs'); // Serve login.ejs
 });
 
 app.get('/find_password', function(req, res){
@@ -120,7 +119,7 @@ app.get('/register_confirm', function(req, res){
     const { name } = req.session;
     if (name) {
         delete req.session.name;
-        res.render('register_confirm.ejs', name );  // register html
+        res.render('register_confirm.ejs', name );  // register ejs
     } else {
         res.send('error');
     }
@@ -188,7 +187,7 @@ app.post('/find_password', async (req, res) => {
             // 성공적인 응답과 리디렉션 URL 반환
             res.json({ 
                 message: 'Password reset link has been sent.',
-                redirectTo: '/html/find_passwordauth.html' 
+                redirectTo: '/find_passwordauth' 
             });
         } else {
             res.status(404).json({ error: 'User not found' });
