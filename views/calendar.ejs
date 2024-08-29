@@ -59,9 +59,14 @@
         .toastui-calendar-popup-section-title input.toastui-calendar-content {
             width: 400px;
         }
-        /* .toastui-calendar-popup-section div.toastui-calendar-popup-date-picker:nth-child(1) {
-            background-color: black;
-        } */
+        .toastui-calendar-popup-section-item .toastui-calendar-content {
+            background-color: white;
+            color: black;
+        }
+
+        .toastui-calendar-delete-button,.toastui-calendar-edit-button,.toastui-calendar-popup-container {
+            color: black
+        }
     </style>
 </head>
 <body>
@@ -291,7 +296,11 @@
                 theme: {
                     common: { 
                         backgroundColor: '--pico-background-color',
-                        dayName: { color: '--pico-color' }
+                        dayName: { color: 'var(--pico-color)' },
+                        saturday: { color: 'var(--pico-secondary)' }
+                    },
+                    month: {
+                        dayExceptThisMonth: { color: 'var(--pico-color-80)' }
                     }
                 }
             };

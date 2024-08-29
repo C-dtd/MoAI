@@ -18,7 +18,7 @@
         <h1>문서 요약</h1>
         <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
             <label for="file-upload">파일 선택:</label>
-            <input type="file" id="file-upload" name="file" required>
+            <input type="file" id="file-upload" name="file" required accept=".pdf" multiple>
             <button type="submit">파일 업로드 및 처리</button>
         </form>
         <div id="result" style="margin-top: 20px;"></div>
@@ -27,6 +27,9 @@
         const form = document.getElementById('upload-form');
         form.addEventListener('submit', function (event) {
             event.preventDefault(); // 기본 폼 제출 동작 방지
+            form.querySelector('button[type=submit]').setAttribute('aria-busy', true);
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
             const formData = new FormData(form);
             fetch('http://localhost:5100/summary', {
                 method: 'POST',
@@ -34,7 +37,6 @@
             })
             .then(response => response.json())
             .then(data => {
-                const resultDiv = document.getElementById('result');
                 if (data.result === 'ok') {
                     resultDiv.innerHTML = `<p>파일이 성공적으로 처리되었습니다.</p>`
                     //     <a href="..${data.processedFilePath}" download>처리된 파일 다운로드</a>
@@ -45,13 +47,14 @@
                     resultDiv.appendChild(a);
                     a.click();
                 } else {
-                    resultDiv.innerHTML = `<p>파일 처리에 실패했습니다.</p>`;
+                    resultDiv.innerHTML = `<p>파일 처리에 실패했습니다.: ${data.error}</p>`;
                 }
+                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
             })
             .catch(error => {
                 console.error('Error:', error);
-                const resultDiv = document.getElementById('result');
                 resultDiv.innerHTML = `<p>파일 처리 중 오류가 발생했습니다.</p>`;
+                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
             });
         });
     </script>

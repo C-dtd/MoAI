@@ -95,11 +95,12 @@ div.main {
 
 .search-btn {
     padding: 6px;
-    background: #F7F8FA;
+    background: var(--pico-mark-background-color);
+    color: var(--pico-mark-color);
     box-shadow: 0px 1px 3px rgba(25, 33, 61, 0.10);
     border-radius: 4px;
     border: none;
-    color: #19213D;
+    /* color: #19213D; */
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
@@ -110,11 +111,12 @@ div.main {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
 }
 
 .menu-item {
     padding: 8px 12px;
-    background: white;
+    background: var(--pico-background-color);
     border-radius: 8px;
     box-shadow: 0px 1px 3px rgba(25, 33, 61, 0.10);
     display: flex;
@@ -123,25 +125,28 @@ div.main {
     cursor: pointer;
 }
 
-.menu-item.active {
-    background: #F7F8FA;
+.menu-item.active, .menu-item:hover {
+    background: var(--pico-text-selection-color);
 }
 
-/* .menu-icon {
-    width: 16px;
-    height: 16px;
-    border: 1.4px solid #666F8D;
-} */
+.menu-icon {
+    background-color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    margin-right: 4px;
+    /* outline: 1.4px solid #666F8D; */
+}
 
 .menu-label {
-    color: #666F8D;
+    color: var(--pico-color);
     font-size: 14px;
     flex-grow: 1;
 }
 
 .badge {
     padding: 6px;
-    background: white;
     border-radius: 4px;
     box-shadow: 0px 1px 3px rgba(25, 33, 61, 0.10);
     font-size: 12px;

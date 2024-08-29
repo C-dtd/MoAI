@@ -74,33 +74,28 @@ app.get('/login', function(req, res) {
         res.redirect('/');
         return;
     }
-    res.sendFile(__dirname + '/html/login.html'); // Serve login.html
+    res.render('/login.ejs'); // Serve login.html
 });
 
 app.get('/find_password', function(req, res){
-    res.sendFile(__dirname + '/html/find_password.html');  // 비밀번호 찾기 페이지 제공
+    res.render('find_password.ejs');  // 비밀번호 찾기 페이지 제공
 })
 
 app.get('/find_passwordauth', function(req, res) {
-    res.sendFile(__dirname + '/html/find_passwordauth.html');  // 비밀번호 찾기 성공 페이지 제공
+    res.render('find_passwordauth.ejs');  // 비밀번호 찾기 성공 페이지 제공
 });
 
 app.get('/find_password_success', function(req, res) {
-    res.sendFile(__dirname + '/html/find_password_success.html');  // 비밀번호 찾기 성공 페이지 제공
+    res.render('find_password_success.ejs');  // 비밀번호 찾기 성공 페이지 제공
 });
 
-
 app.get('/register', function(req, res){
-    res.sendFile(__dirname + '/html/register.html');  // 회원가입 페이지 제공
+    res.render('register.ejs');  // 회원가입 페이지 제공
 })
 
-app.get('/index', function(req, res){
-    res.sendFile(__dirname + '/서류결제2/index.html');  // register html
-})
-
-app.get('/main', function(req, res){
-    res.sendFile(__dirname + '/main_html/main.html');  // register html
-})
+// app.get('/index', function(req, res){
+//     res.render('index.html');  // register html
+// })
 
 // 정적 페이지 연결하기 문단
 //////////////////////////////////////////////////////////////////////
@@ -129,6 +124,15 @@ app.get('/register_confirm', function(req, res){
     } else {
         res.send('error');
     }
+});
+
+app.get('/uploads/:file', (req, res) => {
+    const {file} = req.params;
+    res.sendFile(__dirname+`/uploads/${file}`);
+});
+
+app.get('/filefolder', (req, res) => {
+    res.render('filefolder');
 })
 
 // 라우팅 설정 부분(ejs 확장자 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
