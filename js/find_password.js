@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const userIdInput = document.getElementById("user_id");
     const submitBtn = document.getElementById("submitBtn");
 
+    document.querySelector('header.container').addEventListener('click', function() {
+        window.location.href = '/login';
+    })
+
     submitBtn.addEventListener("click", function () {
         const userId = userIdInput.value.trim();
 
