@@ -354,7 +354,7 @@ app.post('/calendar/share', async (req, res) => {
             [calendarId]
         );
         res.status(200).json({ message: 'success' });
-    }catch (error) {
+    } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to save event to the database' });
     }
@@ -470,7 +470,7 @@ app.post('/newroom', async (req, res) => {
     inviteList.push(user.user_name);
     const room_id = v4();
     const is_group = (inviteList.length != 2);
-    console.log(inviteList);
+    // console.log(inviteList);
     // console.log(roomName == '');
     if (roomName == '') {
         res.send({
