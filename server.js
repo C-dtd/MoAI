@@ -194,6 +194,14 @@ app.post('/find_password', async (req, res) => {
     }
 });
 
+// 인증이 완료된 후 클라이언트에 리디렉션 URL을 제공하는 엔드포인트
+app.post('/find_passwordauth', (req, res) => {
+    if (req.session.isVerified) {
+        res.json({ redirectTo: '/find_password_success' });
+    } else {
+        res.status(400).json({ error: 'Authentication not completed' });
+    }
+});
 
 //핸드폰 인증코드 호출
 app.post('/send-verification-code', (req, res) => {
