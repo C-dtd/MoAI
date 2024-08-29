@@ -55,6 +55,10 @@ app.set('view engine', 'ejs');
 
 const port = 8000;
 
+server.listen(port, function() {
+    log('Server host in http://localhost:' + port);   // http://localhost + 위에 설정한 port(8000) 연결 후 메세지
+});
+
 // 정적 파일들 html, css 연결 도구
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/css', express.static(__dirname + '/css'));
@@ -64,18 +68,8 @@ app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
 
-
 ////////////////////////////////////////////////////////////////
 // 정적 페이지 연결하기 문단
-
-app.get('/login', function(req, res) {
-    const { user } = req.session;
-    if (user) {
-        res.redirect('/');
-        return;
-    }
-    res.render('/login.ejs'); // Serve login.html
-});
 
 app.get('/find_password', function(req, res){
     res.render('find_password.ejs');  // 비밀번호 찾기 페이지 제공
@@ -93,20 +87,22 @@ app.get('/register', function(req, res){
     res.render('register.ejs');  // 회원가입 페이지 제공
 })
 
-// app.get('/index', function(req, res){
-//     res.render('index.html');  // register html
-// })
-
 // 정적 페이지 연결하기 문단
 //////////////////////////////////////////////////////////////////////
 
-server.listen(port, function() {
-    log('Server host in http://localhost:' + port);   // http://localhost + 위에 설정한 port(8000) 연결 후 메세지
-});
 
 
 ///////////////////////////////////////////////////////////////////////
 // 라우팅 설정 부분(ejs 확장자 파일 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
+
+app.get('/login', function(req, res) {
+    const { user } = req.session;
+    if (user) {
+        res.redirect('/');
+        return;
+    }
+    res.render('login.ejs'); // Serve login.html
+});
 
 app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
@@ -188,7 +184,7 @@ app.post('/find_password', async (req, res) => {
             // 성공적인 응답과 리디렉션 URL 반환
             res.json({ 
                 message: 'Password reset link has been sent.',
-                redirectTo: '/html/find_passwordauth.html' 
+                redirectTo: '/find_passwordauth' 
             });
         } else {
             res.status(404).json({ error: 'User not found' });
@@ -340,6 +336,35 @@ app.get('/newchatroom', async (req, res) => {
     });
 });
 
+//채팅페이지
+app.get('/chat/:id', async function(req, res) {
+    const { user } = req.session;
+    const room_id = req.params.id;
+    if (!user) {
+        res.redirect('/');
+    }
+    const user_check = await db.query(
+        "select id from room_users where room_id=$1 and user_id=$2",
+        [ room_id, user.user_id ]
+    )
+    if (!user_check) {
+        res.redirect('/');
+    }
+    const room = await db.query(
+        "select * from rooms where id=$1",
+        [ room_id ]
+    )
+    const chat_log = await db.query(
+        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1",
+        [ room_id ]
+    );
+    const member = await db.query(
+        "select u.user_name from room_users ru join users u on ru.user_id = u.user_id where ru.room_id=$1",
+        [ room_id ]
+    )
+    res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, member: member.rows, user: user});
+});
+
 //소켓 통신 (채팅 부분)
 io.on('connection', (socket) => {
     socket.on('join', (roomId) => {
@@ -403,35 +428,6 @@ app.get('/memo', (req, res) => {
 app.get('/documentsummary', (req, res) => {
     res.render('document-summary');
 })
-
-//채팅페이지 (임시)
-app.get('/chat/:id', async function(req, res) {
-    const { user } = req.session;
-    const room_id = req.params.id;
-    if (!user) {
-        res.redirect('/');
-    }
-    const user_check = await db.query(
-        "select id from room_users where room_id=$1 and user_id=$2",
-        [ room_id, user.user_id ]
-    )
-    if (!user_check) {
-        res.redirect('/');
-    }
-    const room = await db.query(
-        "select * from rooms where id=$1",
-        [ room_id ]
-    )
-    const chat_log = await db.query(
-        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1",
-        [ room_id ]
-    );
-    const member = await db.query(
-        "select u.user_name from room_users ru join users u on ru.user_id = u.user_id where ru.room_id=$1",
-        [ room_id ]
-    )
-    res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, member: member.rows, user: user});
-});
 
 // app.get('/db', async function(req, res) {
 //     const data = await db.query("select * from chat_logs where room_id='0'");
@@ -508,7 +504,6 @@ const fs = require('fs');
 //         }
 //     });
 // });
-
 
 //결재 요청 보내기
 app.post('/payment_req', async (req, res) => {
