@@ -12,8 +12,7 @@ body {
 }
 
 .container {
-    width: 1000px;
-    height: 1095px;
+    width: 90%;
     display: flex;
     background-color: white;
     box-shadow: 3px 0px 12px rgba(53, 62, 92, 0.07);

@@ -1,0 +1,63 @@
+header {
+  color: #0A2FB6;
+  font-size: 30px;
+  font-family: Roboto;
+  font-weight: 700;
+  word-wrap: break-word;
+}
+.sidebar {
+  width: 500px;
+  height: 100vh;
+  top: 0px;
+  right: 0px;
+  position: absolute;
+  background: #0A2FB6;
+  z-index: -2;
+}
+.main-image {
+  width: 650px;
+  height: 740px;
+  right: 100px;
+  position: absolute;
+  background: linear-gradient(0deg, #C4C4C4 0%, #C4C4C4 100%);
+  border-radius: 20px;
+  z-index: -1;
+}
+.left-page {
+  min-width: 800px;
+  width: calc(100% - 750px);
+  height: 740px;
+  background-color: var(--pico-background-color);
+  padding: 20px;
+  border-radius: 20px;
+  display: flex; 
+  flex-direction: column;
+  align-items: center;
+}
+.title {
+  margin: 0px;
+  height: 40px;
+  text-align: center;
+  flex-grow: 0;
+}
+.content, .content main {
+  width: 100%;
+  display: flex; 
+  flex-direction: column;
+  align-items: center;
+}
+.content {
+  height: 670px;
+  flex-grow: 1;
+  padding: 20px;
+}
+.content main {
+  height: 620px;
+  overflow-y: auto;
+}
+.content footer {
+  height: 50px;
+}
+.empty {
+  flex-grow: 1;
+}

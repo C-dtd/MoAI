@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addFileModal.style.display = 'none';  // 모달 숨기기
     }
 
-    function handleFileFormSubmit(event) {
+    async function handleFileFormSubmit(event) {
         event.preventDefault();  // 폼 제출 기본 동작 방지
 
         const file = fileInput.files[0];
@@ -109,6 +109,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // const formData = new FormData();
+        // formData.append('file', file);
+        // const fileName = file.name;
+        // const response = await fetch('/upload', {
+        //     method: 'POST',
+        //     body: formData
+        // });
+        // const res = await response.json();
+        // fileInput.value = '';
+        
         const fileName = file.name;
         const fileReader = new FileReader();
 
