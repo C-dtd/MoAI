@@ -229,6 +229,14 @@ app.post('/verify-code', (req, res) => {
     }
 });
 
+// 인증이 완료된 후 클라이언트에 리디렉션 URL을 제공하는 엔드포인트
+app.get('/find_passwordauth', (req, res) => {
+    if (req.session.isVerified) {
+        res.json({ redirectTo: '/find_password_success.html' });
+    } else {
+        res.status(400).json({ error: 'Authentication not completed' });
+    }
+});
 
 //////////////////////////////////////////////////////////////////////////////
 // 메인 영역 페이지 엔드포인트 부분. 해당하는 건 여기에 넣어주시면 됩니다.
