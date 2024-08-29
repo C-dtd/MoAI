@@ -72,14 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     // headers: 'applicat'
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        window.location.href = data.redirectTo;
-                    })
-                    .catch(error => {
-                        console.error('Error fetching redirect URL:', error);
-                        alert('리디렉션 URL을 가져오는 데 실패했습니다.');
-                    });
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    // console.log(data);
+                    window.location.href = data.redirectTo;
+                })
+                    // .then(response => response.json())
+                    // .then(data => {
+                    //     // console.log(data);
+                    //     window.location.href = data.redirectTo;
+                    // })
+                    // .catch(error => {
+                    //     console.error('Error fetching redirect URL:', error);
+                    //     alert('리디렉션 URL을 가져오는 데 실패했습니다.');
+                    // });
             } else {
                 alert('인증이 완료되지 않았습니다. 인증을 완료해주세요.');
             }

@@ -79,7 +79,13 @@ app.get('/find_passwordauth', function(req, res) {
 });
 
 app.get('/find_password_success', function(req, res) {
-    res.render('find_password_success.ejs');  // 비밀번호 찾기 성공 페이지 제공
+    const { password } = req.session;
+    if (password) {
+        delete req.session.password;
+        res.render('find_password_success.ejs', { password: password });
+        return;
+    }
+    res.redirect('/');  // 비밀번호 찾기 성공 페이지 제공
 });
 
 app.get('/register', function(req, res){
@@ -181,9 +187,10 @@ app.post('/find_password', async (req, res) => {
 
         if (result.rows.length > 0) {
             // 성공적인 응답과 리디렉션 URL 반환
+            req.session.user_id = user_id;
             res.json({ 
                 message: 'Password reset link has been sent.',
-                redirectTo: '/html/find_passwordauth.html' 
+                redirectTo: 'find_passwordauth' 
             });
         } else {
             res.status(404).json({ error: 'User not found' });
@@ -194,14 +201,6 @@ app.post('/find_password', async (req, res) => {
     }
 });
 
-// 인증이 완료된 후 클라이언트에 리디렉션 URL을 제공하는 엔드포인트
-app.post('/find_passwordauth', (req, res) => {
-    if (req.session.isVerified) {
-        res.json({ redirectTo: '/find_password_success' });
-    } else {
-        res.status(400).json({ error: 'Authentication not completed' });
-    }
-});
 
 //핸드폰 인증코드 호출
 app.post('/send-verification-code', (req, res) => {
@@ -227,23 +226,82 @@ app.post('/send-verification-code', (req, res) => {
 //인증코드 인증
 app.post('/verify-code', (req, res) => {
     const { phone, code } = req.body;
-    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {
+    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {     // 여기서부터 인증 있게 하려면 주석해제할것
         req.session.isVerified = true; // 세션에 인증 정보 저장
         delete verificationCodes[phone]; // 인증 코드 삭제
         res.send({success: true});
     } else {
         res.send({ success: false, error: 'Invalid verification code' });
     }
+    // req.session.isVerified = true;    // 인증 없이 하려면 이거 주석해제
+    // res.send({success: true});        // 인증 없이 하려면 이거 주석해제
 });
 
 // 인증이 완료된 후 클라이언트에 리디렉션 URL을 제공하는 엔드포인트
-app.post('/find_passwordauth', (req, res) => {
+app.post('/find_passwordauth', async (req, res) => {
     if (req.session.isVerified) {
-        res.json({ redirectTo: '/find_password_success' });
+        const { user_id } = req.session;
+
+        // if (!user_id) {
+        //     console.error('User ID is missing');
+        //     return res.status(400).json({ error: 'User ID is required' });
+        // }
+
+        try {
+            console.log('Querying database for user ID:', user_id);
+            const result = await db.query('SELECT user_pw FROM users WHERE user_id = $1', [user_id]);
+            
+            if (result.rows.length > 0) {
+                const password = result.rows[0].user_pw;
+                console.log("Retrieved password:", password);  // 로그로 확인
+                
+                // res.render('find_password_success', { password: password });
+                
+                req.session.password = password;
+                
+                // res.redirect('/find_password_success');
+                res.json({ redirectTo: '/find_password_success' });
+            } else {
+                console.error('User not found for ID:', user_id);
+                res.status(404).json({ error: 'User not found' });
+            }
+        } catch (error) {
+            console.error('Error occurred during DB query or rendering:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
     } else {
         res.status(400).json({ error: 'Authentication not completed' });
     }
 });
+
+// 위에서 패스워드 확인 성공시 엔드포인트(비밀번호 db 검색 후)
+app.post('/find_password_success', async (req, res) => {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        console.error('User ID is missing');
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        console.log('Querying database for user ID:', user_id);
+        const result = await db.query('SELECT user_pw FROM users WHERE user_id = $1', [user_id]);
+
+        if (result.rows.length > 0) {
+            const password = result.rows[0].user_pw;
+            console.log("Retrieved password:", password);  // 로그로 확인
+
+            res.render('find_password_success', { password: password });
+        } else {
+            console.error('User not found for ID:', user_id);
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error occurred during DB query or rendering:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 //////////////////////////////////////////////////////////////////////////////
 // 메인 영역 페이지 엔드포인트 부분. 해당하는 건 여기에 넣어주시면 됩니다.
