@@ -32,7 +32,7 @@ socket.on('msg', async (msg) => {
     const chatbox = document.createElement('article');
     const response = await fetch('/session/user_id');
     const res = await response.text();
-    console.log(res);
+    // console.log(res);
     if (msg.user_id == res) {
         chatbox.className += 'my-chat';
     } else {
@@ -100,7 +100,7 @@ imgInput.addEventListener('input', async (e) => {
         return false;
     }
 
-    let formData = new FormData();
+    const formData = new FormData();
     formData.append('file', imgInput.files[0]);
     const response = await fetch('/upload', {
         method: 'POST',
@@ -126,7 +126,7 @@ paymentInput.addEventListener('input', async (e) => {
     });
     const res = await response.json();
     paymentInput.value = '';
-    console.log(res.path);
+    // console.log(res.path);
     const responsePayment = await fetch('/payment_req', {
         method: 'POST',
         headers: {
@@ -137,7 +137,7 @@ paymentInput.addEventListener('input', async (e) => {
         })
     });
     const resPayment =  await responsePayment.json();
-    console.log(resPayment);
+    // console.log(resPayment);
     socket.emit('msg', {message: resPayment.uuid, type: 'payment', room: room_id});
 });
 

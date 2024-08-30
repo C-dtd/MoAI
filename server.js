@@ -79,7 +79,13 @@ app.get('/find_passwordauth', function(req, res) {
 });
 
 app.get('/find_password_success', function(req, res) {
-    res.render('find_password_success.ejs');  // 비밀번호 찾기 성공 페이지 제공
+    const { password } = req.session;
+    if (password) {
+        delete req.session.password;
+        res.render('find_password_success.ejs', { password: password });
+        return;
+    }
+    res.redirect('/');  // 비밀번호 찾기 성공 페이지 제공
 });
 
 app.get('/register', function(req, res){
@@ -200,9 +206,10 @@ app.post('/find_password', async (req, res) => {
 
         if (result.rows.length > 0) {
             // 성공적인 응답과 리디렉션 URL 반환
+            req.session.user_id = user_id;
             res.json({ 
                 message: 'Password reset link has been sent.',
-                redirectTo: '/find_passwordauth' 
+                redirectTo: 'find_passwordauth' 
             });
         } else {
             res.status(404).json({ error: 'User not found' });
@@ -213,14 +220,6 @@ app.post('/find_password', async (req, res) => {
     }
 });
 
-// 인증이 완료된 후 클라이언트에 리디렉션 URL을 제공하는 엔드포인트
-app.post('/find_passwordauth', (req, res) => {
-    if (req.session.isVerified) {
-        res.json({ redirectTo: '/find_password_success' });
-    } else {
-        res.status(400).json({ error: 'Authentication not completed' });
-    }
-});
 
 //핸드폰 인증코드 호출
 app.post('/send-verification-code', (req, res) => {
@@ -246,12 +245,79 @@ app.post('/send-verification-code', (req, res) => {
 //인증코드 인증
 app.post('/verify-code', (req, res) => {
     const { phone, code } = req.body;
-    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {
+    if (verificationCodes[phone] && verificationCodes[phone] === parseInt(code)) {     // 여기서부터 인증 있게 하려면 주석해제할것
         req.session.isVerified = true; // 세션에 인증 정보 저장
         delete verificationCodes[phone]; // 인증 코드 삭제
         res.send({success: true});
     } else {
         res.send({ success: false, error: 'Invalid verification code' });
+    }
+    // req.session.isVerified = true;    // 인증 없이 하려면 이거 주석해제
+    // res.send({success: true});        // 인증 없이 하려면 이거 주석해제
+});
+
+// 인증이 완료된 후 클라이언트에 리디렉션 URL을 제공하는 엔드포인트
+app.post('/find_passwordauth', async (req, res) => {
+    if (req.session.isVerified) {
+        const { user_id } = req.session;
+
+        // if (!user_id) {
+        //     console.error('User ID is missing');
+        //     return res.status(400).json({ error: 'User ID is required' });
+        // }
+
+        try {
+            console.log('Querying database for user ID:', user_id);
+            const result = await db.query('SELECT user_pw FROM users WHERE user_id = $1', [user_id]);
+            
+            if (result.rows.length > 0) {
+                const password = result.rows[0].user_pw;
+                console.log("Retrieved password:", password);  // 로그로 확인
+                
+                // res.render('find_password_success', { password: password });
+                
+                req.session.password = password;
+                
+                // res.redirect('/find_password_success');
+                res.json({ redirectTo: '/find_password_success' });
+            } else {
+                console.error('User not found for ID:', user_id);
+                res.status(404).json({ error: 'User not found' });
+            }
+        } catch (error) {
+            console.error('Error occurred during DB query or rendering:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    } else {
+        res.status(400).json({ error: 'Authentication not completed' });
+    }
+});
+
+// 위에서 패스워드 확인 성공시 엔드포인트(비밀번호 db 검색 후)
+app.post('/find_password_success', async (req, res) => {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        console.error('User ID is missing');
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        console.log('Querying database for user ID:', user_id);
+        const result = await db.query('SELECT user_pw FROM users WHERE user_id = $1', [user_id]);
+
+        if (result.rows.length > 0) {
+            const password = result.rows[0].user_pw;
+            console.log("Retrieved password:", password);  // 로그로 확인
+
+            res.render('find_password_success', { password: password });
+        } else {
+            console.error('User not found for ID:', user_id);
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error occurred during DB query or rendering:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -307,7 +373,7 @@ app.post('/calendar/share', async (req, res) => {
             [calendarId]
         );
         res.status(200).json({ message: 'success' });
-    }catch (error) {
+    } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to save event to the database' });
     }
@@ -381,7 +447,7 @@ app.get('/chat/:id', async function(req, res) {
         [ room_id ]
     )
     const chat_log = await db.query(
-        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1",
+        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1 order by cl.chat_at",
         [ room_id ]
     );
     const member = await db.query(
@@ -423,7 +489,7 @@ app.post('/newroom', async (req, res) => {
     inviteList.push(user.user_name);
     const room_id = v4();
     const is_group = (inviteList.length != 2);
-    console.log(inviteList);
+    // console.log(inviteList);
     // console.log(roomName == '');
     if (roomName == '') {
         res.send({
@@ -530,6 +596,39 @@ const fs = require('fs');
 //         }
 //     });
 // });
+
+// Route to handle file upload and request to Flask server
+app.post('/upload-summary', upload.array('files'), async (req, res) => {
+    try {
+        const files = req.files;
+
+        // Send files to Flask server
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', fs.createReadStream(file.path), {
+                filename: file.originalname,
+                contentType: file.mimetype
+            });
+        });
+
+        const response = await axios.post('http://localhost:5100/summary', formData, {
+            headers: {
+                ...formData.getHeaders(),
+            },
+        });
+
+        // Clean up uploaded files
+        files.forEach(file => fs.unlinkSync(file.path));
+
+        // Return response from Flask server
+        res.json(response.data);
+
+    } catch (error) {
+        console.error('Error during file upload:', error);
+        res.status(500).json({ result: 'error', error: '파일 업로드 처리 중 오류가 발생했습니다.' });
+    }
+});
+
 
 //결재 요청 보내기
 app.post('/payment_req', async (req, res) => {
