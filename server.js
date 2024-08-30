@@ -354,7 +354,7 @@ app.post('/calendar/share', async (req, res) => {
             [calendarId]
         );
         res.status(200).json({ message: 'success' });
-    }catch (error) {
+    } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to save event to the database' });
     }
@@ -428,7 +428,7 @@ app.get('/chat/:id', async function(req, res) {
         [ room_id ]
     )
     const chat_log = await db.query(
-        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1",
+        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1 order by cl.chat_at",
         [ room_id ]
     );
     const member = await db.query(
@@ -470,7 +470,7 @@ app.post('/newroom', async (req, res) => {
     inviteList.push(user.user_name);
     const room_id = v4();
     const is_group = (inviteList.length != 2);
-    console.log(inviteList);
+    // console.log(inviteList);
     // console.log(roomName == '');
     if (roomName == '') {
         res.send({
