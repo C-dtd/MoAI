@@ -190,7 +190,7 @@ div.main {
     width: 60%;
     flex-direction: column;
     justify-content: space-between;
-    padding: 32px;
+    padding: 10px 10px;
     box-shadow: 3px 0px 12px rgba(53, 62, 92, 0.07);
     border-right: 1px solid #E3E6EA;
     background-attachment: white;

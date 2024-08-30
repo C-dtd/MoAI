@@ -109,6 +109,11 @@ app.get('/login', function(req, res) {
     res.render('login.ejs'); // Serve login.html
 });
 
+app.get('/logout', (req, res) => {
+    delete req.session.user;
+    res.redirect('/');
+})
+
 app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
 });
@@ -242,10 +247,10 @@ app.post('/find_passwordauth', async (req, res) => {
     if (req.session.isVerified) {
         const { user_id } = req.session;
 
-        // if (!user_id) {
-        //     console.error('User ID is missing');
-        //     return res.status(400).json({ error: 'User ID is required' });
-        // }
+        if (!user_id) {
+            console.error('User ID is missing');
+            return res.status(400).json({ error: 'User ID is required' });
+        }
 
         try {
             console.log('Querying database for user ID:', user_id);
@@ -360,6 +365,22 @@ app.post('/calendar/share', async (req, res) => {
     }
 });
 
+
+async function autoname(row, user) {
+    const users = await db.query(
+        'select user_name from room_users ru join users u on ru.user_id = u.user_id where room_id = $1 and u.user_id != $2',
+        [ row.id, user.user_id ]
+    )
+    let room_name = '';
+    users.rows.forEach((user, i) => {
+        room_name += user.user_name;
+        if (i != users.rows.length-1) {
+            room_name += ', ';
+        }
+    })
+    row.room_name = room_name;
+}
+
 // 채팅방 부분
 app.get('/chatroomframe', async (req, res) => {
     const { user } = req.session;
@@ -367,10 +388,9 @@ app.get('/chatroomframe', async (req, res) => {
         res.redirect('/login');
         return;
     }
-    const chatroomList = await db.query(
-        `
-        select r.*, c.chat, c.type
-        from rooms r join 
+    let chatroomList = await db.query(
+        `select r.*, c.chat, c.type
+        from rooms r left join 
         (select * 
          from chat_logs 
          where chat_at in 
@@ -382,11 +402,14 @@ app.get('/chatroomframe', async (req, res) => {
         (select room_id
          from room_users
          where user_id = $1)
-        order by c.chat_at desc
-        `,
+        order by c.chat_at is null asc, c.chat_at desc`,
         [ user.user_id ]
     )
-    
+    for (let row of chatroomList.rows) {
+        if (row.room_name == '\tauto name') {
+            await autoname(row, user);
+        }
+    }
     res.render('chatroom', {
         user: user, 
         chatroomList: chatroomList.rows 
@@ -427,6 +450,9 @@ app.get('/chat/:id', async function(req, res) {
         "select * from rooms where id=$1",
         [ room_id ]
     )
+    if (room.rows[0].room_name == '\tauto name') {
+        await autoname(room.rows[0], user);
+    }
     const chat_log = await db.query(
         "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1 order by cl.chat_at",
         [ room_id ]
@@ -445,10 +471,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('msg', (msg) => {
-        console.log(msg);
         const { user } = socket.handshake.session;
-        console.log(user);
-
         db.query(
             "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
             [user.user_id, msg.room, msg.message, msg.type]
@@ -470,27 +493,20 @@ app.post('/newroom', async (req, res) => {
     inviteList.push(user.user_name);
     const room_id = v4();
     const is_group = (inviteList.length != 2);
-    // console.log(inviteList);
-    // console.log(roomName == '');
-    if (roomName == '') {
-        res.send({
-            result: false,
-        });
-        return;
-    }
+    const roomNameDb = (roomName=='') ? '\tauto name' : roomName;
 
-    db.query(
+    await db.query(
         'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
-        [room_id, roomName, is_group]
+        [room_id, roomNameDb, is_group]
     );
     
-    inviteList.forEach((id) => {
-        db.query(
+    for (let name of inviteList) {
+        await db.query(
             'insert into room_users (room_id, user_id) values ($1, (select user_id from users where user_name=$2))',
-            [room_id, id]
+            [room_id, name]
         );
-    });
-    res.send({result: true});
+    }
+    res.send({result: true, uuid: room_id});
 });
 
 // 메모 페이지 라우팅
@@ -517,81 +533,124 @@ app.post('/upload', upload.single('file'), function(req, res) {
     );
 });
 
-// 파일 다운로드 관련 엔드포인트
-const { exec } = require('child_process');
-const fs = require('fs');
-
-// 업로드된 파일 처리
 // 플라스크에 합쳐져서 이거 이제 없어도 됨.
+    // 파일 다운로드 관련 엔드포인트
+    // const { exec } = require('child_process');
+    // const fs = require('fs');
 
-// app.post('/upload_summary', upload.single('file'), (req, res) => {
-//     const file = req.file;
-//     if (!file) {
-//         return res.status(400).send({ error: '파일 업로드 실패' });
-//     }
+    // 업로드된 파일 처리
 
-//     console.log('Uploaded file path:', file.path);
+    // app.post('/upload_summary', upload.single('file'), (req, res) => {
+    //     const file = req.file;
+    //     if (!file) {
+    //         return res.status(400).send({ error: '파일 업로드 실패' });
+    //     }
 
-//     // 처리된 파일을 저장할 디렉토리 확인 및 생성
-//     if (!fs.existsSync('processed')) {
-//         fs.mkdirSync('processed');
-//     }
+    //     console.log('Uploaded file path:', file.path);
 
-//     // Python 스크립트 실행
-//     exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
-//         if (error) {
-//             console.error(`exec error: ${error}`);
-//             return res.status(500).send({ error: '파일 처리 실패' });
-//         }
+    //     // 처리된 파일을 저장할 디렉토리 확인 및 생성
+    //     if (!fs.existsSync('processed')) {
+    //         fs.mkdirSync('processed');
+    //     }
 
-//         // 처리된 파일 저장
-//         const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
-//         // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
-//         // fs.writeFileSync(processedFilePath, stdout);
+    //     // Python 스크립트 실행
+    //     exec(`python ollama.py ${file.path}`, (error, stdout, stderr) => {
+    //         if (error) {
+    //             console.error(`exec error: ${error}`);
+    //             return res.status(500).send({ error: '파일 처리 실패' });
+    //         }
 
-//         // 클라이언트에게 처리 결과와 다운로드 링크 제공
-//         res.send({
-//             result: 'ok',
-//             originalFilePath: file.path,
-//             processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
-//             output: stdout,
-//             error: stderr
-//         });
-//     });
-// });
+    //         // 처리된 파일 저장
+    //         const processedFilePath = `processed/test_processed.docx`; // 처리된 파일 경로
+    //         // const processedFilePath = `processed/.docx`; // 처리된 파일 경로
+    //         // fs.writeFileSync(processedFilePath, stdout);
 
-// // 처리된 파일 다운로드
-// app.get('/download/:filename', (req, res) => {
-//     const filename = req.params.filename;
-//     const filePath = path.join(__dirname, 'processed', filename);
+    //         // 클라이언트에게 처리 결과와 다운로드 링크 제공
+    //         res.send({
+    //             result: 'ok',
+    //             originalFilePath: file.path,
+    //             processedFilePath: `${path.basename(processedFilePath)}`,    // 다운로드 링크 제공
+    //             output: stdout,
+    //             error: stderr
+    //         });
+    //     });
+    // });
 
-//     // 파일이 존재하는지 확인
-//     if (!fs.existsSync(filePath)) {
-//         return res.status(404).send('파일을 찾을 수 없습니다.');
-//     }
+    // // 처리된 파일 다운로드
+    // app.get('/download/:filename', (req, res) => {
+    //     const filename = req.params.filename;
+    //     const filePath = path.join(__dirname, 'processed', filename);
 
-//     res.download(filePath, filename, (err) => {
-//         if (err) {
-//             console.error(`Error downloading file: ${err}`);
-//             res.status(500).send('파일 다운로드 실패');
-//         }
-//     });
-// });
+    //     // 파일이 존재하는지 확인
+    //     if (!fs.existsSync(filePath)) {
+    //         return res.status(404).send('파일을 찾을 수 없습니다.');
+    //     }
+
+    //     res.download(filePath, filename, (err) => {
+    //         if (err) {
+    //             console.error(`Error downloading file: ${err}`);
+    //             res.status(500).send('파일 다운로드 실패');
+    //         }
+    //     });
+    // });
 
 //결재 요청 보내기
+
 app.post('/payment_req', async (req, res) => {
     const { user } = req.session;
     if (!user) {
         res.send('invalid reqeust');
         return;
     }
-    const path = req.body.path;
+    const { path, app, title } = req.body;
     const id = v4();
     await db.query(
-        "insert into payment (id, uploader, path) values ($1, $2, $3)",
-        [ id, user.user_id, path ]
+        "insert into payment (id, uploader, path, app, title) values ($1, $2, $3, $4, $5)",
+        [ id, user.user_id, path, app, title ]
     );
     
+    const room_id = await db.query(
+        `select *
+        from 
+        (select r1.room_id id from 
+        (select room_id from room_users where user_id=$1) r1
+        join 
+        (select room_id from room_users where user_id=$2) r2
+        on r1.room_id = r2.room_id) i
+        join rooms r
+        on i.id = r.id
+        where is_group = false`,
+        [ user.user_id, app ]
+    );
+    console.log('rows: ', room_id.rows, !room_id.rows[0]);
+    if (!room_id.rows[0]) {
+        const roomId = v4();
+        await db.query(
+            'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
+            [ roomId, '\tauto name', false ]
+        );
+        await db.query(
+            'insert into room_users (room_id, user_id) values ($1, $2)',
+            [roomId, user.user_id]
+        );
+        await db.query(
+            'insert into room_users (room_id, user_id) values ($1, $2)',
+            [roomId, app]
+        );
+        
+        await db.query(
+            "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
+            [user.user_id, roomId, id, 'payment']
+        );
+        io.to(roomId).emit('msg', {message: id, type: 'payment', room: roomId, user_id: user.user_id, user_name: user.user_name});
+    } else {
+        const roomId = room_id.rows[0].id;
+        await db.query(
+            "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
+            [user.user_id, roomId, id, 'payment']
+        );
+        io.to(roomId).emit('msg', {message: id, type: 'payment', room: roomId, user_id: user.user_id, user_name: user.user_name});
+    }
     res.send( {uuid: id} );
 });
 
@@ -604,20 +663,22 @@ app.post('/payment_res', upload.single('file'), async (req, res) => {
         return;
     }
     const file = req.file;
-
+    const {uuid} = req.body;
+    console.log('uuid: ', uuid);
     const data = await db.query(
         "select app from payment where id=$1",
-        [ id ]
+        [ uuid ]
     );
-    if (data.rows[0].app) {
+    console.log('data: ', data.rows);
+    if (data.rows[0].app != user.user_id) {
         res.send(
             {result: false}
         );
     }
 
     await db.query(
-        "update payment set app_at=now(), app=$1, app_path=$2 where id=$3",
-        [ user.user_id, file.path, req.body.uuid ]
+        "update payment set app_at=now(), app_path=$1 where id=$2",
+        [ file.path, uuid ]
     );
 
     res.send(
@@ -625,11 +686,52 @@ app.post('/payment_res', upload.single('file'), async (req, res) => {
     );
 });
 
+//결재 요청 페이지
+app.get('/payment', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send('invalid request');
+        return;
+    }
+    const member = await db.query(
+        "select user_id, user_name from users where user_id != $1",
+        [ user.user_id ]
+    )
+    res.render('payment_request.ejs', { member: member.rows });
+});
+
+app.get('/payment/request', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send('invalid request');
+        return;
+    }
+    const user_id = user.user_id;
+    const data = await db.query(
+        "select * from payment where uploader=$1",
+        [ user_id ]
+    );
+    res.send(data.rows);
+});
+app.get('/payment/response', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.send('invalid request');
+        return;
+    }
+    const user_id = user.user_id;
+    const data = await db.query(
+        "select * from payment where app=$1",
+        [ user_id ]
+    );
+    res.send(data.rows);
+});
+
 //결재 요청 url
 app.get('/payment/:uuid', async (req, res) => {
     const { user } = req.session;
     if (!user) {
-        res.send('invalid reqeust');
+        res.send('invalid request');
         return;
     }
     const id = req.params.uuid;
@@ -637,11 +739,14 @@ app.get('/payment/:uuid', async (req, res) => {
         "select * from payment where id=$1",
         [ id ]
     );
-    let applied = false;
-    if (data.rows[0].app) {
-        applied = true;
+    console.log(!data.rows[0]);
+    if (!data.rows[0]) {
+        res.send('invalid request');
+        return;
     }
-    res.render('payment.ejs', { uuid: id, applied: applied })
+    const applied = (data.rows[0].app_at) ? true : false;
+    const isApplier = (data.rows[0].app == user.user_id) ? true : false;
+    res.render('payment.ejs', { uuid: id, applied: applied, isApplier: isApplier })
 });
 
 //결재 요청 url의 파일 다운로드 링크
@@ -651,7 +756,7 @@ app.get('/payment_file/:uuid', async (req, res) => {
         "select * from payment where id=$1",
         [ id ]
     );
-    if (data.rows[0].app) {
+    if (data.rows[0].app_path) {
         res.download(data.rows[0].app_path);
     } else {
         res.download(data.rows[0].path);
@@ -688,7 +793,7 @@ function dateParser(str) {
 
 // 이벤트 데이터를 처리하는 API 엔드포인트
 app.post('/api/events', async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     // const { id, title, category, start, end, state, location, isReadOnly } = req.body;
     const { end, id, isAllday, isPrivate, location, start, state, title, calendarId } = req.body;
     

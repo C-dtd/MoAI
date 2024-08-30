@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>Document</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        h2 {
+            text-align: center;
+        }
+        header {
+            flex-grow: 0;
+        }
+        .payment-list {
+            display: flex;
+            overflow-y: auto;
+            padding: 10px;
+            flex-grow: 1;
+        }
+        .payment-list div {
+            flex-grow: 1;
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .payment-req-list, .payment-res-list {
+            overflow-y: auto;
+            flex-grow: 1;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .upload-button {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <details>
+            <summary role="button" class="outline">결재 요청</summary>
+            <div>
+                <div role="group">
+                <input type="text" id='payment-title'>
+                <button class="upload-button">
+                        결재 파일
+                </button>
+            </div>
+                
+                승인자: <select name="applier" id="applier">
+                    <% member.forEach((user) => { %>
+                        <option value="<%=user.user_id%>">
+                            <%= user.user_name %>
+                        </option>
+                    <% }); %>
+                </select>
+                <button id="payment-request">결재 요청</button>
+                <button>취소</button>
+            </div>
+        </details>
+    </header>
+    <main class="payment-list">
+        <div>
+            <header><h2>결재 요청 목록</h2></header>
+            <hr>
+            <main class="payment-req-list">
+            </main>
+        </div>
+        <div>
+            <header><h2>결재 필요 목록</h2></header>
+            <hr>
+            <main class="payment-res-list">
+            </main>
+        </div>
+    </main>
+    <input type="file" id="payment-input" style="display: none;" accept="application/pdf, image/png">
+    <script src="/js/payment_request.js"></script>
+</body>
+</html>
