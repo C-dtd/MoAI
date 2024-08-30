@@ -155,6 +155,25 @@ app.post('/login', async (req, res) => {
     }
 });
 
+//아이디 중복 확인
+app.post('/check-duplicate-id', async (req, res) => {
+    const { userId } = req.body;
+    console.log(req.body);
+
+    try {
+        const result = await db.query('SELECT COUNT(*) FROM users WHERE user_id = $1', [userId]);
+
+        if (result.rows[0].count > 0) {
+            res.json({ isDuplicate: true });
+        } else {
+            res.json({ isDuplicate: false });
+        }
+    } catch (error) {
+        console.error('Error checking duplicate ID:', error);
+    }
+});
+
+
 //회원 가입시 정보 db에 저장
 app.post('/register', function(req, res) {
     const { id, name, phone, password } = req.body;
