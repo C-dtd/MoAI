@@ -407,6 +407,15 @@ app.get('/chatroomframe', async (req, res) => {
         res.redirect('/login');
         return;
     }
+    res.render('chatroom');
+});
+
+app.post('/chatroomframe', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/login');
+        return;
+    }
     let chatroomList = await db.query(
         `select r.*, c.chat, c.type
         from rooms r left join 
@@ -429,10 +438,8 @@ app.get('/chatroomframe', async (req, res) => {
             await autoname(row, user);
         }
     }
-    res.render('chatroom', {
-        user: user, 
-        chatroomList: chatroomList.rows 
-    });
+    console.log(chatroomList.rows);
+    res.send(chatroomList.rows);
 });
 
 app.get('/newchatroom', async (req, res) => {

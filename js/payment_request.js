@@ -24,7 +24,7 @@ function payment_article(payment) {
     main.innerText = `발신자: ${payment.uploader}
     발신일: ${payment.created_at.split('T')[0]}
     승인자: ${payment.app}
-    ${(payment.app_at) ? `승인일: ${payment.app_at.split('T')[0]}` : '미승인'}`
+    ${(payment.app_at) ? `승인일: ${payment.app_at.split('T')[0]}` : '승인일: '}`
     article.appendChild(main);
     article.addEventListener('click', () => {
         window.open('/payment/' +payment.id);

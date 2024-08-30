@@ -47,37 +47,41 @@
         <h3>채팅방</h3>
     </header>
     <main>
-        <% chatroomList.forEach((chatroom) => { %>
-                <article class="chat-room" onclick="location.href='/chat/<%= chatroom.id %>'">
-                    <header>
-                        <%= chatroom.room_name %>
-                    </header>
-                    <main>
-                        <% if (chatroom.type == 'text') { %>
-                            <%= chatroom.chat %>
-                        <% } else if (chatroom.type == 'img') { %>
-                            이미지를 공유했습니다.
-                        <% } else if (chatroom.type == 'payment') { %>
-                            결재 요청
-                        <% } else if (chatroom.type == 'calendar') { %>
-                            일정을 공유했습니다.
-                        <% } %>
-                    </main>
-                </article>
-        <% }); %>
+        
     </main>
     <footer>
         <a href="/newchatroom"><button id="new-chat-room">새 채팅방</button></a>
     </footer>
 <script>
+const mainSection = document.querySelector('main');
 const newChatButton = document.querySelector('#new-chat-room');
-// const rooms = document.querySelectorAll('.chat-room');
 
-// rooms.forEach((room) => {
-//     room.addEventListener('click', (e) => {
-//         location.href = '/chat'
-//     });
-// });
+async function roomListUpdate() {
+    const response = await fetch('/chatroomframe', {method: 'post'});
+    const res = await response.json();
+    console.log(res);
+    for (let row of res) {
+        const article = document.createElement('article');
+        const header = document.createElement('header');
+        header.innerText = row.room_name;
+        article.appendChild(header);
+        const main = document.createElement('main');
+        if (row.type == 'text') {
+            main.innerText = row.chat;
+        } else if (row.type == 'img') {
+            main.innerText = '이미지를 공유했습니다.';
+        } else if (row.type == 'payment') {
+            main.innerText = '결재 요청';
+        } else if (row.type == 'calendar') {
+            main.innerText = '일정을 공유했습니다.';
+        }
+        article.appendChild(main);
+        mainSection.appendChild(article);
+    }
+}
+
+roomListUpdate();
 </script>
 </body>
 </html>
+
