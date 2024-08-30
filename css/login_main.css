@@ -22,6 +22,7 @@ header {
   background: linear-gradient(0deg, #C4C4C4 0%, #C4C4C4 100%);
   border-radius: 20px;
   z-index: -1;
+  object-fit: cover;
 }
 .left-page {
   min-width: 800px;
