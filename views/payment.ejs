@@ -36,9 +36,10 @@
         canvas {
             border: 1px solid #ddd;
             background: #f9f9f9;
+        }
+        canvas.crosshair {
             cursor: crosshair;
         }
-
         /* Modal styles */
         .modal {
             position: fixed;
@@ -106,7 +107,11 @@
                     <button id="modalDownloadButton" disabled>승인 완료</button>
                     <button id="DownloadButton">다운로드</button>
                 <% } else { %>
-                    <button id="modalDownloadButton">승인</button>
+                    <% if (isApplier) { %>
+                        <button id="modalDownloadButton">승인</button>
+                    <% } else { %>
+                        <button id="modalDownloadButton" disabled>미승인</button>
+                    <% } %>
                     <button id="DownloadButton" disabled>다운로드</button>
                 <% } %>
             </div>
@@ -147,7 +152,10 @@
         }
         fileDownload();
             
-        let isDrawing = <%= !applied %>;
+        let isDrawing = <%= !applied && isApplier %>;
+        if (isDrawing) {
+            modalCanvas.className += ' crosshair';
+        }
         let lastX = 0;
         let lastY = 0;
         let ratio = 1;

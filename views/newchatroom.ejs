@@ -52,7 +52,7 @@
     <footer>
         <div role="group">
             <input type="text" placeholder="room name" style="width: auto;" id="room_name">
-                <button id="new-chat-room">개설</button>
+            <button id="new-chat-room">개설</button>
         </div>
     </footer>
 <script>
@@ -67,7 +67,7 @@ createRoomButton.addEventListener('click', async () => {
             inviteList.push(user.name);
         }
     });
-    console.log(inviteList);
+    // console.log(inviteList);
     if (inviteList.length == 0) {
         return;
     }
@@ -83,7 +83,7 @@ createRoomButton.addEventListener('click', async () => {
     });
     const res = await response.json();
     if (res.result) {
-        location.href='/chatroomframe';
+        location.href='/chat/'+res.uuid;
     }
 });
 </script>
