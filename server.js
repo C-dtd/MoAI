@@ -578,6 +578,39 @@ const fs = require('fs');
 //     });
 // });
 
+// Route to handle file upload and request to Flask server
+app.post('/upload-summary', upload.array('files'), async (req, res) => {
+    try {
+        const files = req.files;
+
+        // Send files to Flask server
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', fs.createReadStream(file.path), {
+                filename: file.originalname,
+                contentType: file.mimetype
+            });
+        });
+
+        const response = await axios.post('http://localhost:5100/summary', formData, {
+            headers: {
+                ...formData.getHeaders(),
+            },
+        });
+
+        // Clean up uploaded files
+        files.forEach(file => fs.unlinkSync(file.path));
+
+        // Return response from Flask server
+        res.json(response.data);
+
+    } catch (error) {
+        console.error('Error during file upload:', error);
+        res.status(500).json({ result: 'error', error: '파일 업로드 처리 중 오류가 발생했습니다.' });
+    }
+});
+
+
 //결재 요청 보내기
 app.post('/payment_req', async (req, res) => {
     const { user } = req.session;
