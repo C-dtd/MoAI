@@ -166,6 +166,25 @@ app.post('/login', async (req, res) => {
     }
 });
 
+//아이디 중복 확인
+app.post('/check-duplicate-id', async (req, res) => {
+    const { userId } = req.body;
+    console.log(req.body);
+
+    try {
+        const result = await db.query('SELECT COUNT(*) FROM users WHERE user_id = $1', [userId]);
+
+        if (result.rows[0].count > 0) {
+            res.json({ isDuplicate: true });
+        } else {
+            res.json({ isDuplicate: false });
+        }
+    } catch (error) {
+        console.error('Error checking duplicate ID:', error);
+    }
+});
+
+
 //회원 가입시 정보 db에 저장
 app.post('/register', function(req, res) {
     const { id, name, phone, password } = req.body;
@@ -593,6 +612,39 @@ app.post('/upload', upload.single('file'), function(req, res) {
     //         }
     //     });
     // });
+
+// Route to handle file upload and request to Flask server
+app.post('/upload-summary', upload.array('files'), async (req, res) => {
+    try {
+        const files = req.files;
+
+        // Send files to Flask server
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', fs.createReadStream(file.path), {
+                filename: file.originalname,
+                contentType: file.mimetype
+            });
+        });
+
+        const response = await axios.post('http://localhost:5100/summary', formData, {
+            headers: {
+                ...formData.getHeaders(),
+            },
+        });
+
+        // Clean up uploaded files
+        files.forEach(file => fs.unlinkSync(file.path));
+
+        // Return response from Flask server
+        res.json(response.data);
+
+    } catch (error) {
+        console.error('Error during file upload:', error);
+        res.status(500).json({ result: 'error', error: '파일 업로드 처리 중 오류가 발생했습니다.' });
+    }
+});
+
 
 //결재 요청 보내기
 
