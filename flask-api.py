@@ -23,18 +23,18 @@ host = 'localhost'
 port = 5100
 
 # Configuration
-ngrok = 'https://6c82-35-229-167-67.ngrok-free.app'
+ngrok = 'https://fce1-104-155-199-73.ngrok-free.app'
 device = 'cpu'
 
 # Load language model
 llm_model = ChatOllama(
     model='meta-llama-3.1',
-    # base_url=ngrok
+    # base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
 llm_model_json = ChatOllama(
     model='meta-llama-3.1',
     format='json',
-    # base_url=ngrok
+    # base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
 
 # Load embeddings model
