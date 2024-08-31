@@ -32,7 +32,12 @@
         </div>
         
         <nav class="menu">
-            <div class="menu-item">
+            <div class="menu-item" onclick="showCalendar()">
+                <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
+                <span class="menu-label">캘린더</span>
+                <div class="badge">4</div>
+            </div>
+            <div class="menu-item" onclick="showChat()">
                 <img class="menu-icon" src="/image/chat_icon.png" alt="chating Icon" />
                 <span class="menu-label">채팅</span>
                 <div class="badge">1</div>
@@ -110,6 +115,12 @@
         imgModal.style.display='none';
     });
 
+    function showCalendar() {
+        document.querySelector('#main-iframe').setAttribute('src', '/calendar');
+    }
+    function showChat() {
+        document.querySelector('#main-iframe').setAttribute('src', '/chatroomframe');
+    }
     function showDocumentSummary() {
         document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
        

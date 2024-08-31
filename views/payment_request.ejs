@@ -51,20 +51,23 @@
                 <div role="group">
                 <input type="text" id='payment-title'>
                 <button class="upload-button">
-                        결재 파일
+                    결재 파일 선택
                 </button>
             </div>
-                
-                승인자: <select name="applier" id="applier">
+                <label for="applier">승인자:</label>
+                <select name="applier" id="applier">
                     <% member.forEach((user) => { %>
                         <option value="<%=user.user_id%>">
                             <%= user.user_name %>
                         </option>
                     <% }); %>
                 </select>
-                <button id="payment-request">결재 요청</button>
-                <button>취소</button>
+                <div style="text-align: right;">
+                    <button id="payment-request">결재 요청</button>
+                    <button>취소</button>
+                </div>
             </div>
+            <hr>
         </details>
     </header>
     <main class="payment-list">

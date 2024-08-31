@@ -23,19 +23,22 @@ host = 'localhost'
 port = 5100
 
 # Configuration
-ngrok = 'https://7505-34-125-71-39.ngrok-free.app'
+ngrok = 'https://6c82-35-229-167-67.ngrok-free.app'
 device = 'cpu'
 
 # Load language model
 llm_model = ChatOllama(
     model='meta-llama-3.1',
     base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
 llm_model_json = ChatOllama(
     model='meta-llama-3.1',
     format='json',
     base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
+
 
 # Load embeddings model
 embedding_model = HuggingFaceEmbeddings(
@@ -112,7 +115,6 @@ def process_file(file_path):
         return False
     # Create FAISS index
     vectorstore = FAISS.from_texts(splits, embedding_model)
-    
     
     question = '''문서 요약 관련 보고서를 만들어줘 
         'title': '보고서의 제목',

@@ -1,18 +1,3 @@
-/* * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-} */
-
-/* body {
-    background-color: #F7F8FA;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-} */
-
 #img-modal {
     width: 100%;
     height: 100%;
@@ -192,8 +177,8 @@ div.main {
     justify-content: space-between;
     padding: 10px 10px;
     box-shadow: 3px 0px 12px rgba(53, 62, 92, 0.07);
-    border-right: 1px solid #E3E6EA;
-    background-attachment: white;
+    border-left: 1.4px solid var(--pico-contrast-hover-border);
+    border-right: 1.4px solid var(--pico-contrast-hover-border);
 }
 
 .note-section, .chat-section {

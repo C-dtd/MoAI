@@ -411,6 +411,15 @@ app.get('/chatroomframe', async (req, res) => {
         res.redirect('/login');
         return;
     }
+    res.render('chatroom');
+});
+
+app.post('/chatroomframe', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/login');
+        return;
+    }
     let chatroomList = await db.query(
         `select r.*, c.chat, c.type
         from rooms r left join 
@@ -433,10 +442,8 @@ app.get('/chatroomframe', async (req, res) => {
             await autoname(row, user);
         }
     }
-    res.render('chatroom', {
-        user: user, 
-        chatroomList: chatroomList.rows 
-    });
+    console.log(chatroomList.rows);
+    res.send(chatroomList.rows);
 });
 
 app.get('/newchatroom', async (req, res) => {
@@ -493,7 +500,7 @@ io.on('connection', (socket) => {
         socket.join(roomId);
     })
 
-    socket.on('msg', (msg) => {
+    socket.on('msg', async (msg) => {
         const { user } = socket.handshake.session;
         db.query(
             "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
@@ -501,6 +508,21 @@ io.on('connection', (socket) => {
         );
 
         io.to(msg.room).emit('msg', {...msg, user_id: user.user_id, user_name: user.user_name});
+        const users = await db.query(
+            "select user_id from room_users where room_id=$1",
+            [msg.room]
+        );
+        users.rows.forEach((user) => {
+            io.to(user.user_id).emit('roomListUpdate', '');
+        });
+    });
+
+    socket.on('roomListJoin', (msg) => {
+        const { user } = socket.handshake.session;
+        if (!user) {
+            return;
+        }
+        socket.join(user.user_id);
     });
 });
 
@@ -962,20 +984,22 @@ app.get('/departments', async (req, res) => {
         let departments = result.rows;
 
         // 부서가 없거나 NULL인 경우 기본 부서 추가
-        if (departments.length === 0) {
-            departments = [{ dep_id: '부서 미지정', dep_name: '부서 미지정' }];
-        }
+        // if (departments.length === 0) {
+        //     departments = [{ dep_id: '-', dep_name: '부서 미지정' }];
+        // }
 
         // 모든 직원 정보를 조회
-        const usersResult = await db.query('SELECT * FROM users');
+        const usersResult = await db.query(
+            'SELECT user_name, job_id, phone, user_type, d.dep_id, dep_name FROM (users u join departments d on u.dep_id=d.dep_id)'
+        );
         const users = usersResult.rows;
 
         // 부서가 NULL인 직원이 있을 경우 기본 부서 ID 추가
-        users.forEach(user => {
-            if (!user.dep_id) {
-                user.dep_id = '부서 미지정';
-            }
-        });
+        // users.forEach(user => {
+        //     if (!user.dep_id) {
+        //         user.dep_id = '부서 미지정';
+        //     }
+        // });
 
         res.render('departments', { departments, users });
     } catch (error) {
@@ -983,9 +1007,6 @@ app.get('/departments', async (req, res) => {
         res.status(500).send('서버 오류');
     }
 });
-
-
-
 
 app.get('/users/:id', async (req, res) => {
     const userId = req.params.id;
@@ -1010,7 +1031,7 @@ app.get('/users/:id', async (req, res) => {
 app.get('/users', async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT user_name, job_id, phone, dep_id FROM users'
+            'SELECT user_name, job_id, phone, user_type, u.dep_id dep_name FROM users u join departments d on u.dep_id=d.dep_id'
         );
         res.json(result.rows);
     } catch (error) {

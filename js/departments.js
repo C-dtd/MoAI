@@ -18,35 +18,39 @@ function showDepartments() {
 
 /**
  * 주어진 부서 ID에 해당하는 사용자 목록을 표시합니다.
- * @param {string} departmentId - 표시할 부서의 ID
+ * @param {string} departmentName - 표시할 부서의 ID
  */
-function showUsers(departmentId) {
-    const userContainer = document.getElementById('user-container');
-    userContainer.innerHTML = '';
+async function showUsers(departmentName) {
+    const query = departmentName.toLowerCase();
+    const userContainer = document.querySelector('#user-container>main');
+    const userCards = userContainer.querySelectorAll('.user-card');
+    const noResultsMessage = userContainer.querySelector('.no-results-message');
 
-    const filteredUsers = users.filter(user => user.dep_id === departmentId || user.dep_id === 'undefined');
+    let anyVisible = false;
 
-    filteredUsers.forEach(user => {
-        const userCard = document.createElement('div');
-        userCard.className = 'user-card';
-
-        const img = document.createElement('img');
-        img.className = 'profile-pic';
-        img.dataset.src = `/images/${user.image}`;
-        img.alt = `${user.user_name}의 프로필 사진`;
-
-        const info = document.createElement('div');
-        info.className = 'user-info';
-        info.innerHTML = `<p><strong>${user.user_name}</strong><br>${user.phone}</p>`;
-
-        userCard.appendChild(img);
-        userCard.appendChild(info);
-        userContainer.appendChild(userCard);
+    // 모든 사용자 카드 필터링
+    userCards.forEach(card => {
+        const depElement = card.querySelector('.user-info .dep');
+        if (depElement) {
+            const name = depElement.textContent.toLowerCase();
+            console.log(name, query);
+            if (name === query) {
+                card.style.display = 'flex';  // 검색 쿼리에 맞는 카드 표시
+                anyVisible = true;
+            } else {
+                card.style.display = 'none';  // 검색 쿼리에 맞지 않는 카드 숨김
+            }
+        } else {
+            card.style.display = 'none';  // 사용자 카드에 이름 요소가 없는 경우 숨김
+        }
     });
 
-    // 초기화 검색 필드 및 상태
-    document.getElementById('search-input').value = '';
-    searchUsers();
+    // 검색 결과가 없는 경우 메시지 표시
+    if (!anyVisible) {
+        noResultsMessage.style.display = 'block';
+    } else {
+        noResultsMessage.style.display = 'none';
+    }
 }
 
 /**
@@ -54,7 +58,7 @@ function showUsers(departmentId) {
  */
 function searchUsers() {
     const query = document.getElementById('search-input').value.toLowerCase();
-    const userContainer = document.getElementById('user-container');
+    const userContainer = document.querySelector('#user-container>main');
     const userCards = userContainer.querySelectorAll('.user-card');
     const noResultsMessage = userContainer.querySelector('.no-results-message');
 
@@ -78,20 +82,9 @@ function searchUsers() {
 
     // 검색 결과가 없는 경우 메시지 표시
     if (!anyVisible) {
-        if (!noResultsMessage) {
-            // 메시지 요소가 없으면 추가
-            const message = document.createElement('p');
-            message.className = 'no-results-message';
-            message.textContent = '검색 결과가 없습니다.';
-            userContainer.appendChild(message);
-        } else {
-            noResultsMessage.style.display = 'block';
-        }
+        noResultsMessage.style.display = 'block';
     } else {
-        // 검색 결과가 있는 경우 메시지 숨김
-        if (noResultsMessage) {
-            noResultsMessage.style.display = 'none';
-        }
+        noResultsMessage.style.display = 'none';
     }
 }
 
@@ -138,4 +131,8 @@ function startChat(userId) {
 }
 
 
-
+const chat_main = document.querySelector('.user-container>main');
+chat_main.addEventListener('scroll', ()=> {
+    const scroll = document.querySelector('.scroll');
+    scroll.style.top = `${chat_main.scrollTop/(chat_main.scrollHeight -chat_main.clientHeight +32) *(chat_main.scrollHeight - scroll.clientHeight +32)}px`;
+});
