@@ -66,6 +66,7 @@ app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
+app.use("/kanban", express.static(__dirname + '/kanban/build'));
 
 ////////////////////////////////////////////////////////////////
 // 정적 페이지 연결하기 문단
@@ -135,6 +136,10 @@ app.get('/uploads/:file', (req, res) => {
 app.get('/filefolder', (req, res) => {
     res.render('filefolder');
 })
+
+app.get('/kanban', (req, res) => {
+    res.sendFile(path.join(__dirname, 'kanban/build', 'index.html'));
+  });
 
 // 라우팅 설정 부분(ejs 확장자 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
 /////////////////////////////////////////////////////////////////////////////////

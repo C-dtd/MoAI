@@ -1,0 +1,19 @@
+@import './theme.scss';
+
+header {
+  display: flex;
+  justify-content: center;
+  height: 70px;
+  border-bottom: 1px solid $fontGray;
+  .title {
+    line-height: 70px;
+    font-size: 1.5rem;
+    font-weight: 300;
+  }
+}
+
+.kanbanListContainer {
+  display: flex;
+  justify-content: center;
+  margin: 50px 0 20px 0;
+}
