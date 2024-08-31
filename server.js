@@ -984,20 +984,22 @@ app.get('/departments', async (req, res) => {
         let departments = result.rows;
 
         // 부서가 없거나 NULL인 경우 기본 부서 추가
-        if (departments.length === 0) {
-            departments = [{ dep_id: '부서 미지정', dep_name: '부서 미지정' }];
-        }
+        // if (departments.length === 0) {
+        //     departments = [{ dep_id: '-', dep_name: '부서 미지정' }];
+        // }
 
         // 모든 직원 정보를 조회
-        const usersResult = await db.query('SELECT * FROM users');
+        const usersResult = await db.query(
+            'SELECT user_name, job_id, phone, user_type, d.dep_id, dep_name FROM (users u join departments d on u.dep_id=d.dep_id)'
+        );
         const users = usersResult.rows;
 
         // 부서가 NULL인 직원이 있을 경우 기본 부서 ID 추가
-        users.forEach(user => {
-            if (!user.dep_id) {
-                user.dep_id = '부서 미지정';
-            }
-        });
+        // users.forEach(user => {
+        //     if (!user.dep_id) {
+        //         user.dep_id = '부서 미지정';
+        //     }
+        // });
 
         res.render('departments', { departments, users });
     } catch (error) {
@@ -1005,9 +1007,6 @@ app.get('/departments', async (req, res) => {
         res.status(500).send('서버 오류');
     }
 });
-
-
-
 
 app.get('/users/:id', async (req, res) => {
     const userId = req.params.id;
@@ -1032,7 +1031,7 @@ app.get('/users/:id', async (req, res) => {
 app.get('/users', async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT user_name, job_id, phone, dep_id FROM users'
+            'SELECT user_name, job_id, phone, user_type, u.dep_id dep_name FROM users u join departments d on u.dep_id=d.dep_id'
         );
         res.json(result.rows);
     } catch (error) {
