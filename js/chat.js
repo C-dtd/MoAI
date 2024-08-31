@@ -1,7 +1,13 @@
 const socket = io();
 const cont = document.querySelector('.msg-cont');
-const chat_main = document.querySelector('main');
+const chat_main = document.querySelector('.main-section');
 const imgInput = document.querySelector('#img-input');
+const scroll = document.querySelector('.scroll');
+
+chat_main.addEventListener('scroll', ()=> {
+    scroll.style.top = `${chat_main.scrollTop/(chat_main.scrollHeight -chat_main.clientHeight +32) *(chat_main.scrollHeight - scroll.clientHeight +32)}px`;
+});
+
 
 const allowExt = ['png', 'pjp', 'jpg', 'jpeg', 'jfif', 'webp', 'bmp'];
 const regURL = new RegExp("(http|https|ftp|telnet|news|irc)://([-/.a-zA-Z0-9_~#%$?&=:200-377()]+)","gi");

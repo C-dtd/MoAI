@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    
+    <script src="/socket.io/socket.io.js"></script>
     <title>Document</title>
     <style>
         body {
@@ -26,6 +26,7 @@
             height: 100%;
             -ms-overflow-style: none; /* IE and Edge */
             scrollbar-width: none; /* Firefox */
+            position: relative;
         }
         main:-webkit-scrollbar {
             display: none;
@@ -40,26 +41,43 @@
         article main {
             text-align: left;
         }
+        .scroll {
+            position: absolute;
+            width: 16px;
+            height: 32px;
+            border-radius: 16px;
+            background-color: var(--pico-contrast-background);
+            opacity: 0.5;
+            margin-top: 10px;
+            top: 0;
+            right: 0;
+        }
     </style>
 </head>
 <body>
     <header>
         <h3>채팅방</h3>
     </header>
-    <main>
-        
+    <main class="main-section">
     </main>
     <footer>
         <a href="/newchatroom"><button id="new-chat-room">새 채팅방</button></a>
     </footer>
 <script>
-const mainSection = document.querySelector('main');
+// const mainSection = document.querySelector('main');
 const newChatButton = document.querySelector('#new-chat-room');
 
 async function roomListUpdate() {
     const response = await fetch('/chatroomframe', {method: 'post'});
     const res = await response.json();
-    console.log(res);
+    const mainSection = document.createElement('main');
+    mainSection.className = 'main-section';
+    const scroll = document.createElement('div');
+    scroll.className = 'scroll';
+    mainSection.appendChild(scroll);
+    mainSection.addEventListener('scroll', ()=> {
+        scroll.style.top = `${mainSection.scrollTop/(mainSection.scrollHeight -mainSection.clientHeight +32) *(mainSection.scrollHeight - scroll.clientHeight +32)}px`;
+    });
     for (let row of res) {
         const article = document.createElement('article');
         const header = document.createElement('header');
@@ -77,10 +95,27 @@ async function roomListUpdate() {
         }
         article.appendChild(main);
         mainSection.appendChild(article);
+        article.addEventListener('click', () => {
+            window.location.href = '/chat/'+row.id;
+        })
     }
+    document.querySelector('body').replaceChild(
+        mainSection,
+        document.querySelector('.main-section')
+    )
 }
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    socket.emit('roomListJoin', '');
+});
+
 roomListUpdate();
+const socket = io();
+socket.on('roomListUpdate', async (msg) => {
+    roomListUpdate();
+});
+
 </script>
 </body>
 </html>

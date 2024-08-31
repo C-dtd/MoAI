@@ -496,7 +496,7 @@ io.on('connection', (socket) => {
         socket.join(roomId);
     })
 
-    socket.on('msg', (msg) => {
+    socket.on('msg', async (msg) => {
         const { user } = socket.handshake.session;
         db.query(
             "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
@@ -504,6 +504,21 @@ io.on('connection', (socket) => {
         );
 
         io.to(msg.room).emit('msg', {...msg, user_id: user.user_id, user_name: user.user_name});
+        const users = await db.query(
+            "select user_id from room_users where room_id=$1",
+            [msg.room]
+        );
+        users.rows.forEach((user) => {
+            io.to(user.user_id).emit('roomListUpdate', '');
+        });
+    });
+
+    socket.on('roomListJoin', (msg) => {
+        const { user } = socket.handshake.session;
+        if (!user) {
+            return;
+        }
+        socket.join(user.user_id);
     });
 });
 
