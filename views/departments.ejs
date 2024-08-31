@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부서 목록</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/css/departments.css">
+</head>
+<body>
+    <main>
+        <!-- 부서 목록을 표시할 컨테이너 -->
+        <div id="departments-container" class="departments-container">
+            <% if (Array.isArray(departments) && departments.length > 0) { %>
+                <% departments.forEach(department => { %>
+                    <article class="department-item" onclick="showUsers('<%= department.dep_name %>')">
+                        <%= department.dep_name %>
+                    </article>
+                <% }); %>
+            <% } else { %>
+                <p>부서 데이터가 없습니다.</p>
+            <% } %>
+        </div>
+
+        <!-- 사용자 목록을 표시할 컨테이너 -->
+        <div id="user-container" class="user-container">
+            <!-- 검색 입력 필드 및 버튼을 상단에 고정 -->
+            <header class="search-bar" role="group">
+                <input id="search-input" type="text" placeholder="사원 이름으로 검색" />
+                <button id="search-button" style="white-space: nowrap;">검색</button>
+            </header>
+            <main>
+                <div class="scroll"></div>
+                <!-- 사용자 목록은 JavaScript로 동적으로 추가됨 -->
+                <% users.forEach(user => { %>
+                    <article class="user-card">
+                        <img class="profile-pic" src="/images/<%= user.image %>" alt="프로필 사진" />
+                        <div class="user-info">
+                            <p><strong><%= user.user_name %></strong><br>
+                            전화번호: <%= user.phone %><br>
+                            직책: <%= user.job_id %><br>
+                            부서: <span class="dep"><%= user.dep_name %></span></p>
+                        </div>
+                        <!-- 채팅방 버튼 추가 -->
+                        <button class="chat-button" onclick="startChat('<%= user.user_id %>')">채팅 시작</button>
+                    </article>
+                <% }); %>
+                <p class="no-results-message" style="display: none;">사용자 데이터가 없습니다.</p>
+            </main>
+        </div>
+    </main>
+
+    <script src="/js/departments.js"></script>
+</body>
+</html>
+
+
+
+

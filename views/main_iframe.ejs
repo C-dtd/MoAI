@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat and Calendar Interface</title>
-    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 </head>
 <body>
@@ -17,53 +17,58 @@
             </div>
             <div class="actions">
                 <div class="action-icon_setting">
-                    <img src="../image/setting.png" alt="Setting Icon" />
+                    <img src="/image/setting.png" alt="Setting Icon" />
                 </div>
                 <div class="action-icon_sidebar">
-                    <img src="../image/sidebar.png" alt="Sidebar Icon" />
+                    <img src="/image/sidebar.png" alt="Sidebar Icon" />
                 </div>
             </div>
         </header>
 
         <div role="search" class="search-input">
-            <!-- <img src="../image/reading_glasses.png" alt="reading_glasses Icon" /> -->
+            <!-- <img src="/image/reading_glasses.png" alt="reading_glasses Icon" /> -->
             <input type="search" placeholder="Search for chats...">
             <button class="search-btn">search</button>
         </div>
         
         <nav class="menu">
-            <div class="menu-item">
-                <img class="menu-icon" src="../image/chat_icon.png" alt="chating Icon" />
+            <div class="menu-item" onclick="showCalendar()">
+                <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
+                <span class="menu-label">캘린더</span>
+                <div class="badge">4</div>
+            </div>
+            <div class="menu-item" onclick="showChat()">
+                <img class="menu-icon" src="/image/chat_icon.png" alt="chating Icon" />
                 <span class="menu-label">채팅</span>
                 <div class="badge">1</div>
             </div>
             <div class="menu-item">
-                <img class="menu-icon" src="../image/project.png" alt="project Icon" />
+                <img class="menu-icon" src="/image/project.png" alt="project Icon" />
                 <span class="menu-label">프로젝트</span>
                 <div class="badge">2</div>
             </div>
             <div class="menu-item">
-                <img class="menu-icon" src="../image/application.png" alt="application Icon" />
+                <img class="menu-icon" src="/image/application.png" alt="application Icon" />
                 <span class="menu-label">어플리케이션</span>
                 <div class="badge">3</div>
             </div>
-            <div class="menu-item">
-                <img class="menu-icon" src="../image/quality_control.png" alt="quality_control Icon" />
-                <span class="menu-label">품목 관리</span>
+            <div class="menu-item" onclick="showDepartments()">
+                <img class="menu-icon" src="/image/department_icon.png" alt="Departments Icon" />
+                <span class="menu-label">부서 목록</span>
                 <div class="badge">4</div>
             </div>
             <div class="menu-item" onclick="showDocumentSummary()">
-                <img class="menu-icon" src="../image/quality_control.png" alt="quality_control Icon" />
+                <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">문서 요약</span>
                 <div class="badge">5</div>
             </div>
-            <div class="menu-item">
-                <img class="menu-icon" src="../image/quality_control.png" alt="quality_control Icon" />
+            <div class="menu-item" onclick="showCreatereport()">
+                <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">보고서 작성</span>
                 <div class="badge">6</div>
             </div>
-            <div class="menu-item">
-                <img class="menu-icon" src="../image/quality_control.png" alt="quality_control Icon" />
+            <div class="menu-item" onclick="showPayment()">
+                <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">서류 결제</span>
                 <div class="badge">7</div>
             </div>
@@ -110,9 +115,26 @@
         imgModal.style.display='none';
     });
 
+    function showCalendar() {
+        document.querySelector('#main-iframe').setAttribute('src', '/calendar');
+    }
+    function showChat() {
+        document.querySelector('#main-iframe').setAttribute('src', '/chatroomframe');
+    }
     function showDocumentSummary() {
         document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
        
+    }
+    function showDepartments() {
+        document.querySelector('#main-iframe').setAttribute('src', '/departments');
+       
+    }
+    function showPayment() {
+        document.querySelector('#main-iframe').setAttribute('src', '/payment');
+    }
+
+    function showCreatereport() {
+        document.querySelector('#main-iframe').setAttribute('src', '/createreport')
     }
 
 </script>

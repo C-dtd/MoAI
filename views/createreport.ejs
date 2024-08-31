@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 기반 보고서 작성 도구</title>
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <!-- 네비게이션 메뉴 -->
+            <a href="/home">홈으로 돌아가기</a>
+        </nav>
+    </header>
+    <main>
+        <h1>AI 기반 보고서 작성 도구</h1>
+        <form id="report-form" action="/generate_report" method="post">
+            <label for="user-input">내용을 입력하세요:</label>
+            <textarea id="user-input" name="inputText" rows="5" required placeholder="여기에 내용을 입력하세요..."></textarea>
+            
+            <button type="submit">보고서 생성 요청</button>
+        </form>
+        <div id="result" style="margin-top: 20px;"></div>
+    </main>
+    <script>
+        const form = document.getElementById('report-form');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault(); // 기본 폼 제출 동작 방지
+            form.querySelector('button[type=submit]').setAttribute('aria-busy', true);
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            const formData = new FormData(form);
+            
+            // 서버로 양식 데이터 전송
+            fetch('http://localhost:5100/generate_report', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'ok') {
+                    resultDiv.innerHTML = `<h2>생성된 보고서:</h2><pre>${data.report}</pre>`;
+                    
+                    // 링크 생성 및 결과 div에 추가
+                    const a = document.createElement('a');
+                    a.setAttribute('href', `${data.processedFilePath}`);
+                    a.setAttribute('download', '생성된_보고서.docx');  // 파일 이름을 설정
+                    a.innerText = '보고서 다운로드';
+                    resultDiv.appendChild(a);  // 링크를 결과 div에 추가
+                } else {
+                    resultDiv.innerHTML = `<p>보고서 생성에 실패했습니다.: ${data.error}</p>`;
+                }
+                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<p>보고서 생성 중 오류가 발생했습니다.</p>`;
+                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
+            });
+        });
+    </script>
+</body>
+</html>
+

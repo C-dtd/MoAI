@@ -16,10 +16,6 @@
         body>header, body>footer {
             padding: 0;
         }
-        main {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
         article.my-chat, article.other-chat {
             width: 60%;
             text-align: left;
@@ -79,13 +75,31 @@
             text-align: left;
         }
         #event-list article:hover {
-            background-color: var(--pico-text-selection-color);
-        }
-        #event-list article:hover header {
-            background-color: var(--pico-text-selection-color);
+            outline: 1.4px solid var(--pico-contrast-hover-border);
         }
         #event-list:-webkit-scrollbar {
             display: none;
+        }
+        .main-section {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            position: relative;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        main:-webkit-scrollbar {
+            display: none;
+        }
+        .scroll {
+            position: absolute;
+            width: 16px;
+            height: 32px;
+            border-radius: 16px;
+            background-color: var(--pico-contrast-background);
+            opacity: 0.5;
+            margin-top: 10px;
+            top: 0;
+            right: 0;
         }
     </style>
 </head>
@@ -95,7 +109,8 @@
         <button id="memberInfo" class="header-button">&#9776;</button>
         <h3><%= room.room_name %></h3>
     </header>
-    <main>
+    <main class="main-section">
+        <div class="scroll"></div>
         <div class="msg-cont">
         <% chat_log.forEach((row) => { %>
             <article class="<%= ((row.user_id==user.user_id) ? 'my-chat' : 'other-chat') %> <%= row.type %>">
@@ -129,7 +144,6 @@
     <footer>
         <div role="group">
             <button id="imgUpload"><label for="img-input">이미지 첨부</label></button>
-            <button id="paymentUpload"><label for="payment-input">전자 결재 요청</label></button>
             <button id="calendarShare">일정 등록</button>
         </div>
         <div class="msg-form" role="group">
@@ -151,7 +165,6 @@
         </div>
     </div>
     <input type="file" id="img-input" style="display: none;" accept="image/*">
-    <input type="file" id="payment-input" style="display: none;" accept="application/pdf, image/png">
     
     <script src="/js/chat.js"></script>
 </body>

@@ -23,6 +23,12 @@
             padding: 10px;
             overflow-y: auto;
             flex-grow: 1;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            position: relative;
+        }
+        main:-webkit-scrollbar {
+            display: none;
         }
         footer>[role=group] {
             margin: 0;
@@ -30,6 +36,17 @@
         #goBack {
             position: absolute;
             left: 10px;
+        }
+        .scroll {
+            position: absolute;
+            width: 16px;
+            height: 32px;
+            border-radius: 16px;
+            background-color: var(--pico-contrast-background);
+            opacity: 0.5;
+            margin-top: 10px;
+            top: 0;
+            right: 0;
         }
     </style>
 </head>
@@ -39,6 +56,7 @@
         <h3>채팅방</h3>
     </header>
     <main>
+        <div class="scroll"></div>
         <% userList.forEach((user, i) => { %>
             <label>
                 <input type="checkbox" name="<%= user.user_name %>" class="invite">
@@ -52,13 +70,19 @@
     <footer>
         <div role="group">
             <input type="text" placeholder="room name" style="width: auto;" id="room_name">
-                <button id="new-chat-room">개설</button>
+            <button id="new-chat-room">개설</button>
         </div>
     </footer>
 <script>
 const createRoomButton = document.querySelector('#new-chat-room');
 const roomnameInput = document.querySelector('#room_name');
 const goBack = document.querySelector('#goBack');
+const mainSection = document.querySelector('body>main');
+const scroll = document.querySelector('.scroll');
+mainSection.addEventListener('scroll', ()=> {
+    console.log(mainSection.scrollTop/(mainSection.scrollHeight -mainSection.clientHeight +32));
+    scroll.style.top = `${mainSection.scrollTop/(mainSection.scrollHeight -mainSection.clientHeight +32) *(mainSection.scrollHeight - scroll.clientHeight +32)}px`;
+});
 createRoomButton.addEventListener('click', async () => {
     const userCheckList = document.querySelectorAll('.invite');
     let inviteList = [];
@@ -67,7 +91,7 @@ createRoomButton.addEventListener('click', async () => {
             inviteList.push(user.name);
         }
     });
-    console.log(inviteList);
+    // console.log(inviteList);
     if (inviteList.length == 0) {
         return;
     }
@@ -83,7 +107,7 @@ createRoomButton.addEventListener('click', async () => {
     });
     const res = await response.json();
     if (res.result) {
-        location.href='/chatroomframe';
+        location.href='/chat/'+res.uuid;
     }
 });
 </script>

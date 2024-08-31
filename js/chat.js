@@ -1,8 +1,14 @@
 const socket = io();
 const cont = document.querySelector('.msg-cont');
-const chat_main = document.querySelector('main');
+const chat_main = document.querySelector('.main-section');
 const imgInput = document.querySelector('#img-input');
-const paymentInput = document.querySelector('#payment-input');
+const scroll = document.querySelector('.scroll');
+
+chat_main.addEventListener('scroll', ()=> {
+    scroll.style.top = `${chat_main.scrollTop/(chat_main.scrollHeight -chat_main.clientHeight +32) *(chat_main.scrollHeight - scroll.clientHeight +32)}px`;
+});
+
+
 const allowExt = ['png', 'pjp', 'jpg', 'jpeg', 'jfif', 'webp', 'bmp'];
 const regURL = new RegExp("(http|https|ftp|telnet|news|irc)://([-/.a-zA-Z0-9_~#%$?&=:200-377()]+)","gi");
 const room_id = window.location.href.split('/').pop();
@@ -112,34 +118,6 @@ imgInput.addEventListener('input', async (e) => {
     socket.emit('msg', {message: res.path, type: 'img', room: room_id});
 });
 
-paymentInput.addEventListener('input', async (e) => {
-    if (!['pdf', 'png'].includes(paymentInput.files[0].name.split('.').pop())) {
-        paymentInput.value = '';
-        return false;
-    }
-
-    const formData = new FormData();
-    formData.append('file', paymentInput.files[0]);
-    const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData
-    });
-    const res = await response.json();
-    paymentInput.value = '';
-    // console.log(res.path);
-    const responsePayment = await fetch('/payment_req', {
-        method: 'POST',
-        headers: {
-            "content-type": "application/json"
-        },
-        body: JSON.stringify({
-            path: res.path,
-        })
-    });
-    const resPayment =  await responsePayment.json();
-    // console.log(resPayment);
-    socket.emit('msg', {message: resPayment.uuid, type: 'payment', room: room_id});
-});
 
 document.querySelector('#calendarShare').addEventListener('click', async () => {
     const modal = document.querySelector('#eventModal');
