@@ -126,6 +126,10 @@ app.get('/createreport', function(req, res) {
     res.render('createreport.ejs');
 });
 
+app.get('/createreport', function(req, res) {
+    res.render('createreport.ejs');
+});
+
 app.get('/register_confirm', function(req, res){
     const { name } = req.session;
     if (name) {
