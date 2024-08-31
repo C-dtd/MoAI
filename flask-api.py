@@ -23,18 +23,18 @@ host = 'localhost'
 port = 5100
 
 # Configuration
-ngrok = 'https://fce1-104-155-199-73.ngrok-free.app'
+ngrok = 'https://7505-34-125-71-39.ngrok-free.app'
 device = 'cpu'
 
 # Load language model
 llm_model = ChatOllama(
     model='meta-llama-3.1',
-    # base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
 llm_model_json = ChatOllama(
     model='meta-llama-3.1',
     format='json',
-    # base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
 
 # Load embeddings model
@@ -153,6 +153,84 @@ def summary():
             'result': 'error',
             'error': '텍스트를 인식할 수 없음'
         })
-        
+
+@app.route('/generate_report', methods=['POST'])
+def generate_report():
+    # 사용자가 입력한 텍스트 가져오기
+    input_text = request.form.get('inputText', '').strip()
+    
+    if not input_text:
+        return jsonify({
+            'result': 'error',
+            'error': '입력된 텍스트가 없습니다.'
+        })
+
+    # 텍스트를 분할하여 벡터스토어 생성
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splits = text_splitter.split_text(input_text)
+
+    if len(splits) == 0: 
+        return jsonify({
+            'result': 'error',
+            'error': '텍스트 분할에 실패했습니다.'
+        })
+    
+    # Create FAISS index from input text splits
+    vectorstore = FAISS.from_texts(splits, embedding_model)
+
+    # 보고서 생성 요청 프롬프트
+    question = f'''사용자의 입력: {input_text} 
+    사용자의 입력을 읽고 관련 보고서를 만들어줘
+        'title': '보고서의 제목',
+        'content':list['보고서의 목차별 제목'] 50글자 이내,
+        'summary': '보고서의 개요' 1000글자 이내
+    key is title, content, summary.
+    Respond using JSON only.'''
+
+    # 메모리 설정 및 대화형 체인 생성
+    memory = ConversationBufferMemory(
+        memory_key='chat_history',
+        return_messages=True,
+    )
+
+    conversation_chain = ConversationalRetrievalChain.from_llm(
+        llm=llm_model_json,
+        retriever=vectorstore.as_retriever(),
+        condense_question_prompt=rag_prompt,
+        memory=memory,
+    )
+
+    # 보고서 생성
+    res = conversation_chain({'question': question})
+    response_content = res['chat_history'][1].content.replace('\n', '').lstrip().rstrip()
+
+    try:
+        # JSON 형식으로 파싱
+        response = json.loads(response_content)
+    except json.JSONDecodeError:
+        return jsonify({
+            'result': 'error',
+            'error': '보고서 생성 중 JSON 파싱 오류가 발생했습니다.'
+        })
+    
+    # DOCX 파일 생성
+    processedFilePath = create_docx(response, vectorstore)
+    
+    # 결과 반환
+    if processedFilePath:
+        return jsonify({
+            'result': 'ok',
+            'report': f'보고서가 성공적으로 생성되었습니다. 다운로드 링크: {processedFilePath}',
+            'processedFilePath': processedFilePath
+        })
+    else:
+        return jsonify({
+            'result': 'error',
+            'error': '보고서 생성에 실패했습니다.'
+        })
+
+
+
+
 if __name__ == '__main__':
     app.run(host= host, port=port)

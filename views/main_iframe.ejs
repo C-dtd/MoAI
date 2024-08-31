@@ -52,12 +52,17 @@
                 <span class="menu-label">어플리케이션</span>
                 <div class="badge">3</div>
             </div>
+            <div class="menu-item" onclick="showDepartments()">
+                <img class="menu-icon" src="/image/department_icon.png" alt="Departments Icon" />
+                <span class="menu-label">부서 목록</span>
+                <div class="badge">4</div>
+            </div>
             <div class="menu-item" onclick="showDocumentSummary()">
                 <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">문서 요약</span>
                 <div class="badge">5</div>
             </div>
-            <div class="menu-item">
+            <div class="menu-item" onclick="showCreatereport()">
                 <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">보고서 작성</span>
                 <div class="badge">6</div>
@@ -118,9 +123,18 @@
     }
     function showDocumentSummary() {
         document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
+       
+    }
+    function showDepartments() {
+        document.querySelector('#main-iframe').setAttribute('src', '/departments');
+       
     }
     function showPayment() {
         document.querySelector('#main-iframe').setAttribute('src', '/payment');
+    }
+
+    function showCreatereport() {
+        document.querySelector('#main-iframe').setAttribute('src', '/createreport')
     }
 
 </script>

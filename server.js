@@ -122,6 +122,10 @@ app.get('/documentsummary', function(req, res) {
     res.render('document-summary.ejs');
 });
 
+app.get('/createreport', function(req, res) {
+    res.render('createreport.ejs');
+});
+
 app.get('/register_confirm', function(req, res){
     const { name } = req.session;
     if (name) {
@@ -970,4 +974,69 @@ app.get('/session/user_name', (req, res) => {
         return;
     }
     res.send(user.user_name);
+});
+
+// 부서 목록을 조회하고 EJS에 전달
+app.get('/departments', async (req, res) => {
+    try {
+        // 부서 목록을 조회
+        const result = await db.query('SELECT dep_id, dep_name FROM departments');
+        let departments = result.rows;
+
+        // 부서가 없거나 NULL인 경우 기본 부서 추가
+        if (departments.length === 0) {
+            departments = [{ dep_id: '부서 미지정', dep_name: '부서 미지정' }];
+        }
+
+        // 모든 직원 정보를 조회
+        const usersResult = await db.query('SELECT * FROM users');
+        const users = usersResult.rows;
+
+        // 부서가 NULL인 직원이 있을 경우 기본 부서 ID 추가
+        users.forEach(user => {
+            if (!user.dep_id) {
+                user.dep_id = '부서 미지정';
+            }
+        });
+
+        res.render('departments', { departments, users });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('서버 오류');
+    }
+});
+
+
+
+
+app.get('/users/:id', async (req, res) => {
+    const userId = req.params.id;
+    try {
+        const result = await db.query(
+            'SELECT user_name, job_id, phone FROM users WHERE user_id = $1',
+            [userId]
+        );
+        if (result.rows.length === 0) {
+            res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
+        } else {
+            res.json(result.rows[0]);
+        }
+    } catch (error) {
+        console.error('사용자 정보 조회 중 오류 발생:', error);
+        res.status(500).json({ message: '사용자 정보 조회 실패' });
+    }
+});
+
+
+// 모든 사용자의 정보를 조회하는 엔드포인트
+app.get('/users', async (req, res) => {
+    try {
+        const result = await db.query(
+            'SELECT user_name, job_id, phone, dep_id FROM users'
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ message: 'Failed to fetch users' });
+    }
 });

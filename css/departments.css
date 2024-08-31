@@ -1,0 +1,95 @@
+/* 전체 컨테이너의 레이아웃을 설정 */
+.container {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* 부서 목록의 스타일 */
+.departments-container {
+    width: 30%;
+    border-right: 1px solid #ddd;
+    padding: 10px;
+}
+
+/* 사용자 목록의 스타일 */
+.user-container {
+    width: 65%;
+    padding: 10px;
+    position: relative; /* To position the search bar correctly */
+}
+
+/* 검색 바의 스타일 */
+.search-bar {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    z-index: 10; /* Ensure the search bar stays on top */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow for better visibility */
+}
+
+/* 부서 아이템의 스타일 */
+.department-item {
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* 사용자 카드의 스타일 */
+.user-card {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* 내용이 카드의 왼쪽에 맞춰지도록 */
+    width: 300px; /* 카드의 너비를 고정 */
+    height: 200px; /* 카드의 높이를 고정 */
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    box-sizing: border-box; /* Padding과 border를 width와 height에 포함시킴 */
+    position: relative; /* 버튼 위치 조정을 위해 */
+
+}
+
+/* 프로필 사진의 스타일 */
+.profile-pic {
+    width: 60px; /* 프로필 사진의 너비 */
+    height: 60px; /* 프로필 사진의 높이 */
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover; /* 이미지 비율 유지 */
+}
+
+/* 사용자 정보의 스타일 */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 정보가 카드 중앙에 맞춰지도록 */
+    max-width: calc(100% - 80px); /* 프로필 사진과 패딩을 고려한 최대 너비 */
+}
+
+/* 채팅 버튼의 스타일 */
+.chat-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.chat-button:hover {
+    background-color: #0056b3;
+}
+
+
+
