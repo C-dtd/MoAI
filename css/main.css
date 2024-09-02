@@ -207,3 +207,68 @@ div.main {
     flex-grow: 1;
     height: 100%;
 }
+
+/* 밑의 부분은 setting.ejs 부분 */
+
+body {
+    font-family: Arial, sans-serif; /* 기본 폰트 설정 */
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4; /* 배경색 설정 */
+}
+
+nav a {
+    color: #ffffff; /* 네비게이션 링크 색상 */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+
+.main-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.title-text {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.profile-image {
+    margin-right: 15px;
+}
+
+.profile-image img {
+    border-radius: 50%; /* 원형 이미지 */
+    width: 120px;
+    height: 120px;
+    object-fit: cover; /* 이미지 자르기 */
+}
+
+.profile-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.logout-button {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.logout-text {
+    font-size: 1rem;
+    color: #ff4d4d; /* 로그아웃 버튼 색상 */
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.logout-text:hover {
+    color: #ff1a1a; /* 호버 시 색상 변경 */
+}

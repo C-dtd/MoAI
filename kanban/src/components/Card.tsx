@@ -28,6 +28,8 @@ function Card({ item }: { item: cardtype }) {
   const datePickerButtonRef = useRef<HTMLButtonElement>(null);
   const selectedDateRangeRef = useRef<HTMLSpanElement>(null);
   const datePickerRef = useRef<HTMLDivElement>(null);
+  const assignPickerButtonRef = useRef<HTMLButtonElement>(null);
+  const assignPickerRef = useRef<HTMLDivElement>(null);
 
   const { TO_DO, IN_PROGRESS, DONE, NOTE } = TITLE_NAME;
 
@@ -49,7 +51,7 @@ function Card({ item }: { item: cardtype }) {
   const updateTitleInDatabase = (newTitle: string) => {
     fetch('/api/editcard/title', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: item.id,
         title: newTitle
@@ -73,7 +75,7 @@ function Card({ item }: { item: cardtype }) {
    const updateContentInDatabase = (newContent: string) => {
     fetch('/api/editcard/text', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: item.id,
         content: newContent
@@ -95,7 +97,7 @@ function Card({ item }: { item: cardtype }) {
 
     fetch('/api/deletecard', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: item.id,
       })
@@ -107,15 +109,15 @@ function Card({ item }: { item: cardtype }) {
       const updatedList = prevList.map((e) =>
         e.id === selectedItem.id
           ? {
-              ...e,
-              category: title,
-            }
+            ...e,
+            category: title,
+          }
           : e
       );
 
       fetch('/api/editcard/category', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: selectedItem.id,
           category: title
@@ -199,7 +201,7 @@ function Card({ item }: { item: cardtype }) {
 
       fetch('/api/editcard/date', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: item.id,
           dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
@@ -229,7 +231,7 @@ function Card({ item }: { item: cardtype }) {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+    const handleClickOutsideCal = (event: MouseEvent | TouchEvent) => {
       if (
         datePickerRef.current &&
         !datePickerRef.current.contains(event.target as Node) &&
@@ -239,14 +241,34 @@ function Card({ item }: { item: cardtype }) {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutsideCal);
+    document.addEventListener('touchstart', handleClickOutsideCal);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutsideCal);
+      document.removeEventListener('touchstart', handleClickOutsideCal);
     };
   }, []);
+  
+  useEffect(() => {
+    const handleClickOutsideAssign = (event: MouseEvent | TouchEvent) => {
+      if (
+        assignPickerRef.current &&
+        !assignPickerRef.current.contains(event.target as Node) &&
+        !assignPickerButtonRef.current?.contains(event.target as Node)
+      ) {
+        setIsAssigneePickerVisible(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutsideAssign);
+    document.addEventListener('touchstart', handleClickOutsideAssign);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideAssign);
+      document.removeEventListener('touchstart', handleClickOutsideAssign);
+    };
+  }, []);	
 
   const handleAssigneeChange = (newAssignee: string) => {
     setAssignee(newAssignee);
@@ -262,7 +284,7 @@ function Card({ item }: { item: cardtype }) {
 
     fetch('/api/editcard/assignee', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: item.id,
         assignee: newAssignee
@@ -329,12 +351,16 @@ function Card({ item }: { item: cardtype }) {
         <div className="assigneeWrap">
           <button
             className="assigneeButton"
+            ref={assignPickerButtonRef}
             onClick={() => setIsAssigneePickerVisible(!isAssigneePickerVisible)}
           >
             {assignee ? assignee : '담당자'}
           </button>
           {isAssigneePickerVisible && (
-            <div className="assigneePicker">
+            <div 
+              className="assigneePicker"
+              ref={assignPickerRef}
+            >
               {assignees.map((name) => (
                 <div
                   key={name}
