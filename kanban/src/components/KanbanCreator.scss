@@ -1,0 +1,15 @@
+@import '../theme.scss';
+
+.addBtnWrap {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+
+  .cardAddBtn {
+    border: 0;
+    outline: 0;
+    background-color: transparent;
+    color: $fontGray;
+    cursor: pointer;
+  }
+}

@@ -66,6 +66,7 @@ app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
+app.use("/kanban", express.static(__dirname + '/kanban/build'));
 
 ////////////////////////////////////////////////////////////////
 // 정적 페이지 연결하기 문단
@@ -144,6 +145,10 @@ app.get('/uploads/:file', (req, res) => {
 app.get('/filefolder', (req, res) => {
     res.render('filefolder');
 })
+
+app.get('/kanban', (req, res) => {
+    res.sendFile(path.join(__dirname, 'kanban/build', 'index.html'));
+  });
 
 // 라우팅 설정 부분(ejs 확장자 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
 /////////////////////////////////////////////////////////////////////////////////
@@ -1031,5 +1036,126 @@ app.get('/users', async (req, res) => {
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Failed to fetch users' });
+    }
+});
+
+
+// kanban board api
+app.get('/api/assignees', async (req, res) => {
+    try {
+        const result = await db.query('SELECT user_name FROM users');
+        const assignees = result.rows.map(row => row.user_name);
+        res.json(assignees);
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/api/cards', async (req, res) =>{
+    try {
+        const result = await db.query('select * from cards');
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/newcard', async (req, res) => {
+    const {id, title, content, category, data_range, start_date, end_date, assignee} = req.body;
+    try {
+        await db.query(
+            'insert into cards values ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [ id, title, content, category, data_range, start_date, end_date, assignee ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/title', async (req, res) => {
+    const { id, title } = req.body;
+    try {
+        await db.query(
+            'update cards set title=$2 where id=$1',
+            [ id, title ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/text', async (req, res) => {
+    const { id, content } = req.body;
+    try {
+        await db.query(
+            'update cards set content=$2 where id=$1',
+            [ id, content ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/category', async (req, res) => {
+    const { id, category } = req.body;
+    try {
+        await db.query(
+            'update cards set category=$2 where id=$1',
+            [ id, category ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/date', async (req, res) => {
+    const { id, dateRange, startDate, endDate } = req.body;
+    try {
+        await db.query(
+            'update cards set date_range=$2, start_date=$3, end_date=$4 where id=$1',
+            [ id, dateRange, startDate, endDate ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/assignee', async (req, res) => {
+    const { id, assignee } = req.body;
+    try {
+        await db.query(
+            'update cards set assignee=$2 where id=$1',
+            [ id, assignee ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/deletecard', async (req, res) => {
+    const { id } = req.body;
+    try {
+        await db.query(
+            'delete from cards where id=$1',
+            [ id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
     }
 });
