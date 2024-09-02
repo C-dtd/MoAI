@@ -348,7 +348,7 @@ function Card({ item }: { item: cardtype }) {
           )}
         </div>
         <div className="dateRangeWrap">
-          {!selectedDateRange && (
+          {!selectedDateRange ? (
             <button
               className="dateRangeButton"
               ref={datePickerButtonRef}
@@ -356,8 +356,8 @@ function Card({ item }: { item: cardtype }) {
             >
               기간 설정
             </button>
-          )}
-          {selectedDateRange && (
+          )
+          : (
             <span
               className="selectedDateRange"
               ref={selectedDateRangeRef}
