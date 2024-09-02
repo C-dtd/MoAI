@@ -314,41 +314,7 @@ function Card({ item }: { item: cardtype }) {
         />
       </div>
       <div className="cardContentWrap">
-        <div className="inputWrap">
-          <input
-            className="cardTitle"
-            type="text"
-            value={item.title}
-            onChange={editTitle}
-            onBlur={(e) => updateTitleInDatabase(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault(); // Enter 키가 textarea에서 줄바꿈을 하지 않도록 방지
-                updateTitleInDatabase(e.currentTarget.value);
-              }
-            }}
-            placeholder="제목을 입력하세요"
-          />
-        </div>
-        <div className="textareaWrap">
-          <textarea
-            className="cardContent"
-            value={item.content}
-            onChange={editText}
-            onBlur={(e) => updateContentInDatabase(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault(); // Enter 키가 textarea에서 줄바꿈을 하지 않도록 방지
-                updateContentInDatabase(e.currentTarget.value);
-              }
-            }}
-            onInput={handleResizeHeight}
-            ref={contentRef}
-            placeholder="내용을 입력하세요"
-            spellCheck="false"
-          />
-        </div>
-        <div className="assigneeWrap">
+      <div className="assigneeWrap">
           <button
             className="assigneeButton"
             ref={assignPickerButtonRef}
@@ -373,6 +339,35 @@ function Card({ item }: { item: cardtype }) {
             </div>
           )}
         </div>
+        <div className="inputWrap">
+          <input
+            className="cardTitle"
+            type="text"
+            value={item.title}
+            onChange={editTitle}
+            onBlur={(e) => updateTitleInDatabase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); // Enter 키가 textarea에서 줄바꿈을 하지 않도록 방지
+                updateTitleInDatabase(e.currentTarget.value);
+              }
+            }}
+            placeholder="제목을 입력하세요"
+          />
+        </div>
+        <div className="textareaWrap">
+          <textarea
+            className="cardContent"
+            value={item.content}
+            onChange={editText}
+            onBlur={(e) => updateContentInDatabase(e.target.value)}
+            onInput={handleResizeHeight}
+            ref={contentRef}
+            placeholder="내용을 입력하세요"
+            spellCheck="false"
+          />
+        </div>
+        
         <div className="dateRangeWrap">
           {!selectedDateRange ? (
             <button
