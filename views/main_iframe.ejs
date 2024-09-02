@@ -42,7 +42,7 @@
                 <span class="menu-label">채팅</span>
                 <div class="badge">1</div>
             </div>
-            <div class="menu-item">
+            <div class="menu-item" onclick="showkanban()">
                 <img class="menu-icon" src="/image/project.png" alt="project Icon" />
                 <span class="menu-label">프로젝트</span>
                 <div class="badge">2</div>
@@ -115,6 +115,9 @@
         imgModal.style.display='none';
     });
 
+    function showkanban() {
+        document.querySelector('#main-iframe').setAttribute('src', '/kanban');
+    }
     function showCalendar() {
         document.querySelector('#main-iframe').setAttribute('src', '/calendar');
     }
@@ -123,20 +126,16 @@
     }
     function showDocumentSummary() {
         document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
-       
     }
     function showDepartments() {
         document.querySelector('#main-iframe').setAttribute('src', '/departments');
-       
     }
     function showPayment() {
         document.querySelector('#main-iframe').setAttribute('src', '/payment');
     }
-
     function showCreatereport() {
         document.querySelector('#main-iframe').setAttribute('src', '/createreport')
     }
-
     function showSetting() {
         document.querySelector('#main-iframe').setAttribute('src', '/setting')
     }

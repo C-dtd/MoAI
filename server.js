@@ -1091,7 +1091,7 @@ app.get('/users', async (req, res) => {
 });
 
 
-// kanban board api
+///////////////////////////////////////////// kanban board api
 app.get('/api/assignees', async (req, res) => {
     try {
         const result = await db.query('SELECT user_name FROM users');
@@ -1113,6 +1113,17 @@ app.get('/api/cards', async (req, res) =>{
     } catch (error) {
         console.error('Error fetching assignees:', error);
         res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/api/newcard/id', async (req, res) => {
+    const last_id = await db.query(
+        'select max(id)+1 as id from cards'
+    );
+    if (last_id.rows[0].id) {
+        res.json(last_id.rows[0]);
+    } else {
+        res.json({id: 0});
     }
 });
 

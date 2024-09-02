@@ -308,7 +308,7 @@ function Card({ item }: { item: cardtype }) {
         </span>
         <img
           className="deleteimg"
-          src="images/cancel.png"
+          src="/image/cancel.png"
           alt="delete"
           onClick={deleteItem}
         />
