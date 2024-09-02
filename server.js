@@ -163,22 +163,22 @@ app.post('/login', async (req, res) => {
     const { id, password } = req.body;
     const data = await db.query(
         "select * from users where user_id=$1 and user_pw=$2",
-        [ id, password ]
+        [id, password]
     );
     if (data.rows.length === 1) {
         const user_id = data.rows[0].user_id;
         const user_name = data.rows[0].user_name;
         req.session.user = { user_id, user_name };
-        res.redirect('/');
+        res.json({ success: true }); // AJAX 요청일 경우 성공 응답
     } else {
-        res.redirect('#');
+        res.json({ success: false, message: '아이디 또는 비밀번호가 잘못되었습니다.' });
     }
 });
+
 
 //아이디 중복 확인
 app.post('/check-duplicate-id', async (req, res) => {
     const { userId } = req.body;
-    console.log(req.body);
 
     try {
         const result = await db.query('SELECT COUNT(*) FROM users WHERE user_id = $1', [userId]);
@@ -189,7 +189,6 @@ app.post('/check-duplicate-id', async (req, res) => {
             res.json({ isDuplicate: false });
         }
     } catch (error) {
-        console.error('Error checking duplicate ID:', error);
     }
 });
 
@@ -229,7 +228,6 @@ app.post('/find_password', async (req, res) => {
             res.status(404).json({ error: 'User not found' });
         }
     } catch (error) {
-        console.error('Error occurred:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -251,7 +249,6 @@ app.post('/send-verification-code', (req, res) => {
             res.send({ success: true });
         })
         .catch((error) => {
-            console.error(error);
             res.send({ success: false, error: 'Failed to send verification code' });
         });
 });
@@ -276,12 +273,10 @@ app.post('/find_passwordauth', async (req, res) => {
         const { user_id } = req.session;
 
         if (!user_id) {
-            console.error('User ID is missing');
             return res.status(400).json({ error: 'User ID is required' });
         }
 
         try {
-            console.log('Querying database for user ID:', user_id);
             const result = await db.query('SELECT user_pw FROM users WHERE user_id = $1', [user_id]);
             
             if (result.rows.length > 0) {
@@ -447,7 +442,6 @@ app.post('/chatroomframe', async (req, res) => {
             await autoname(row, user);
         }
     }
-    console.log(chatroomList.rows);
     res.send(chatroomList.rows);
 });
 
