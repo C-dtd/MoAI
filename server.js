@@ -109,10 +109,22 @@ app.get('/login', function(req, res) {
     res.render('login.ejs'); // Serve login.html
 });
 
-app.get('/logout', (req, res) => {
-    delete req.session.user;
-    res.redirect('/');
-})
+// app.get('/logout', (req, res) => {
+//     delete req.session.user;
+//     res.redirect('/');
+// })
+
+app.post('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('로그아웃 오류:', err);
+            res.status(500).send('로그아웃 실패');
+        } else {
+            res.redirect('/login'); // 로그인 페이지로 리다이렉트
+        }
+    });
+});
+
 
 app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
@@ -865,6 +877,45 @@ function dateParser(str) {
 
     return res_;
 }
+
+// 설정 부분 user db 속성 추출
+app.get('/setting', async (req, res) => {
+    const { user } = req.session; // 세션에서 user 속성을 추출
+
+    if (!user) {
+        res.redirect('/');
+        return;
+    }
+
+    try {
+        // 사용자 전화번호를 데이터베이스에서 조회
+        const result = await db.query(
+            'SELECT user_id, user_name, phone FROM users WHERE user_id = $1',
+            [user.user_id]
+        );
+
+        if (result.rows.length === 0) {
+            console.error("User not found in database");
+            res.redirect('/');
+            return;
+        }
+
+        // 조회된 사용자 정보
+        const userData = result.rows[0];
+
+        // 세션에 전화번호를 포함한 사용자 정보 업데이트
+        req.session.user = {
+            ...user, // 기존 세션 데이터
+            phone: userData.phone // 데이터베이스에서 가져온 전화번호
+        };
+
+        res.render('setting', { user: req.session.user });
+    } catch (error) {
+        console.error("Error querying database:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 // 캘린더 db 관련 데이터베이스 처리 부분 
