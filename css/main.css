@@ -171,6 +171,7 @@ div.main {
 }
 
 .calendar {
+    flex-grow: 1;
     display: flex;
     width: 60%;
     flex-direction: column;

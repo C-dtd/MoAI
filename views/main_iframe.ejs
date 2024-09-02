@@ -19,8 +19,8 @@
                 <div class="action-icon_setting" onclick = 'showSetting()'>
                     <img src="/image/setting.png" alt="Setting Icon" />
                 </div>
-                <div class="action-icon_sidebar">
-                    <img src="/image/sidebar.png" alt="Sidebar Icon" />
+                <div class="action-icon_sidebar" onclick = 'toggleRightSection()'>
+                    <img src="/image/sidebar.png" alt="Sidebar Icon" id="sidebar-toggle-icon" />
                 </div>
             </div>
         </header>
@@ -88,7 +88,7 @@
             <button>프로젝트 </button><br>
             <button>프로젝트 </button><br> -->
         </section>
-        <div style="display: flex; flex-direction: column; width: 40%;">
+        <div class="right-section" id="right-section" style="display: flex; flex-direction: column; width: 40%;">
             <section class="chat-section">
                 <!-- <header>채팅방</header> -->
                 <main class="right-content">
@@ -104,43 +104,7 @@
 <div id="img-modal" style="display: none;">
     <img src="" alt="modal-content" id="modal-content">
 </div>
-<script>
-    const imgModal = document.querySelector('#img-modal');
-    const modalContent = document.querySelector('#modal-content');
-    function modalOpen(src) {
-        imgModal.style.display='flex';
-        modalContent.setAttribute('src', src);
-    }
-    imgModal.addEventListener('click', () => {
-        imgModal.style.display='none';
-    });
-
-    function showkanban() {
-        document.querySelector('#main-iframe').setAttribute('src', '/kanban');
-    }
-    function showCalendar() {
-        document.querySelector('#main-iframe').setAttribute('src', '/calendar');
-    }
-    function showChat() {
-        document.querySelector('#main-iframe').setAttribute('src', '/chatroomframe');
-    }
-    function showDocumentSummary() {
-        document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
-    }
-    function showDepartments() {
-        document.querySelector('#main-iframe').setAttribute('src', '/departments');
-    }
-    function showPayment() {
-        document.querySelector('#main-iframe').setAttribute('src', '/payment');
-    }
-    function showCreatereport() {
-        document.querySelector('#main-iframe').setAttribute('src', '/createreport')
-    }
-    function showSetting() {
-        document.querySelector('#main-iframe').setAttribute('src', '/setting')
-    }
-
-</script>
+<script src="/js/main.js"></script>
 </body>
 </html>
 
