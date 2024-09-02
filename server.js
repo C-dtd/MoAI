@@ -1061,7 +1061,10 @@ app.get('/api/assignees', async (req, res) => {
 app.get('/api/cards', async (req, res) =>{
     try {
         const result = await db.query('select * from cards');
-        res.json(result.rows);
+        // res.json(result.rows);
+        const cards = result.rows.map(row => ({ ...row, dateRange: row.date_range, startDate: row.start_date, endDate: row.end_date}));
+        console.log(cards)
+        res.json(cards);
     } catch (error) {
         console.error('Error fetching assignees:', error);
         res.status(500).send('Internal Server Error');

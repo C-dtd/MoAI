@@ -4,10 +4,6 @@ import { kanbanListState } from '../recoil';
 import React from 'react';
 import './KanbanCreator.scss';
 
-const saveToLocalStorage = (cards: any[]) => {
-  localStorage.setItem('kanbanCards', JSON.stringify(cards));
-};
-
 function KanbanCreator({ title }: { title: string }) {
   const [kanbanList, setKanbanList] = useRecoilState(kanbanListState);
 
@@ -32,7 +28,6 @@ function KanbanCreator({ title }: { title: string }) {
 
       const updatedList = [...kanbanList, newCard];
       setKanbanList(updatedList);
-      saveToLocalStorage(updatedList);
 
       fetch('/api/newcard', {
         method: 'POST',
