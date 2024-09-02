@@ -180,7 +180,8 @@ app.post('/login', async (req, res) => {
     if (data.rows.length === 1) {
         const user_id = data.rows[0].user_id;
         const user_name = data.rows[0].user_name;
-        req.session.user = { user_id, user_name };
+        const dep_id =  data.rows[0].dep_id;
+        req.session.user = { user_id, user_name, dep_id };
         res.json({ success: true }); // AJAX 요청일 경우 성공 응답
     } else {
         res.json({ success: false, message: '아이디 또는 비밀번호가 잘못되었습니다.' });
@@ -1105,10 +1106,25 @@ app.get('/api/assignees', async (req, res) => {
 
 app.get('/api/cards', async (req, res) =>{
     try {
-        const result = await db.query('select * from cards');
-        // res.json(result.rows);
-        const cards = result.rows.map(row => ({ ...row, dateRange: row.date_range, startDate: row.start_date, endDate: row.end_date}));
-        console.log(cards)
+        const dep_id = req.session.user.dep_id; // 세션에서 사용자 정보 가져오기
+
+        if (!req.session.user || !dep_id) {
+            // 사용자 정보가 없거나 dep_id가 없는 경우
+            return res.status(401).send('Unauthorized: No user or dep_id found');
+        }
+
+        // dep_id를 사용하여 쿼리 수행
+        const result = await db.query('SELECT * FROM cards WHERE dep_id = $1', [dep_id]);
+
+        // 필요한 형식으로 변환
+        const cards = result.rows.map(row => ({
+            ...row,
+            dateRange: row.date_range,
+            startDate: row.start_date,
+            endDate: row.end_date
+        }));
+
+        console.log(cards);
         res.json(cards);
     } catch (error) {
         console.error('Error fetching assignees:', error);
@@ -1118,10 +1134,11 @@ app.get('/api/cards', async (req, res) =>{
 
 app.post('/api/newcard', async (req, res) => {
     const {id, title, content, category, data_range, start_date, end_date, assignee} = req.body;
+    const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'insert into cards values ($1, $2, $3, $4, $5, $6, $7, $8)',
-            [ id, title, content, category, data_range, start_date, end_date, assignee ]
+            'insert into cards values ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+            [ id, title, content, category, data_range, start_date, end_date, assignee, dep_id ]
         );
         res.status(200).send('success');
     } catch (error) {
@@ -1132,10 +1149,11 @@ app.post('/api/newcard', async (req, res) => {
 
 app.post('/api/editcard/title', async (req, res) => {
     const { id, title } = req.body;
+    const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set title=$2 where id=$1',
-            [ id, title ]
+            'update cards set title=$2 where id=$1 and dep_id=$3',
+            [ id, title, dep_id ]
         );
         res.status(200).send('success');
     } catch (error) {
@@ -1146,10 +1164,11 @@ app.post('/api/editcard/title', async (req, res) => {
 
 app.post('/api/editcard/text', async (req, res) => {
     const { id, content } = req.body;
+    const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set content=$2 where id=$1',
-            [ id, content ]
+            'update cards set content=$2 where id=$1 and dep_id=$3',
+            [ id, content, dep_id ]
         );
         res.status(200).send('success');
     } catch (error) {
@@ -1160,10 +1179,11 @@ app.post('/api/editcard/text', async (req, res) => {
 
 app.post('/api/editcard/category', async (req, res) => {
     const { id, category } = req.body;
+    const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set category=$2 where id=$1',
-            [ id, category ]
+            'update cards set category=$2 where id=$1 and dep_id=$3',
+            [ id, category, dep_id ]
         );
         res.status(200).send('success');
     } catch (error) {
@@ -1174,10 +1194,11 @@ app.post('/api/editcard/category', async (req, res) => {
 
 app.post('/api/editcard/date', async (req, res) => {
     const { id, dateRange, startDate, endDate } = req.body;
+    const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set date_range=$2, start_date=$3, end_date=$4 where id=$1',
-            [ id, dateRange, startDate, endDate ]
+            'update cards set date_range=$2, start_date=$3, end_date=$4 where id=$1 and dep_id=$5',
+            [ id, dateRange, startDate, endDate, dep_id ]
         );
         res.status(200).send('success');
     } catch (error) {
@@ -1188,10 +1209,11 @@ app.post('/api/editcard/date', async (req, res) => {
 
 app.post('/api/editcard/assignee', async (req, res) => {
     const { id, assignee } = req.body;
+    const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set assignee=$2 where id=$1',
-            [ id, assignee ]
+            'update cards set assignee=$2 where id=$1 and dep_id=$3',
+            [ id, assignee, dep_id ]
         );
         res.status(200).send('success');
     } catch (error) {
@@ -1202,10 +1224,11 @@ app.post('/api/editcard/assignee', async (req, res) => {
 
 app.post('/api/deletecard', async (req, res) => {
     const { id } = req.body;
+    const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'delete from cards where id=$1',
-            [ id ]
+            'delete from cards where id=$1 and dep_id=$2',
+            [ id, dep_id ]
         );
         res.status(200).send('success');
     } catch (error) {

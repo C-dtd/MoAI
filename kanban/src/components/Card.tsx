@@ -185,17 +185,23 @@ function Card({ item }: { item: cardtype }) {
     setEndDate(end);
 
     if (start && end) {
-      const startFormatted = start.toLocaleDateString('ko-KR');
-      const endFormatted = end.toLocaleDateString('ko-KR');
-      const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const adjustedStart = new Date(start);  // 새로운 Date 객체 생성 (원본 변경 방지)
+      const adjustedEnd = new Date(end);      // 새로운 Date 객체 생성 (원본 변경 방지)
+
+      adjustedStart.setDate(adjustedStart.getDate() - 1);
+      adjustedEnd.setDate(adjustedEnd.getDate() - 1);
+
+      const startFormatted = adjustedStart.toLocaleDateString('ko-KR');
+      const endFormatted = adjustedEnd.toLocaleDateString('ko-KR');
+      const totalDays = Math.ceil((adjustedEnd.getTime() - adjustedStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       setSelectedDateRange(`${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`);
       setIsDatePickerVisible(false);
 
       const newList = replaceIndex(list, index, {
         ...item,
         dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
-        startDate: start,
-        endDate: end,
+        startDate: adjustedStart,
+        endDate: adjustedEnd,
       });
       setList(newList);
 
@@ -205,8 +211,8 @@ function Card({ item }: { item: cardtype }) {
         body: JSON.stringify({
           id: item.id,
           dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
-          startDate: start,
-          endDate: end
+          startDate: adjustedStart,
+          endDate: adjustedEnd
         })
       });
     } else {
