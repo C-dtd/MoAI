@@ -34,6 +34,12 @@ function KanbanCreator({ title }: { title: string }) {
       setKanbanList(updatedList);
       saveToLocalStorage(updatedList);
 
+      fetch('/api/newcard', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(newCard)
+      });
+
     } catch (error) {
       console.error('Error adding card:', error);
     }

@@ -48,6 +48,15 @@ function Card({ item }: { item: cardtype }) {
     });
     setList(newList);
     saveToLocalStorage(newList);
+
+    fetch('/api/editcard/title', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        id: item.id,
+        title: e.target.value
+      })
+    });
   };
 
   const editText = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -60,6 +69,15 @@ function Card({ item }: { item: cardtype }) {
     });
     setList(newList);
     saveToLocalStorage(newList);
+
+    fetch('/api/editcard/text', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        id: item.id,
+        content: e.target.value
+      })
+    });
   };
 
   const handleResizeHeight = useCallback(() => {
@@ -74,6 +92,14 @@ function Card({ item }: { item: cardtype }) {
     const newList = list.filter((_, i) => i !== index);
     setList(newList);
     saveToLocalStorage(newList);
+
+    fetch('/api/deletecard', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        id: item.id,
+      })
+    });
   };
 
   const changeItemCategory = (selectedItem: cardtype, title: string) => {
@@ -87,6 +113,15 @@ function Card({ item }: { item: cardtype }) {
           : e
       );
       saveToLocalStorage(updatedList);
+
+      fetch('/api/editcard/category', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          id: selectedItem.id,
+          category: title
+        })
+      });
       return updatedList;
     });
   };
@@ -134,7 +169,7 @@ function Card({ item }: { item: cardtype }) {
   useEffect(() => {
     const fetchAssignees = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/assignees');
+        const response = await axios.get('/api/assignees');
         setAssignees(response.data);
       } catch (error) {
         console.error('Error fetching assignees:', error);
@@ -163,6 +198,17 @@ function Card({ item }: { item: cardtype }) {
       });
       setList(newList);
       saveToLocalStorage(newList);
+
+      fetch('/api/editcard/date', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          id: item.id,
+          dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
+          startDate: start,
+          endDate: end
+        })
+      });
     } else {
       setSelectedDateRange(null);
     }
@@ -216,6 +262,15 @@ function Card({ item }: { item: cardtype }) {
 
     setList(newList);
     saveToLocalStorage(newList);
+
+    fetch('/api/editcard/assignee', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        id: item.id,
+        assignee: newAssignee
+      })
+    });
     setIsAssigneePickerVisible(false);
   };
 

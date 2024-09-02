@@ -5,12 +5,6 @@ import { useRecoilState } from 'recoil';
 import { kanbanListState } from '../recoil';
 import './KanbanList.scss';
 
-// 로컬 스토리지에서 카드 목록을 불러오는 함수
-const loadFromLocalStorage = (): any[] => {
-  const storedData = localStorage.getItem('kanbanCards');
-  return storedData ? JSON.parse(storedData) : [];
-};
-
 function KanbanList({ title, children }: { title: string; children: any }) {
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'card',
@@ -25,8 +19,12 @@ function KanbanList({ title, children }: { title: string; children: any }) {
 
   // 로컬 스토리지에서 카드 목록을 로드하여 상태를 초기화
   useEffect(() => {
-    const loadedList = loadFromLocalStorage();
-    setKanbanList(loadedList);
+    const fetchCards = async () => {
+      const response = await fetch('/api/cards');
+      const res = await response.json();
+      setKanbanList(res);
+    };
+    fetchCards();
   }, [setKanbanList]);
 
   return (
