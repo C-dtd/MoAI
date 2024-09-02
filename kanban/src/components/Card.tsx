@@ -11,9 +11,6 @@ import { ko } from 'date-fns/locale';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 
-const saveToLocalStorage = (cards: cardtype[]) => {
-  localStorage.setItem('kanbanCards', JSON.stringify(cards));
-};
 
 function Card({ item }: { item: cardtype }) {
   const [list, setList] = useRecoilState(kanbanListState);
@@ -47,17 +44,19 @@ function Card({ item }: { item: cardtype }) {
       endDate,
     });
     setList(newList);
-    saveToLocalStorage(newList);
+  };
 
+  const updateTitleInDatabase = (newTitle: string) => {
     fetch('/api/editcard/title', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         id: item.id,
-        title: e.target.value
+        title: newTitle
       })
     });
   };
+  
 
   const editText = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newList = replaceIndex(list, index, {
@@ -68,14 +67,16 @@ function Card({ item }: { item: cardtype }) {
       endDate,
     });
     setList(newList);
-    saveToLocalStorage(newList);
+  };
 
+   // 내용을 데이터베이스에 업데이트하는 함수
+   const updateContentInDatabase = (newContent: string) => {
     fetch('/api/editcard/text', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         id: item.id,
-        content: e.target.value
+        content: newContent
       })
     });
   };
@@ -91,7 +92,6 @@ function Card({ item }: { item: cardtype }) {
   const deleteItem = () => {
     const newList = list.filter((_, i) => i !== index);
     setList(newList);
-    saveToLocalStorage(newList);
 
     fetch('/api/deletecard', {
       method: 'POST',
@@ -112,7 +112,6 @@ function Card({ item }: { item: cardtype }) {
             }
           : e
       );
-      saveToLocalStorage(updatedList);
 
       fetch('/api/editcard/category', {
         method: 'POST',
@@ -197,7 +196,6 @@ function Card({ item }: { item: cardtype }) {
         endDate: end,
       });
       setList(newList);
-      saveToLocalStorage(newList);
 
       fetch('/api/editcard/date', {
         method: 'POST',
@@ -261,7 +259,6 @@ function Card({ item }: { item: cardtype }) {
     });
 
     setList(newList);
-    saveToLocalStorage(newList);
 
     fetch('/api/editcard/assignee', {
       method: 'POST',
@@ -301,6 +298,13 @@ function Card({ item }: { item: cardtype }) {
             type="text"
             value={item.title}
             onChange={editTitle}
+            onBlur={(e) => updateTitleInDatabase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); // Enter 키가 textarea에서 줄바꿈을 하지 않도록 방지
+                updateTitleInDatabase(e.currentTarget.value);
+              }
+            }}
             placeholder="제목을 입력하세요"
           />
         </div>
@@ -309,6 +313,13 @@ function Card({ item }: { item: cardtype }) {
             className="cardContent"
             value={item.content}
             onChange={editText}
+            onBlur={(e) => updateContentInDatabase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); // Enter 키가 textarea에서 줄바꿈을 하지 않도록 방지
+                updateContentInDatabase(e.currentTarget.value);
+              }
+            }}
             onInput={handleResizeHeight}
             ref={contentRef}
             placeholder="내용을 입력하세요"
