@@ -109,6 +109,11 @@
   z-index: 1000;
   margin-top: 5px;
   left: 10px; /* 카드 내용의 왼쪽에 위치 */
+  overflow-y: auto;
+}
+
+.assigneePicker::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .assigneeOption {
