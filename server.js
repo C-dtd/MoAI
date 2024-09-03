@@ -48,6 +48,7 @@ const _session = session({          // 세션 제작
 app.use(cookieParser());
 app.use(_session);
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));  // 정적 파일 제공 설정
 app.use(express.urlencoded({ extended: false }));
 io.use(sharedSession(_session, {autoSave: true}));
 
@@ -160,12 +161,13 @@ app.get('/filefolder', (req, res) => {
 
 app.get('/kanban', (req, res) => {
     const { user } = req.session;
-    if (user) {
+    if (!user) {
         res.redirect('/');
         return;
     }
     res.render('kanban');
 });
+
 
 // 라우팅 설정 부분(ejs 확장자 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
 /////////////////////////////////////////////////////////////////////////////////
@@ -591,6 +593,13 @@ app.post('/upload', upload.single('file'), function(req, res) {
             path: file.path
         }
     );
+});
+
+// 업로드 경로 설정
+app.post('/upload-profile-image', upload.single('profileImage'), (req, res) => {
+    const imageUrl = `/uploads/${req.file.filename}`;
+    // 여기에 DB 업데이트 로직 추가
+    res.json({ imageUrl });
 });
 
 // 플라스크에 합쳐져서 이거 이제 없어도 됨.
