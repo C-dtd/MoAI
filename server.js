@@ -159,6 +159,11 @@ app.get('/filefolder', (req, res) => {
 })
 
 app.get('/kanban', (req, res) => {
+    const { user } = req.session;
+    if (user) {
+        res.redirect('/');
+        return;
+    }
     res.render('kanban');
 });
 
