@@ -104,7 +104,12 @@ app.get('/register', function(req, res){
 
 app.get('/login', function(req, res) {
     const { user } = req.session;
+
+    // 사용자가 로그인했는지 확인
     if (user) {
+
+        
+        // 사용자가 관리자가 아닌 경우, 홈 페이지로 리다이렉트
         res.redirect('/');
         return;
     }
@@ -188,7 +193,8 @@ app.post('/login', async (req, res) => {
         const user_id = data.rows[0].user_id;
         const user_name = data.rows[0].user_name;
         const dep_id =  data.rows[0].dep_id;
-        req.session.user = { user_id, user_name, dep_id };
+        const user_type = data.rows[0].user_type;
+        req.session.user = { user_id, user_name, user_type, dep_id };
         res.json({ success: true }); // AJAX 요청일 경우 성공 응답
     } else {
         res.json({ success: false, message: '아이디 또는 비밀번호가 잘못되었습니다.' });
@@ -1052,37 +1058,46 @@ app.get('/session/user_name', (req, res) => {
     res.send(user.user_name);
 });
 
-// 부서 목록을 조회하고 EJS에 전달
 app.get('/departments', async (req, res) => {
     try {
         // 부서 목록을 조회
         const result = await db.query('SELECT dep_id, dep_name FROM departments');
         let departments = result.rows;
-
-        // 부서가 없거나 NULL인 경우 기본 부서 추가
-        // if (departments.length === 0) {
-        //     departments = [{ dep_id: '-', dep_name: '부서 미지정' }];
-        // }
+        console.log(departments);
 
         // 모든 직원 정보를 조회
         const usersResult = await db.query(
-            'SELECT user_name, job_id, phone, user_type, d.dep_id, dep_name FROM (users u join departments d on u.dep_id=d.dep_id)'
+            'SELECT user_name, job_id, phone, user_type, d.dep_id, dep_name FROM users u JOIN departments d ON u.dep_id=d.dep_id'
         );
         const users = usersResult.rows;
 
-        // 부서가 NULL인 직원이 있을 경우 기본 부서 ID 추가
-        // users.forEach(user => {
-        //     if (!user.dep_id) {
-        //         user.dep_id = '부서 미지정';
-        //     }
-        // });
+        // 현재 사용자 정보
+        const { user } = req.session;
+        const isAdmin = user.user_type == 'admin';
 
-        res.render('departments', { departments, users });
+        res.render('departments', { departments, users, isAdmin });
     } catch (error) {
         console.error('Error fetching data:', error);
         res.status(500).send('서버 오류');
     }
 });
+
+// 부서 목록을 반환하는 엔드포인트
+app.get('/departmentList', async (req, res) => {
+    try {
+        const result = await db.query('SELECT dep_id, dep_name FROM departments');
+        const departments = result.rows;
+        
+        const { user } = req.session;
+        const isAdmin = user.user_type === 'admin';
+
+        res.json({ departments, isAdmin }); // 데이터와 관리자 여부를 JSON으로 반환
+    } catch (error) {
+        console.error('Error fetching departments:', error);
+        res.status(500).json({ message: '서버 오류' });
+    }
+});
+
 
 app.get('/users/:id', async (req, res) => {
     const userId = req.params.id;
@@ -1274,3 +1289,128 @@ app.post('/api/deletecard', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
+app.get('/users', function(req, res) {
+    const dep_name = req.query.dep_name;
+
+    // 해당 부서에 속하는 사원 목록을 데이터베이스에서 조회
+    db.query('SELECT * FROM users WHERE dep_name = ?', [dep_name], function(err, results) {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: '서버 오류' });
+        }
+        res.json({ users: results });
+    });
+});
+
+
+
+app.post('/app-department', function(req, res) {
+    const { dep_name } = req.body;
+
+    // 데이터베이스에 새로운 부서 추가
+    db.query('INSERT INTO departments (dep_name) VALUES (?)', [dep_name], function(err, result) {
+        if (err) {
+            console.error(err);
+            return res.json({ success: false, message: '부서 추가에 실패했습니다.' });
+        }
+        res.json({ success: true });
+    });
+});
+
+// 부서 삭제 엔드포인트
+app.post('/delete-department', async (req, res) => {
+    const { dep_id } = req.body; // 클라이언트로부터 dep_id 받기
+
+    if (!dep_id) {
+        console.error('No dep_id provided');
+        return res.status(400).json({ success: false, message: '부서 ID가 제공되지 않았습니다.' });
+    }
+
+    try {
+        // 데이터베이스에서 부서 삭제
+        const result = await db.query(
+            'DELETE FROM departments WHERE dep_id = $1',
+            [dep_id]
+        );
+
+        if (result.rowCount === 0) {
+            console.error('부서가 존재하지 않습니다.');
+            return res.status(404).json({ success: false, message: '부서를 찾을 수 없습니다.' });
+        }
+
+        console.log('부서가 성공적으로 삭제되었습니다.'); // 성공 메시지 로그
+        res.json({ success: true });
+    } catch (error) {
+        console.error('부서 삭제 실패:', error); // 에러 로그 추가
+        res.status(500).json({ success: false, message: '부서 삭제에 실패했습니다.' });
+    }
+});
+
+// 부서 추가 엔드포인트
+app.post('/add-department', async (req, res) => {
+    const { dep_name } = req.body; // 클라이언트로부터 dep_name 받기
+
+    console.log('Received request to add department with name:', dep_name); // 요청 받은 부서 이름 로그
+
+    // 부서 이름 유효성 검사 (예: 공백 및 길이 검사)
+    if (!dep_name || dep_name.trim().length === 0) {
+        console.error('No or invalid dep_name provided');
+        return res.status(400).json({ success: false, message: '부서 이름이 제공되지 않았거나 유효하지 않습니다.' });
+    }
+
+    try {
+        // 데이터베이스에 새로운 부서 추가
+        const result = await db.query(
+            'INSERT INTO departments (dep_name) VALUES ($1) RETURNING dep_id',
+            [dep_name.trim()] // 입력값의 앞뒤 공백 제거
+        );
+        
+        const dep_id = result.rows[0].dep_id;
+        console.log('부서가 성공적으로 추가되었습니다.', dep_id); // 성공 메시지 로그
+
+        res.json({ success: true, dep_id }); // 성공 응답
+    } catch (error) {
+        console.error('부서 추가 실패:', error); // 에러 로그 추가
+        res.status(500).json({ success: false, message: '부서 추가에 실패했습니다.' });
+    }
+});
+
+// 사용자 정보를 수정하는 엔드포인트
+app.post('/updateUser/:id', async (req, res) => {
+    const userId = req.params.id;
+    const { user_name, phone, job_id, dep_name } = req.body;
+
+    try {
+        // Get department ID based on department name
+        const depResult = await db.query(
+            'SELECT dep_id FROM departments WHERE dep_name = $1',
+            [dep_name]
+        );
+
+        if (depResult.rows.length === 0) {
+            return res.status(400).json({ success: false, message: 'Invalid department' });
+        }
+
+        const depId = depResult.rows[0].dep_id;
+
+        // Update user information
+        const result = await db.query(
+            'UPDATE users SET user_name = $1, phone = $2, job_id = $3, dep_id = $4 WHERE user_id = $5',
+            [user_name, phone, job_id, depId, userId]
+        );
+
+        if (result.rowCount > 0) {
+            res.json({ success: true });
+        } else {
+            res.json({ success: false, message: 'Update failed' });
+        }
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Failed to update user' });
+    }
+});
+
+
+
+
