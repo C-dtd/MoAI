@@ -12,7 +12,13 @@
     <aside class="sidebar">
         <header class="sidebar-header">
             <div class="user-profile">
-                <img class="user-avatar" src="https://via.placeholder.com/32x32" alt="User Avatar">
+                <img class="user-avatar" 
+                <% if (profileImage) { %>
+                    src="<%=profileImage%>"
+                <% } else { %>
+                    src="https://via.placeholder.com/32x32" 
+                <% } %>
+                alt="User Avatar">
                 <span class="user-name"><%= user.user_name %>님 환영합니다</span>
             </div>
             <div class="actions">
