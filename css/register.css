@@ -13,3 +13,6 @@
 .password-strength {
     text-align: right;
 }
+#moai-title:hover {
+    cursor: pointer;
+}
