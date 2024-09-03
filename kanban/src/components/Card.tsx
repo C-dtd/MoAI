@@ -141,6 +141,16 @@ function Card({ item }: { item: cardtype }) {
     },
   }));
 
+  const getPickerHeight = () => {
+    const maxItemsToShow = 5; // 스크롤 없이 보여줄 수 있는 최대 항목 수
+    const itemHeight = 28; // 각 항목의 높이
+    const padding = 10; // 상하 여백
+  
+    const totalHeight = assignees.length * itemHeight + padding;
+  
+    return Math.min(totalHeight, maxItemsToShow * itemHeight + padding);
+  };
+  
   useEffect(() => {
     switch (item.category) {
       case TO_DO:
@@ -332,6 +342,7 @@ function Card({ item }: { item: cardtype }) {
             <div 
               className="assigneePicker"
               ref={assignPickerRef}
+              style={{ maxHeight: `${getPickerHeight()}px` }}
             >
               {assignees.map((name) => (
                 <div

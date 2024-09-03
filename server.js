@@ -1099,9 +1099,11 @@ app.get('/users', async (req, res) => {
 
 ///////////////////////////////////////////// kanban board api
 app.get('/api/assignees', async (req, res) => {
+    const dep_id =  req.session.user.dep_id
     try {
-        const result = await db.query('SELECT user_name FROM users');
-        const assignees = result.rows.map(row => row.user_name);
+        const result = await db.query('SELECT user_name FROM users where dep_id=$1',[dep_id]);
+        console.log(result);        
+        const assignees = result.rows.map(row => row.user_name);       
         res.json(assignees);
     } catch (error) {
         console.error('Error fetching assignees:', error);
