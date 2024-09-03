@@ -7,44 +7,20 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="/css/departments.css">
 </head>
-<body data-admin="<%= isAdmin %>">
+<body>
     <main>
         <!-- 부서 목록을 표시할 컨테이너 -->
         <div id="departments-container" class="departments-container">
             <% if (Array.isArray(departments) && departments.length > 0) { %>
                 <% departments.forEach(department => { %>
-                    <article class="department-item" dep-name="<%= department.dep_name %>">
+                    <article class="department-item" onclick="showUsers('<%= department.dep_name %>')">
                         <%= department.dep_name %>
-                        <!-- 관리자인 경우 삭제 버튼 표시 -->
-                        <% if (isAdmin) { %>
-                            <button class="delete-department-button" dep-name="<%= department.dep_name %>">삭제</button>
-                        <% } %>
                     </article>
                 <% }); %>
             <% } else { %>
                 <p>부서 데이터가 없습니다.</p>
             <% } %>
-            
-            <!-- 관리자인 경우 부서 추가 버튼 표시 -->
-            <% if (isAdmin) { %>
-                <div class="department-buttons">
-                    <button id="add-department-button" class="add-department-button">부서 추가</button>
-                </div>
-            <% } %>
         </div>
-
-        <!-- 모달 배경 -->
-        <div id="modal-background"></div>
-
-        <!-- 부서 추가 입력 필드 (관리자 전용) -->
-        <% if (isAdmin) { %>
-            <div id="add-department-form">
-                <h2>새 부서 추가</h2>
-                <input type="text" id="new-department-name" placeholder="부서 이름">
-                <button id="submit-department-button">추가</button>
-                <button id="cancel-department-button">취소</button>
-            </div>
-        <% } %>
 
         <!-- 사용자 목록을 표시할 컨테이너 -->
         <div id="user-container" class="user-container">
@@ -65,10 +41,6 @@
                             직책: <%= user.job_id %><br>
                             부서: <span class="dep"><%= user.dep_name %></span></p>
                         </div>
-                        <!-- 관리자인 경우 수정 버튼 표시 -->
-                        <% if (isAdmin) { %>
-                            <button class="edit-button" onclick="editUser('<%= user.user_id %>')">수정</button>
-                        <% } %>
                         <!-- 채팅방 버튼 추가 -->
                         <button class="chat-button" onclick="startChat('<%= user.user_id %>')">채팅 시작</button>
                     </article>
@@ -78,10 +50,10 @@
         </div>
     </main>
 
-    <!-- JavaScript 파일 로드 -->
-
     <script src="/js/departments.js"></script>
 </body>
 </html>
+
+
 
 
