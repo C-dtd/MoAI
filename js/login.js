@@ -16,6 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const rememberMeCheckbox = document.getElementById('remember');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
+    const moaiTitle = document.getElementById('moai-title');
+
+    // MoAI 클릭 시 로그인 페이지로 이동
+    moaiTitle.addEventListener('click', function() {
+        window.location.href = '/login';
+    });
     
     function getCookie(name) {
         const value = `; ${document.cookie}`;
