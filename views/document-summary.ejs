@@ -33,6 +33,7 @@
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = '';
             const formData = new FormData(form);
+            formData.append('user_input', document.querySelector('#user-input').value);
             fetch('http://localhost:5100/summary', {
                 method: 'POST',
                 body: formData
