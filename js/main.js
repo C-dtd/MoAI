@@ -32,6 +32,10 @@ function showChat() {
     document.querySelector('#main-iframe').setAttribute('src', '/chatroomframe');
 }
 
+function showKanban() {
+    document.querySelector('#main-iframe').setAttribute('src', '/kanban');
+}
+
 function showDocumentSummary() {
     document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
 }

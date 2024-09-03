@@ -26,13 +26,18 @@
     </main>
     <script>
         const form = document.getElementById('report-form');
-        form.addEventListener('submit', function (event) {
+        form.addEventListener('submit', async function (event) {
             event.preventDefault(); // 기본 폼 제출 동작 방지
             form.querySelector('button[type=submit]').setAttribute('aria-busy', true);
+            
+            const response = await fetch('/session/user_id');
+            const user_id = await response.text();
+
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = '';
             const formData = new FormData(form);
-            
+            formData.append('user_id', user_id);
+
             // 서버로 양식 데이터 전송
             fetch('http://localhost:5100/generate_report', {
                 method: 'POST',

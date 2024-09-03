@@ -7,13 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkDuplicateIdButton = document.getElementById('checkDuplicateIdCode');
     const userIdInput = document.getElementById('userId');
     const duplicateCheckResult = document.getElementById('duplicateCheckResult');
-    
+    const moaiTitle = document.getElementById('moai-title');
+
     let isIdValid = false;
     let isPhoneVerified = false;
 
-    // MoAI 로고 클릭 시 login.ejs 이동
-    document.querySelector('header.container').addEventListener('click', function() {
-        window.location.href = 'login';
+    // MoAI 클릭 시 로그인 페이지로 이동
+    moaiTitle.addEventListener('click', function() {
+        window.location.href = '/login';
     });
 
     function updateRegisterButtonState() {

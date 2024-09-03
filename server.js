@@ -159,6 +159,11 @@ app.get('/filefolder', (req, res) => {
 })
 
 app.get('/kanban', (req, res) => {
+    const { user } = req.session;
+    if (user) {
+        res.redirect('/');
+        return;
+    }
     res.render('kanban');
 });
 
@@ -294,7 +299,6 @@ app.post('/find_passwordauth', async (req, res) => {
             
             if (result.rows.length > 0) {
                 const password = result.rows[0].user_pw;
-                console.log("Retrieved password:", password);  // 로그로 확인
                 
                 // res.render('find_password_success', { password: password });
                 
@@ -330,7 +334,6 @@ app.post('/find_password_success', async (req, res) => {
 
         if (result.rows.length > 0) {
             const password = result.rows[0].user_pw;
-            console.log("Retrieved password:", password);  // 로그로 확인
 
             res.render('find_password_success', { password: password });
         } else {
@@ -1092,11 +1095,13 @@ app.get('/users', async (req, res) => {
 });
 
 
-// kanban board api
+///////////////////////////////////////////// kanban board api
 app.get('/api/assignees', async (req, res) => {
+    const dep_id =  req.session.user.dep_id
     try {
-        const result = await db.query('SELECT user_name FROM users');
-        const assignees = result.rows.map(row => row.user_name);
+        const result = await db.query('SELECT user_name FROM users where dep_id=$1',[dep_id]);
+        console.log(result);        
+        const assignees = result.rows.map(row => row.user_name);       
         res.json(assignees);
     } catch (error) {
         console.error('Error fetching assignees:', error);
@@ -1129,6 +1134,17 @@ app.get('/api/cards', async (req, res) =>{
     } catch (error) {
         console.error('Error fetching assignees:', error);
         res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/api/newcard/id', async (req, res) => {
+    const last_id = await db.query(
+        'select max(id)+1 as id from cards'
+    );
+    if (last_id.rows[0].id) {
+        res.json(last_id.rows[0]);
+    } else {
+        res.json({id: 0});
     }
 });
 

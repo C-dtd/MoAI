@@ -127,6 +127,10 @@ def summary():
         'processedFilePath': processedFilePath
     })
 
+@app.route('/embedding', methods=['POST'])
+def embedding():
+    params = request.json()
+
 if __name__ == '__main__':
     app.run(host= host, port=port)
     
