@@ -4,17 +4,14 @@ import { kanbanListState } from '../recoil';
 import React from 'react';
 import './KanbanCreator.scss';
 
-const saveToLocalStorage = (cards: any[]) => {
-  localStorage.setItem('kanbanCards', JSON.stringify(cards));
-};
-
 function KanbanCreator({ title }: { title: string }) {
   const [kanbanList, setKanbanList] = useRecoilState(kanbanListState);
-
-  const addCard = useCallback(() => {
+  const addCard = useCallback(async () => {
     try {
-      const getId: number =
-        kanbanList.length > 0 ? kanbanList[kanbanList.length - 1].id + 1 : 0;
+      const response = await fetch('/api/newcard/id');
+      const res = await response.json();
+      const getId = res.id;
+      // const getId: number =
 
       const newCard = {
         id: getId,
@@ -28,11 +25,16 @@ function KanbanCreator({ title }: { title: string }) {
         assignee: null
       };
 
-      console.log('Adding new card:', newCard); // 디버깅 로그
+      // console.log('Adding new card:', newCard); // 디버깅 로그
 
       const updatedList = [...kanbanList, newCard];
       setKanbanList(updatedList);
-      saveToLocalStorage(updatedList);
+
+      fetch('/api/newcard', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(newCard)
+      });
 
     } catch (error) {
       console.error('Error adding card:', error);

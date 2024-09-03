@@ -48,6 +48,7 @@ const _session = session({          // 세션 제작
 app.use(cookieParser());
 app.use(_session);
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));  // 정적 파일 제공 설정
 app.use(express.urlencoded({ extended: false }));
 io.use(sharedSession(_session, {autoSave: true}));
 
@@ -66,7 +67,7 @@ app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use('/processed', express.static(__dirname + '/processed'));
 app.use("/main_css", express.static(__dirname + '/main_css'));
 app.use("/image", express.static(__dirname + '/image'));
-app.use("/kanban", express.static(__dirname + '/kanban/build'));
+app.use("/build", express.static(__dirname + '/build'));
 
 ////////////////////////////////////////////////////////////////
 // 정적 페이지 연결하기 문단
@@ -112,16 +113,25 @@ app.get('/login', function(req, res) {
         res.redirect('/');
         return;
     }
-    
-    // 사용자가 로그인하지 않은 경우, 로그인 페이지 렌더링
-    res.render('login.ejs'); 
+    res.render('login.ejs'); // Serve login.html
 });
 
+// app.get('/logout', (req, res) => {
+//     delete req.session.user;
+//     res.redirect('/');
+// })
 
-app.get('/logout', (req, res) => {
-    delete req.session.user;
-    res.redirect('/');
-})
+app.post('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('로그아웃 오류:', err);
+            res.status(500).send('로그아웃 실패');
+        } else {
+            res.redirect('/login'); // 로그인 페이지로 리다이렉트
+        }
+    });
+});
+
 
 app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
@@ -155,8 +165,14 @@ app.get('/filefolder', (req, res) => {
 })
 
 app.get('/kanban', (req, res) => {
-    res.sendFile(path.join(__dirname, 'kanban/build', 'index.html'));
-  });
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/');
+        return;
+    }
+    res.render('kanban');
+});
+
 
 // 라우팅 설정 부분(ejs 확장자 라우팅 추가할 경우 여기 문단쪽에 넣으시면 됩니다.)
 /////////////////////////////////////////////////////////////////////////////////
@@ -171,23 +187,24 @@ app.post('/login', async (req, res) => {
     const { id, password } = req.body;
     const data = await db.query(
         "select * from users where user_id=$1 and user_pw=$2",
-        [ id, password ]
+        [id, password]
     );
     if (data.rows.length === 1) {
         const user_id = data.rows[0].user_id;
         const user_name = data.rows[0].user_name;
+        const dep_id =  data.rows[0].dep_id;
         const user_type = data.rows[0].user_type;
-        req.session.user = { user_id, user_name, user_type };
-        res.redirect('/');
+        req.session.user = { user_id, user_name, user_type, dep_id };
+        res.json({ success: true }); // AJAX 요청일 경우 성공 응답
     } else {
-        res.redirect('#');
+        res.json({ success: false, message: '아이디 또는 비밀번호가 잘못되었습니다.' });
     }
 });
+
 
 //아이디 중복 확인
 app.post('/check-duplicate-id', async (req, res) => {
     const { userId } = req.body;
-    console.log(req.body);
 
     try {
         const result = await db.query('SELECT COUNT(*) FROM users WHERE user_id = $1', [userId]);
@@ -198,7 +215,6 @@ app.post('/check-duplicate-id', async (req, res) => {
             res.json({ isDuplicate: false });
         }
     } catch (error) {
-        console.error('Error checking duplicate ID:', error);
     }
 });
 
@@ -238,7 +254,6 @@ app.post('/find_password', async (req, res) => {
             res.status(404).json({ error: 'User not found' });
         }
     } catch (error) {
-        console.error('Error occurred:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -260,7 +275,6 @@ app.post('/send-verification-code', (req, res) => {
             res.send({ success: true });
         })
         .catch((error) => {
-            console.error(error);
             res.send({ success: false, error: 'Failed to send verification code' });
         });
 });
@@ -285,17 +299,14 @@ app.post('/find_passwordauth', async (req, res) => {
         const { user_id } = req.session;
 
         if (!user_id) {
-            console.error('User ID is missing');
             return res.status(400).json({ error: 'User ID is required' });
         }
 
         try {
-            console.log('Querying database for user ID:', user_id);
             const result = await db.query('SELECT user_pw FROM users WHERE user_id = $1', [user_id]);
             
             if (result.rows.length > 0) {
                 const password = result.rows[0].user_pw;
-                console.log("Retrieved password:", password);  // 로그로 확인
                 
                 // res.render('find_password_success', { password: password });
                 
@@ -331,7 +342,6 @@ app.post('/find_password_success', async (req, res) => {
 
         if (result.rows.length > 0) {
             const password = result.rows[0].user_pw;
-            console.log("Retrieved password:", password);  // 로그로 확인
 
             res.render('find_password_success', { password: password });
         } else {
@@ -362,10 +372,16 @@ app.get('/', async (req, res) => {
         "select * from rooms where id in (select room_id from room_users where user_id = $1)",
         [ user.user_id ]
     )
+    const profileImage = await db.query(
+        "select image from users where user_id = $1",
+        [ user.user_id]
+    )
+
     res.render('main_iframe', {
         user: user, 
         members: userList.rows, 
-        chatroomList: chatroomList.rows 
+        chatroomList: chatroomList.rows,
+        profileImage: profileImage.rows[0].image
     });
 });
 
@@ -456,7 +472,6 @@ app.post('/chatroomframe', async (req, res) => {
             await autoname(row, user);
         }
     }
-    console.log(chatroomList.rows);
     res.send(chatroomList.rows);
 });
 
@@ -590,6 +605,22 @@ app.post('/upload', upload.single('file'), function(req, res) {
             path: file.path
         }
     );
+});
+
+// 업로드 경로 설정
+app.post('/upload-profile-image', upload.single('profileImage'), (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.status(500).json({error: 'need to login'});
+    }
+
+    const imageUrl = `/uploads/${req.file.filename}`;
+    // 여기에 DB 업데이트 로직 추가
+    db.query(
+        'update users set image=$1 where user_id=$2',
+        [ imageUrl, user.user_id ]
+    );
+    res.json({ imageUrl });
 });
 
 // 플라스크에 합쳐져서 이거 이제 없어도 됨.
@@ -880,6 +911,43 @@ function dateParser(str) {
     return res_;
 }
 
+// 설정 부분 user db 속성 추출
+app.get('/setting', async (req, res) => {
+    const { user } = req.session; // 세션에서 user 속성을 추출
+
+    if (!user) {
+        res.redirect('/');
+        return;
+    }
+
+    try {
+        // 사용자 전화번호를 데이터베이스에서 조회
+        const result = await db.query(
+            'SELECT user_id, user_name, phone, image FROM users WHERE user_id = $1',
+            [user.user_id]
+        );
+
+        if (result.rows.length === 0) {
+            console.error("User not found in database");
+            res.redirect('/');
+            return;
+        }
+
+        // 조회된 사용자 정보
+        const userData = result.rows[0];
+
+        res.render('setting', {
+            user: user,
+            profileImage: userData.image,
+            phone: userData.phone // 데이터베이스에서 가져온 전화번호
+        });
+    } catch (error) {
+        console.error("Error querying database:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // 캘린더 db 관련 데이터베이스 처리 부분 
 
@@ -1063,6 +1131,165 @@ app.get('/users', async (req, res) => {
     }
 });
 
+
+///////////////////////////////////////////// kanban board api
+app.get('/api/assignees', async (req, res) => {
+    const dep_id =  req.session.user.dep_id
+    try {
+        const result = await db.query('SELECT user_name FROM users where dep_id=$1',[dep_id]);
+        console.log(result);        
+        const assignees = result.rows.map(row => row.user_name);       
+        res.json(assignees);
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/api/cards', async (req, res) =>{
+    try {
+        const dep_id = req.session.user.dep_id; // 세션에서 사용자 정보 가져오기
+
+        if (!req.session.user || !dep_id) {
+            // 사용자 정보가 없거나 dep_id가 없는 경우
+            return res.status(401).send('Unauthorized: No user or dep_id found');
+        }
+
+        // dep_id를 사용하여 쿼리 수행
+        const result = await db.query('SELECT * FROM cards WHERE dep_id = $1', [dep_id]);
+
+        // 필요한 형식으로 변환
+        const cards = result.rows.map(row => ({
+            ...row,
+            dateRange: row.date_range,
+            startDate: row.start_date,
+            endDate: row.end_date
+        }));
+
+        console.log(cards);
+        res.json(cards);
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/api/newcard/id', async (req, res) => {
+    const last_id = await db.query(
+        'select max(id)+1 as id from cards'
+    );
+    if (last_id.rows[0].id) {
+        res.json(last_id.rows[0]);
+    } else {
+        res.json({id: 0});
+    }
+});
+
+app.post('/api/newcard', async (req, res) => {
+    const {id, title, content, category, data_range, start_date, end_date, assignee} = req.body;
+    const dep_id = req.session.user.dep_id
+    try {
+        await db.query(
+            'insert into cards values ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+            [ id, title, content, category, data_range, start_date, end_date, assignee, dep_id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/title', async (req, res) => {
+    const { id, title } = req.body;
+    const dep_id = req.session.user.dep_id
+    try {
+        await db.query(
+            'update cards set title=$2 where id=$1 and dep_id=$3',
+            [ id, title, dep_id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/text', async (req, res) => {
+    const { id, content } = req.body;
+    const dep_id = req.session.user.dep_id
+    try {
+        await db.query(
+            'update cards set content=$2 where id=$1 and dep_id=$3',
+            [ id, content, dep_id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/category', async (req, res) => {
+    const { id, category } = req.body;
+    const dep_id = req.session.user.dep_id
+    try {
+        await db.query(
+            'update cards set category=$2 where id=$1 and dep_id=$3',
+            [ id, category, dep_id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/date', async (req, res) => {
+    const { id, dateRange, startDate, endDate } = req.body;
+    const dep_id = req.session.user.dep_id
+    try {
+        await db.query(
+            'update cards set date_range=$2, start_date=$3, end_date=$4 where id=$1 and dep_id=$5',
+            [ id, dateRange, startDate, endDate, dep_id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/editcard/assignee', async (req, res) => {
+    const { id, assignee } = req.body;
+    const dep_id = req.session.user.dep_id
+    try {
+        await db.query(
+            'update cards set assignee=$2 where id=$1 and dep_id=$3',
+            [ id, assignee, dep_id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/api/deletecard', async (req, res) => {
+    const { id } = req.body;
+    const dep_id = req.session.user.dep_id
+    try {
+        await db.query(
+            'delete from cards where id=$1 and dep_id=$2',
+            [ id, dep_id ]
+        );
+        res.status(200).send('success');
+    } catch (error) {
+        console.error('Error fetching assignees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 app.get('/users', function(req, res) {
     const dep_name = req.query.dep_name;
 
@@ -1077,10 +1304,6 @@ app.get('/users', function(req, res) {
 });
 
 
-app.get('/', (req, res) => {
-    const user = req.session.user || null;
-    res.render('index', { user });
-});
 
 app.post('/app-department', function(req, res) {
     const { dep_name } = req.body;

@@ -15,12 +15,16 @@ import json
 import os
 import sys
 import datetime
+from langchain_postgres import PGVector
+from langchain_postgres.vectorstores import PGVector
 
 app = Flask(__name__)
 # CORS(app, resources={r'*': {'origins': 'http://localhost:8000'}})
 CORS(app)
 host = 'localhost'
 port = 5100
+
+connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres'
 
 # Configuration
 ngrok = 'https://6c82-35-229-167-67.ngrok-free.app'
@@ -29,16 +33,13 @@ device = 'cpu'
 # Load language model
 llm_model = ChatOllama(
     model='meta-llama-3.1',
-    base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
-    base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    #base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
 llm_model_json = ChatOllama(
     model='meta-llama-3.1',
-    format='json',
-    base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
-    base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    format='json', 
+    # base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
-
 
 # Load embeddings model
 embedding_model = HuggingFaceEmbeddings(
@@ -46,6 +47,8 @@ embedding_model = HuggingFaceEmbeddings(
     model_kwargs={'device': device},
     encode_kwargs={'normalize_embeddings': True}
 )
+
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
 # Define prompt
 prompt_template = '''Use the following pieces of context to answer the question at the end.
@@ -102,7 +105,6 @@ def process_file(file_path):
     text_sum = ''
     # files = [file_path]
     
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     for file in file_path:
         reader = PdfReader(file)
         for page in reader.pages:  # 페이지 별로 텍스트 추출
@@ -138,6 +140,31 @@ def process_file(file_path):
     response = json.loads(response)
 
     return create_docx(response, vectorstore)
+
+@app.route('/embedding', methods=['post'])
+def new_calendar():
+    embedding = request.json()
+    user_id = request.get('user_id')
+    content = request.get('content')
+    
+    if user_id == None or content == None:
+        return jsonify({
+            'result': 'fail'
+        })
+    
+    vs = PGVector(
+        embeddings = embedding_model,
+        collection_name = user_id,
+        connection = connection,
+        use_jsonb = True
+    )
+    
+    split_content = text_splitter.split_text(content)
+    vs.add_texts(splits)
+    
+    return jsonify({
+        'result': 'ok'
+    })    
 
 @app.route('/summary', methods=['POST'])
 def summary():

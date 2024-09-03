@@ -11,9 +11,6 @@ import { ko } from 'date-fns/locale';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 
-const saveToLocalStorage = (cards: cardtype[]) => {
-  localStorage.setItem('kanbanCards', JSON.stringify(cards));
-};
 
 function Card({ item }: { item: cardtype }) {
   const [list, setList] = useRecoilState(kanbanListState);
@@ -31,6 +28,8 @@ function Card({ item }: { item: cardtype }) {
   const datePickerButtonRef = useRef<HTMLButtonElement>(null);
   const selectedDateRangeRef = useRef<HTMLSpanElement>(null);
   const datePickerRef = useRef<HTMLDivElement>(null);
+  const assignPickerButtonRef = useRef<HTMLButtonElement>(null);
+  const assignPickerRef = useRef<HTMLDivElement>(null);
 
   const { TO_DO, IN_PROGRESS, DONE, NOTE } = TITLE_NAME;
 
@@ -47,8 +46,19 @@ function Card({ item }: { item: cardtype }) {
       endDate,
     });
     setList(newList);
-    saveToLocalStorage(newList);
   };
+
+  const updateTitleInDatabase = (newTitle: string) => {
+    fetch('/api/editcard/title', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: item.id,
+        title: newTitle
+      })
+    });
+  };
+  
 
   const editText = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newList = replaceIndex(list, index, {
@@ -59,7 +69,18 @@ function Card({ item }: { item: cardtype }) {
       endDate,
     });
     setList(newList);
-    saveToLocalStorage(newList);
+  };
+
+   // 내용을 데이터베이스에 업데이트하는 함수
+   const updateContentInDatabase = (newContent: string) => {
+    fetch('/api/editcard/text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: item.id,
+        content: newContent
+      })
+    });
   };
 
   const handleResizeHeight = useCallback(() => {
@@ -73,7 +94,14 @@ function Card({ item }: { item: cardtype }) {
   const deleteItem = () => {
     const newList = list.filter((_, i) => i !== index);
     setList(newList);
-    saveToLocalStorage(newList);
+
+    fetch('/api/deletecard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: item.id,
+      })
+    });
   };
 
   const changeItemCategory = (selectedItem: cardtype, title: string) => {
@@ -81,12 +109,20 @@ function Card({ item }: { item: cardtype }) {
       const updatedList = prevList.map((e) =>
         e.id === selectedItem.id
           ? {
-              ...e,
-              category: title,
-            }
+            ...e,
+            category: title,
+          }
           : e
       );
-      saveToLocalStorage(updatedList);
+
+      fetch('/api/editcard/category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedItem.id,
+          category: title
+        })
+      });
       return updatedList;
     });
   };
@@ -105,6 +141,16 @@ function Card({ item }: { item: cardtype }) {
     },
   }));
 
+  const getPickerHeight = () => {
+    const maxItemsToShow = 5; // 스크롤 없이 보여줄 수 있는 최대 항목 수
+    const itemHeight = 28; // 각 항목의 높이
+    const padding = 10; // 상하 여백
+  
+    const totalHeight = assignees.length * itemHeight + padding;
+  
+    return Math.min(totalHeight, maxItemsToShow * itemHeight + padding);
+  };
+  
   useEffect(() => {
     switch (item.category) {
       case TO_DO:
@@ -134,7 +180,7 @@ function Card({ item }: { item: cardtype }) {
   useEffect(() => {
     const fetchAssignees = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/assignees');
+        const response = await axios.get('/api/assignees');
         setAssignees(response.data);
       } catch (error) {
         console.error('Error fetching assignees:', error);
@@ -149,20 +195,36 @@ function Card({ item }: { item: cardtype }) {
     setEndDate(end);
 
     if (start && end) {
-      const startFormatted = start.toLocaleDateString('ko-KR');
-      const endFormatted = end.toLocaleDateString('ko-KR');
-      const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const adjustedStart = new Date(start);  // 새로운 Date 객체 생성 (원본 변경 방지)
+      const adjustedEnd = new Date(end);      // 새로운 Date 객체 생성 (원본 변경 방지)
+
+      adjustedStart.setDate(adjustedStart.getDate() - 1);
+      adjustedEnd.setDate(adjustedEnd.getDate() - 1);
+
+      const startFormatted = adjustedStart.toLocaleDateString('ko-KR');
+      const endFormatted = adjustedEnd.toLocaleDateString('ko-KR');
+      const totalDays = Math.ceil((adjustedEnd.getTime() - adjustedStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       setSelectedDateRange(`${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`);
       setIsDatePickerVisible(false);
 
       const newList = replaceIndex(list, index, {
         ...item,
         dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
-        startDate: start,
-        endDate: end,
+        startDate: adjustedStart,
+        endDate: adjustedEnd,
       });
       setList(newList);
-      saveToLocalStorage(newList);
+
+      fetch('/api/editcard/date', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: item.id,
+          dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
+          startDate: adjustedStart,
+          endDate: adjustedEnd
+        })
+      });
     } else {
       setSelectedDateRange(null);
     }
@@ -185,7 +247,7 @@ function Card({ item }: { item: cardtype }) {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+    const handleClickOutsideCal = (event: MouseEvent | TouchEvent) => {
       if (
         datePickerRef.current &&
         !datePickerRef.current.contains(event.target as Node) &&
@@ -195,14 +257,34 @@ function Card({ item }: { item: cardtype }) {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutsideCal);
+    document.addEventListener('touchstart', handleClickOutsideCal);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutsideCal);
+      document.removeEventListener('touchstart', handleClickOutsideCal);
     };
   }, []);
+  
+  useEffect(() => {
+    const handleClickOutsideAssign = (event: MouseEvent | TouchEvent) => {
+      if (
+        assignPickerRef.current &&
+        !assignPickerRef.current.contains(event.target as Node) &&
+        !assignPickerButtonRef.current?.contains(event.target as Node)
+      ) {
+        setIsAssigneePickerVisible(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutsideAssign);
+    document.addEventListener('touchstart', handleClickOutsideAssign);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideAssign);
+      document.removeEventListener('touchstart', handleClickOutsideAssign);
+    };
+  }, []);	
 
   const handleAssigneeChange = (newAssignee: string) => {
     setAssignee(newAssignee);
@@ -215,7 +297,15 @@ function Card({ item }: { item: cardtype }) {
     });
 
     setList(newList);
-    saveToLocalStorage(newList);
+
+    fetch('/api/editcard/assignee', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: item.id,
+        assignee: newAssignee
+      })
+    });
     setIsAssigneePickerVisible(false);
   };
 
@@ -234,41 +324,26 @@ function Card({ item }: { item: cardtype }) {
         </span>
         <img
           className="deleteimg"
-          src="images/cancel.png"
+          src="/image/cancel.png"
           alt="delete"
           onClick={deleteItem}
         />
       </div>
       <div className="cardContentWrap">
-        <div className="inputWrap">
-          <input
-            className="cardTitle"
-            type="text"
-            value={item.title}
-            onChange={editTitle}
-            placeholder="제목을 입력하세요"
-          />
-        </div>
-        <div className="textareaWrap">
-          <textarea
-            className="cardContent"
-            value={item.content}
-            onChange={editText}
-            onInput={handleResizeHeight}
-            ref={contentRef}
-            placeholder="내용을 입력하세요"
-            spellCheck="false"
-          />
-        </div>
-        <div className="assigneeWrap">
+      <div className="assigneeWrap">
           <button
             className="assigneeButton"
+            ref={assignPickerButtonRef}
             onClick={() => setIsAssigneePickerVisible(!isAssigneePickerVisible)}
           >
             {assignee ? assignee : '담당자'}
           </button>
           {isAssigneePickerVisible && (
-            <div className="assigneePicker">
+            <div 
+              className="assigneePicker"
+              ref={assignPickerRef}
+              style={{ maxHeight: `${getPickerHeight()}px` }}
+            >
               {assignees.map((name) => (
                 <div
                   key={name}
@@ -281,8 +356,37 @@ function Card({ item }: { item: cardtype }) {
             </div>
           )}
         </div>
+        <div className="inputWrap">
+          <input
+            className="cardTitle"
+            type="text"
+            value={item.title}
+            onChange={editTitle}
+            onBlur={(e) => updateTitleInDatabase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); // Enter 키가 textarea에서 줄바꿈을 하지 않도록 방지
+                updateTitleInDatabase(e.currentTarget.value);
+              }
+            }}
+            placeholder="제목을 입력하세요"
+          />
+        </div>
+        <div className="textareaWrap">
+          <textarea
+            className="cardContent"
+            value={item.content}
+            onChange={editText}
+            onBlur={(e) => updateContentInDatabase(e.target.value)}
+            onInput={handleResizeHeight}
+            ref={contentRef}
+            placeholder="내용을 입력하세요"
+            spellCheck="false"
+          />
+        </div>
+        
         <div className="dateRangeWrap">
-          {!selectedDateRange && (
+          {!selectedDateRange ? (
             <button
               className="dateRangeButton"
               ref={datePickerButtonRef}
@@ -290,8 +394,8 @@ function Card({ item }: { item: cardtype }) {
             >
               기간 설정
             </button>
-          )}
-          {selectedDateRange && (
+          )
+          : (
             <span
               className="selectedDateRange"
               ref={selectedDateRangeRef}

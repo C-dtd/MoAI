@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+    <link rel="stylesheet" href="./css/main.css"> <!-- CSS 파일 연결 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <!-- 네비게이션 메뉴 -->
+            <a href="/calendar">홈으로 돌아가기</a>
+        </nav>
+    </header>
+    <!-- Main Content -->
+    <main class="main-content">
+        <form id="setting-form" action="/setting" method="post" enctype="multipart/form-data">
+            <div class="main-section">
+                <div class="main-title">
+                    <div class="title-text">마이페이지</div>
+                </div>
+                <!-- User Info -->
+                <div class="user-profile">
+                    <div class="profile-image">
+                        <img class="user-avatar" 
+                        <% if (profileImage) { %>
+                            src="<%=profileImage%>"
+                        <% } else { %>
+                            src="https://via.placeholder.com/120x120" 
+                        <% } %>
+                        alt="User Avatar">
+                    </div>
+                    <div class="profile-name"><%= user.user_name %></div>
+                    <div class="change_photo">
+                        <button type="button" id="change-button">사진 파일 업로드</button>
+                        <input type="file" id="file-input" style="display: none;" accept="image/*">
+                    </div>
+                </div>
+                <div class="name">
+                    이름 : <%= user.user_name %>님
+                </div>
+                <div class="id">
+                    사용자 ID : <%= user.user_id %>
+                </div>
+                <div class="phone">
+                    전화번호 : <%= user.phone %>
+                </div>
+                <!-- Logout Button -->
+                <div class="logout-button">
+                    <button type="button" id="logout-button">로그아웃</button>
+                </div>
+            </div>
+        </form>
+    </main>
+    <script>
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    window.top.location.href = '/login'; // 로그아웃 후 로그인 페이지로 리다이렉트
+                } else {
+                    alert('로그아웃 중 문제가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('로그아웃 오류:', error);
+                alert('로그아웃 중 문제가 발생했습니다.');
+            }
+        });
+        const form = document.getElementById('setting-form');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 이미지 파일 업로드 버튼 클릭 시 파일 선택
+            document.getElementById("change-button").addEventListener('click', () => {
+                document.getElementById("file-input").click();
+            });
+
+            // 파일 선택 후 업로드
+            document.getElementById("file-input").addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append("profileImage", file);
+
+                try {
+                    const response = await fetch('/upload-profile-image', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const imageUrl = data.imageUrl;
+                        // 로컬 스토리지에 이미지 URL 저장
+                        // localStorage.setItem('profileImageUrl', imageUrl);
+                        // 이미지 업데이트
+                        const userAvatar = document.querySelector('.user-avatar');
+                        if (userAvatar) {
+                            userAvatar.src = imageUrl;
+                        } else {
+                            console.error("User avatar element not found.");
+                        }
+                        parent.userProfileUpdate(imageUrl);
+                    } else {
+                        alert(`사진 업로드 중 문제가 발생했습니다. 상태 코드: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error("업로드 오류", error);
+                    alert("사진 업로드 중 문제가 발생했습니다.");
+                }
+            });
+
+            // 페이지 로드 시 로컬 스토리지에서 이미지 URL 불러오기
+            // const imageUrl = localStorage.getItem('profileImageUrl');
+            const userAvatar = document.querySelector('.user-avatar');
+            if (imageUrl && userAvatar) {
+                userAvatar.src = imageUrl;
+            }
+        });
+    </script>
+</body>
+</html>
