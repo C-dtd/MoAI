@@ -294,7 +294,6 @@ app.post('/find_passwordauth', async (req, res) => {
             
             if (result.rows.length > 0) {
                 const password = result.rows[0].user_pw;
-                console.log("Retrieved password:", password);  // 로그로 확인
                 
                 // res.render('find_password_success', { password: password });
                 
@@ -330,7 +329,6 @@ app.post('/find_password_success', async (req, res) => {
 
         if (result.rows.length > 0) {
             const password = result.rows[0].user_pw;
-            console.log("Retrieved password:", password);  // 로그로 확인
 
             res.render('find_password_success', { password: password });
         } else {

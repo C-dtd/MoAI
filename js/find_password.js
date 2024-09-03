@@ -1,10 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
     const userIdInput = document.getElementById("user_id");
     const submitBtn = document.getElementById("submitBtn");
+    const moaiTitle = document.getElementById('moai-title');
 
-    document.querySelector('header.container').addEventListener('click', function() {
+    // MoAI 클릭 시 로그인 페이지로 이동
+    moaiTitle.addEventListener('click', function() {
         window.location.href = '/login';
-    })
+    });
 
     submitBtn.addEventListener("click", function () {
         const userId = userIdInput.value.trim();

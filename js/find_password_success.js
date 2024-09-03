@@ -4,8 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/login';
     });
 
-    // MoAI 로고 클릭 시 login.html로 이동
-    document.querySelector('header.container').addEventListener('click', function() {
+    const moaiTitle = document.getElementById('moai-title');
+
+    // MoAI 클릭 시 로그인 페이지로 이동
+    moaiTitle.addEventListener('click', function() {
         window.location.href = '/login';
     });
 });
