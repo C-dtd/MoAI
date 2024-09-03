@@ -366,10 +366,16 @@ app.get('/', async (req, res) => {
         "select * from rooms where id in (select room_id from room_users where user_id = $1)",
         [ user.user_id ]
     )
+    const profileImage = await db.query(
+        "select image from users where user_id = $1",
+        [ user.user_id]
+    )
+
     res.render('main_iframe', {
         user: user, 
         members: userList.rows, 
-        chatroomList: chatroomList.rows 
+        chatroomList: chatroomList.rows,
+        profileImage: profileImage.rows[0].image
     });
 });
 
@@ -597,8 +603,17 @@ app.post('/upload', upload.single('file'), function(req, res) {
 
 // 업로드 경로 설정
 app.post('/upload-profile-image', upload.single('profileImage'), (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.status(500).json({error: 'need to login'});
+    }
+
     const imageUrl = `/uploads/${req.file.filename}`;
     // 여기에 DB 업데이트 로직 추가
+    db.query(
+        'update users set image=$1 where user_id=$2',
+        [ imageUrl, user.user_id ]
+    );
     res.json({ imageUrl });
 });
 
@@ -902,7 +917,7 @@ app.get('/setting', async (req, res) => {
     try {
         // 사용자 전화번호를 데이터베이스에서 조회
         const result = await db.query(
-            'SELECT user_id, user_name, phone FROM users WHERE user_id = $1',
+            'SELECT user_id, user_name, phone, image FROM users WHERE user_id = $1',
             [user.user_id]
         );
 
@@ -915,13 +930,11 @@ app.get('/setting', async (req, res) => {
         // 조회된 사용자 정보
         const userData = result.rows[0];
 
-        // 세션에 전화번호를 포함한 사용자 정보 업데이트
-        req.session.user = {
-            ...user, // 기존 세션 데이터
+        res.render('setting', {
+            user: user,
+            profileImage: userData.image,
             phone: userData.phone // 데이터베이스에서 가져온 전화번호
-        };
-
-        res.render('setting', { user: req.session.user });
+        });
     } catch (error) {
         console.error("Error querying database:", error);
         res.status(500).send("Internal Server Error");

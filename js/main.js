@@ -75,12 +75,12 @@ function toggleRightSection() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const imageUrl = localStorage.getItem('profileImageUrl');
-    if (imageUrl) {
-        document.querySelector('.user-avatar').src = imageUrl;
-    }
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//     const imageUrl = localStorage.getItem('profileImageUrl');
+//     if (imageUrl) {
+//         document.querySelector('.user-avatar').src = imageUrl;
+//     }
+// });
 
 window.addEventListener('message', (event) => {
     if (event.data.type === 'updateProfileImage') {
