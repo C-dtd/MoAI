@@ -102,6 +102,7 @@
                         } else {
                             console.error("User avatar element not found.");
                         }
+                        parent.userProfileUpdate(imageUrl);
                     } else {
                         alert(`사진 업로드 중 문제가 발생했습니다. 상태 코드: ${response.status}`);
                     }

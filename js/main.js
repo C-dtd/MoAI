@@ -56,6 +56,11 @@ function showSetting() {
     document.querySelector('#main-iframe').setAttribute('src', '/setting');
 }
 
+function userProfileUpdate(src) {
+    const profileImg = document.querySelector('.user-avatar');
+    profileImg.setAttribute('src', src);
+}
+
 // 오른쪽 섹션 (채팅/메모) 토글 기능 추가
 function toggleRightSection() {
     const rightSection = document.getElementById('right-section');
