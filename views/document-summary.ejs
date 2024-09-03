@@ -15,10 +15,12 @@
         </nav>
     </header>
     <main>
-        <h1>문서 요약</h1>
+        <h1>문서 기반 보고서 작성</h1>
         <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
-            <label for="file-upload">파일 선택:</label>
-            <input type="file" id="file-upload" name="file" required accept=".pdf" multiple>
+            <label for="user-input">보고서의 주제</label>
+            <textarea name="user_input" id="user-input"></textarea>
+            <label for="file-upload">참고 자료 선택:</label>
+            <input type="file" id="file-upload" name="file" required accept=".pdf" multiple style="display: none;">
             <button type="submit">파일 업로드 및 처리</button>
         </form>
         <div id="result" style="margin-top: 20px;"></div>
