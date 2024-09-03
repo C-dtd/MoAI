@@ -402,7 +402,7 @@ app.post('/calendar/share', async (req, res) => {
             }
         });
         db.query(
-            "update calandars set calendar_id = 'cal2' where id = $1",
+            "update calendars set calendar_id = 'cal2' where id = $1",
             [calendarId]
         );
         res.status(200).json({ message: 'success' });
@@ -954,7 +954,7 @@ app.post('/api/events', async (req, res) => {
     try {
         // PostgreSQL에 이벤트 데이터를 저장
         await db.query(
-            'INSERT INTO calandars(id, user_id, start_date, end_date, title, location, isallday, state, calendar_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+            'INSERT INTO calendars(id, user_id, start_date, end_date, title, location, isallday, state, calendar_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
             [id, 'user_id', dateParser(start.d.d), dateParser(end.d.d), title, location, isAllday, state, calendarId ]
             
         );
@@ -971,7 +971,7 @@ app.delete('/api/events/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const result = await db.query('DELETE FROM calandars WHERE id = $1 RETURNING *', [id]);
+        const result = await db.query('DELETE FROM calendars WHERE id = $1 RETURNING *', [id]);
 
         if (result.rowCount > 0) {
             res.status(200).json({ message: 'Event deleted successfully', deletedEvent: result.rows[0] });
@@ -991,7 +991,7 @@ app.put('/api/events/:id', async (req, res) => {
 
     try {
         const result = await db.query(
-            `UPDATE calandars
+            `UPDATE calendars
              SET title = $1, start_date = $2, end_date = $3, location = $4, isallday = $5, state = $6
              WHERE id = $7
              RETURNING *`,
@@ -1016,11 +1016,11 @@ app.get('/api/events/:user_id', async (req, res) => {
 
     try {
         const resultSelf = await db.query(
-            'SELECT c.*, u.user_name FROM calandars c join users u on c.user_id=u.user_id WHERE c.user_id = $1',
+            'SELECT c.*, u.user_name FROM calendars c join users u on c.user_id=u.user_id WHERE c.user_id = $1',
             [user_id]
         );
         const resultShare = await db.query(
-            'select c.*, u.user_name from calandars c join users u on c.user_id=u.user_id where c.id in (select calendar_id from calendar_shared where user_id=$1)',
+            'select c.*, u.user_name from calendars c join users u on c.user_id=u.user_id where c.id in (select calendar_id from calendar_shared where user_id=$1)',
             [user_id]
         )
         // console.log(result.rows);
