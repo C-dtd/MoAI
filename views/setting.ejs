@@ -24,34 +24,31 @@
                 <!-- User Info -->
                 <div class="user-profile">
                     <div class="profile-image">
-                        <img src="https://via.placeholder.com/120x120" alt="Profile Image">
+                        <img id="profile-image" class="user-avatar" src="https://via.placeholder.com/120x120" alt="Profile Image">
                     </div>
                     <div class="profile-name"><%= user.user_name %></div>
-                    <div class = "change_photo">
-                        <button type="button" id ="change-button">사진 파일 업로드</button>
-                        <input type = "file" id = "file-input" style = "display: none;" accept="./profile_image/*">
+                    <div class="change_photo">
+                        <button type="button" id="change-button">사진 파일 업로드</button>
+                        <input type="file" id="file-input" style="display: none;" accept="image/*">
                     </div>
                 </div>
-                <div class = "name">
+                <div class="name">
                     이름 : <%= user.user_name %>님
                 </div>
-                <div class = "id">
+                <div class="id">
                     사용자 ID : <%= user.user_id %>
                 </div>
-                <div class = "phone">
+                <div class="phone">
                     전화번호 : <%= user.phone %>
                 </div>
                 <!-- Logout Button -->
                 <div class="logout-button">
-                    <button type = "button" id = "logout-button">로그아웃</button> 
+                    <button type="button" id="logout-button">로그아웃</button>
                 </div>
             </div>
         </form>
     </main>
     <script>
-        // documnet.getElementById("change-button").addEventListener('click', () => {
-        //     docum
-        // })
         document.getElementById('logout-button').addEventListener('click', async () => {
             try {
                 const response = await fetch('/logout', {
@@ -73,6 +70,54 @@
         });
         const form = document.getElementById('setting-form');
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // 이미지 파일 업로드 버튼 클릭 시 파일 선택
+            document.getElementById("change-button").addEventListener('click', () => {
+                document.getElementById("file-input").click();
+            });
+
+            // 파일 선택 후 업로드
+            document.getElementById("file-input").addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append("profileImage", file);
+
+                try {
+                    const response = await fetch('/upload-profile-image', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const imageUrl = data.imageUrl;
+                        // 로컬 스토리지에 이미지 URL 저장
+                        localStorage.setItem('profileImageUrl', imageUrl);
+                        // 이미지 업데이트
+                        const userAvatar = document.querySelector('.user-avatar');
+                        if (userAvatar) {
+                            userAvatar.src = imageUrl;
+                        } else {
+                            console.error("User avatar element not found.");
+                        }
+                    } else {
+                        alert(`사진 업로드 중 문제가 발생했습니다. 상태 코드: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error("업로드 오류", error);
+                    alert("사진 업로드 중 문제가 발생했습니다.");
+                }
+            });
+
+            // 페이지 로드 시 로컬 스토리지에서 이미지 URL 불러오기
+            const imageUrl = localStorage.getItem('profileImageUrl');
+            const userAvatar = document.querySelector('.user-avatar');
+            if (imageUrl && userAvatar) {
+                userAvatar.src = imageUrl;
+            }
+        });
     </script>
 </body>
 </html>

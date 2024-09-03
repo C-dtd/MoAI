@@ -69,3 +69,20 @@ function toggleRightSection() {
         toggleIcon.src = '/image/sidebar.png'; // 아이콘을 열기 모양으로 변경
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const imageUrl = localStorage.getItem('profileImageUrl');
+    if (imageUrl) {
+        document.querySelector('.user-avatar').src = imageUrl;
+    }
+});
+
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'updateProfileImage') {
+        const imageUrl = event.data.imageUrl;
+        const userAvatar = document.querySelector('.user-avatar');
+        if (userAvatar) {
+            userAvatar.src = imageUrl;
+        }
+    }
+});
