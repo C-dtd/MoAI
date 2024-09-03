@@ -34,9 +34,8 @@ llm_model = ChatOllama(
 llm_model_json = ChatOllama(
     model='meta-llama-3.1',
     format='json', 
-    #base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    # base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
 )
-
 
 # Load embeddings model
 embedding_model = HuggingFaceEmbeddings(
@@ -136,6 +135,11 @@ def process_file(file_path):
     response = json.loads(response)
 
     return create_docx(response, vectorstore)
+
+@app.route('/new_calendar', methods=['post'])
+def new_calendar():
+    params = request.json()
+    
 
 @app.route('/summary', methods=['POST'])
 def summary():
