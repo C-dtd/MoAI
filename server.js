@@ -160,7 +160,7 @@ app.get('/filefolder', (req, res) => {
 
 app.get('/kanban', (req, res) => {
     const { user } = req.session;
-    if (user) {
+    if (!user) {
         res.redirect('/');
         return;
     }
