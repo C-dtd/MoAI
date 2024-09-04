@@ -19,6 +19,7 @@ body>main {
 
 /* 부서 아이템의 스타일 */
 .department-item {
+    position: relative;
     cursor: pointer;
     padding: 10px;
     margin-bottom: 5px;
@@ -108,7 +109,7 @@ body>main {
     align-items: center;
     justify-content: flex-start;
     width: 100%;
-    height: 200px; /* 카드의 높이 고정 */
+    height: 280px; /* 카드의 높이 고정 */
     margin-bottom: 10px;
     padding: 10px;
     border: 1px solid #ddd;
@@ -120,7 +121,9 @@ body>main {
 
 /* 프로필 사진의 스타일 */
 .profile-pic {
-    background-color: white;
+    width: 140px;
+    height: 140px;
+    background-color: rgba(34, 20, 20, 0.123);
     aspect-ratio: 1;
     border-radius: 50%;
     margin: 16px;
@@ -133,6 +136,7 @@ body>main {
     flex-direction: column;
     justify-content: center;
     max-width: calc(100% - 80px);
+    flex-grow: 1;
 }
 
 /* 채팅 버튼의 스타일 */
@@ -186,3 +190,20 @@ body>main {
 .hidden {
     display: none !important;
 }
+
+.oneline-div {
+    display: flex;
+    width: 100%;
+    white-space: nowrap;
+    height: 64px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+.job-input, .dep-input {
+    width: 80%;
+    margin: 0 0 0 10px;
+}
+.job-show, .dep-show {
+    margin: 0 0 0 10px;
+}
+
