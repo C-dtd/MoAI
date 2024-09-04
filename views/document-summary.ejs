@@ -28,7 +28,7 @@
             <div style="text-align: right">
                 <button onclick="document.querySelector('#file-upload').click()">파일 선택</button>
             </div>
-            <input type="file" id="file-upload" name="file" required accept=".pdf" multiple style="display: none;">
+            <input type="file" id="file-upload" name="file" accept=".pdf" multiple style="display: none;">
             
             <ul class="file-list"></ul>
 
@@ -52,23 +52,29 @@
         });
 
         const form = document.getElementById('upload-form');
-        form.addEventListener('submit', function (event) {
+        form.addEventListener('submit', async function (event) {
             event.preventDefault(); // 기본 폼 제출 동작 방지
             form.querySelector('button[type=submit]').setAttribute('aria-busy', true);
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = '';
+
+            const response_id = await fetch('/session/user_id');
+            const user_id = await response_id.text();
+
             const formData = new FormData(form);
             formData.append('user_input', document.querySelector('#user-input').value);
-            fetch('http://localhost:5100/summary', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            formData.append('user_id', user_id);
+            try {
+                const response = await fetch('http://localhost:5100/summary', {
+                    method: 'POST',
+                    body: formData
+                })
+                if (!response.ok) {
+                    throw new Error(response.statusText);
+                }
+                const data = await response.json(); 
                 if (data.result === 'ok') {
-                    resultDiv.innerHTML = `<p>파일이 성공적으로 처리되었습니다.</p>`
-                    //     <a href="..${data.processedFilePath}" download>처리된 파일 다운로드</a>
-                    // `;
+                    resultDiv.innerHTML = `<p>파일이 성공적으로 처리되었습니다.</p>`;
                     const a = document.createElement('a');
                     a.setAttribute('href',`${data.processedFilePath}`);
                     a.innerText = '처리된 파일 다운로드';
@@ -77,13 +83,11 @@
                 } else {
                     resultDiv.innerHTML = `<p>파일 처리에 실패했습니다.: ${data.error}</p>`;
                 }
-                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
                 resultDiv.innerHTML = `<p>파일 처리 중 오류가 발생했습니다.</p>`;
-                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
-            });
+            }
+            form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
         });
     </script>
 </body>
