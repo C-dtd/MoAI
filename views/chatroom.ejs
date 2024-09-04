@@ -84,19 +84,19 @@ async function roomListUpdate() {
         header.innerText = row.room_name;
         article.appendChild(header);
         const main = document.createElement('main');
-        if (row.type == 'text') {
-            main.innerText = row.chat;
-        } else if (row.type == 'img') {
+        if (row.cl_type == 'text') {
+            main.innerText = row.cl_chat;
+        } else if (row.cl_type == 'img') {
             main.innerText = '이미지를 공유했습니다.';
-        } else if (row.type == 'payment') {
+        } else if (row.cl_type == 'payment') {
             main.innerText = '결재 요청';
-        } else if (row.type == 'calendar') {
+        } else if (row.cl_type == 'calendar') {
             main.innerText = '일정을 공유했습니다.';
         }
         article.appendChild(main);
         mainSection.appendChild(article);
         article.addEventListener('click', () => {
-            window.location.href = '/chat/'+row.id;
+            window.location.href = '/chat/'+row.room_id;
         })
     }
     document.querySelector('body').replaceChild(

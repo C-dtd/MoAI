@@ -132,9 +132,9 @@ document.querySelector('#calendarShare').addEventListener('click', async () => {
         events.myCalendar.forEach((event) => {
             const article = document.createElement('article');
             const header = document.createElement('header');
-            header.innerText = event.title;
+            header.innerText = event.cal_title;
             const main = document.createElement('main');
-            main.innerText = event.start_date.replace('T', ' ') + ' ~ ' + event.end_date.replace('T', ' ');
+            main.innerText = event.cal_start_date.replace('T', ' ') + ' ~ ' + event.cal_end_date.replace('T', ' ');
             article.appendChild(header);
             article.appendChild(main);
             eventList.appendChild(article);
@@ -146,7 +146,7 @@ document.querySelector('#calendarShare').addEventListener('click', async () => {
                         "content-type": "application/json"
                     },
                     body: JSON.stringify({
-                        calendarId: event.id,
+                        calendarId: event.cal_id,
                         roomId: room_id
                     })
                 });
@@ -154,7 +154,7 @@ document.querySelector('#calendarShare').addEventListener('click', async () => {
                     location.href = '/';
                 }
                 socket.emit('msg', {
-                    message: event.id+'\t'+event.title+'\t'+event.start_date.replace('T', ' ')+'\t'+event.end_date.replace('T', ' '),
+                    message: event.cal_id+'\t'+event.cal_title+'\t'+event.cal_start_date.replace('T', ' ')+'\t'+event.cal_end_date.replace('T', ' '),
                     type: 'calendar',
                     room: room_id,
                 });

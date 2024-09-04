@@ -107,8 +107,6 @@ app.get('/login', function(req, res) {
 
     // 사용자가 로그인했는지 확인
     if (user) {
-
-        
         // 사용자가 관리자가 아닌 경우, 홈 페이지로 리다이렉트
         res.redirect('/');
         return;
@@ -224,7 +222,7 @@ app.post('/register', function(req, res) {
     const { id, name, phone, password } = req.body;
     req.session.name = { name };
     db.query(
-        "insert into users values ($1, $2, $3, '-', '-', $4)",
+        "insert into users (user_id, user_pw, user_name, user_phone) values ($1, $2, $3, $4)",
         [id, password, name, phone]
     )
     res.redirect('/register_confirm');
@@ -364,24 +362,14 @@ app.get('/', async (req, res) => {
         res.redirect('/login');
         return;
     }
-    const userList = await db.query(
-        "select user_id, user_name from users where user_id != $1",
-        [ user.user_id ]
-    )
-    const chatroomList = await db.query(
-        "select * from rooms where id in (select room_id from room_users where user_id = $1)",
-        [ user.user_id ]
-    )
     const profileImage = await db.query(
-        "select image from users where user_id = $1",
+        "select user_image from users where user_id = $1",
         [ user.user_id]
     )
 
     res.render('main_iframe', {
         user: user, 
-        members: userList.rows, 
-        chatroomList: chatroomList.rows,
-        profileImage: profileImage.rows[0].image
+        profileImage: profileImage.rows[0].user_image
     });
 });
 
@@ -402,13 +390,13 @@ app.post('/calendar/share', async (req, res) => {
             if (u.user_id != user.user_id) {
                 console.log(u.user_id);
                 db.query(
-                    'insert into calendar_shared (calendar_id, user_id) values ($1, $2)',
+                    'insert into calendar_shared (cal_id, user_id) values ($1, $2)',
                     [calendarId, u.user_id]
                 );
             }
         });
         db.query(
-            "update calendars set calendar_id = 'cal2' where id = $1",
+            "update calendars set cal_sub_id = 'cal2' where cal_id = $1",
             [calendarId]
         );
         res.status(200).json({ message: 'success' });
@@ -418,11 +406,12 @@ app.post('/calendar/share', async (req, res) => {
     }
 });
 
-
 async function autoname(row, user) {
     const users = await db.query(
-        'select user_name from room_users ru join users u on ru.user_id = u.user_id where room_id = $1 and u.user_id != $2',
-        [ row.id, user.user_id ]
+        `select user_name 
+        from room_users ru join users u on ru.user_id = u.user_id 
+        where room_id = $1 and u.user_id != $2`,
+        [ row.room_id, user.user_id ]
     )
     let room_name = '';
     users.rows.forEach((user, i) => {
@@ -451,7 +440,7 @@ app.post('/chatroomframe', async (req, res) => {
         return;
     }
     let chatroomList = await db.query(
-        `select r.*, c.chat, c.type
+        `select r.*, c.cl_chat, c.cl_type
         from rooms r left join 
         (select * 
          from chat_logs 
@@ -459,8 +448,8 @@ app.post('/chatroomframe', async (req, res) => {
          (select max(chat_at) 
           from chat_logs 
           group by room_id)) c 
-        on r.id = c.room_id 
-        where r.id in 
+        on r.room_id = c.room_id 
+        where r.room_id in 
         (select room_id
          from room_users
          where user_id = $1)
@@ -472,6 +461,7 @@ app.post('/chatroomframe', async (req, res) => {
             await autoname(row, user);
         }
     }
+    // console.log(chatroomList.rows);
     res.send(chatroomList.rows);
 });
 
@@ -499,21 +489,21 @@ app.get('/chat/:id', async function(req, res) {
         res.redirect('/');
     }
     const user_check = await db.query(
-        "select id from room_users where room_id=$1 and user_id=$2",
+        "select ru_id from room_users where room_id=$1 and user_id=$2",
         [ room_id, user.user_id ]
     )
     if (!user_check) {
         res.redirect('/');
     }
     const room = await db.query(
-        "select * from rooms where id=$1",
+        "select * from rooms where room_id=$1",
         [ room_id ]
     )
     if (room.rows[0].room_name == '\tauto name') {
         await autoname(room.rows[0], user);
     }
     const chat_log = await db.query(
-        "select cl.user_id, user_name, chat, type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1 order by cl.chat_at",
+        "select cl.user_id, user_name, cl_chat, cl_type from chat_logs cl join users us on cl.user_id = us.user_id where room_id=$1 order by cl.chat_at",
         [ room_id ]
     );
     const member = await db.query(
@@ -532,7 +522,7 @@ io.on('connection', (socket) => {
     socket.on('msg', async (msg) => {
         const { user } = socket.handshake.session;
         db.query(
-            "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
+            "insert into chat_logs (user_id, room_id, cl_chat, cl_type) values ($1, $2, $3, $4)",
             [user.user_id, msg.room, msg.message, msg.type]
         );
 
@@ -570,7 +560,7 @@ app.post('/newroom', async (req, res) => {
     const roomNameDb = (roomName=='') ? '\tauto name' : roomName;
 
     await db.query(
-        'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
+        'insert into rooms (room_id, room_name, is_group) values ($1, $2, $3)',
         [room_id, roomNameDb, is_group]
     );
     
@@ -592,11 +582,6 @@ app.get('/documentsummary', (req, res) => {
     res.render('document-summary');
 })
 
-// app.get('/db', async function(req, res) {
-//     const data = await db.query("select * from chat_logs where room_id='0'");
-//     res.send(data.rows);
-// });
-
 app.post('/upload', upload.single('file'), function(req, res) {
     const file = req.file;
     res.send(
@@ -617,7 +602,7 @@ app.post('/upload-profile-image', upload.single('profileImage'), (req, res) => {
     const imageUrl = `/uploads/${req.file.filename}`;
     // 여기에 DB 업데이트 로직 추가
     db.query(
-        'update users set image=$1 where user_id=$2',
+        'update users set user_image=$1 where user_id=$2',
         [ imageUrl, user.user_id ]
     );
     res.json({ imageUrl });
@@ -728,7 +713,7 @@ app.post('/payment_req', async (req, res) => {
     const { path, app, title } = req.body;
     const id = v4();
     await db.query(
-        "insert into payment (id, uploader, path, app, title) values ($1, $2, $3, $4, $5)",
+        "insert into payment (p_id, p_uploader, p_path, p_app, p_title) values ($1, $2, $3, $4, $5)",
         [ id, user.user_id, path, app, title ]
     );
     
@@ -741,7 +726,7 @@ app.post('/payment_req', async (req, res) => {
         (select room_id from room_users where user_id=$2) r2
         on r1.room_id = r2.room_id) i
         join rooms r
-        on i.id = r.id
+        on i.id = r.room_id
         where is_group = false`,
         [ user.user_id, app ]
     );
@@ -749,7 +734,7 @@ app.post('/payment_req', async (req, res) => {
     if (!room_id.rows[0]) {
         const roomId = v4();
         await db.query(
-            'insert into rooms (id, room_name, is_group) values ($1, $2, $3)',
+            'insert into rooms (room_id, room_name, is_group) values ($1, $2, $3)',
             [ roomId, '\tauto name', false ]
         );
         await db.query(
@@ -762,14 +747,14 @@ app.post('/payment_req', async (req, res) => {
         );
         
         await db.query(
-            "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
+            "insert into chat_logs (user_id, room_id, cl_chat, cl_type) values ($1, $2, $3, $4)",
             [user.user_id, roomId, id, 'payment']
         );
         io.to(roomId).emit('msg', {message: id, type: 'payment', room: roomId, user_id: user.user_id, user_name: user.user_name});
     } else {
         const roomId = room_id.rows[0].id;
         await db.query(
-            "insert into chat_logs (id, user_id, room_id, chat, type) values (nextval('seq_chat_id'), $1, $2, $3, $4)",
+            "insert into chat_logs (user_id, room_id, cl_chat, cl_type) values ($1, $2, $3, $4)",
             [user.user_id, roomId, id, 'payment']
         );
         io.to(roomId).emit('msg', {message: id, type: 'payment', room: roomId, user_id: user.user_id, user_name: user.user_name});
@@ -789,18 +774,17 @@ app.post('/payment_res', upload.single('file'), async (req, res) => {
     const {uuid} = req.body;
     console.log('uuid: ', uuid);
     const data = await db.query(
-        "select app from payment where id=$1",
+        "select p_app from payment where p_id=$1",
         [ uuid ]
     );
-    console.log('data: ', data.rows);
-    if (data.rows[0].app != user.user_id) {
+    if (data.rows[0].p_app != user.user_id) {
         res.send(
             {result: false}
         );
     }
 
     await db.query(
-        "update payment set app_at=now(), app_path=$1 where id=$2",
+        "update payment set app_at=now(), p_app_path=$1 where p_id=$2",
         [ file.path, uuid ]
     );
 
@@ -831,7 +815,7 @@ app.get('/payment/request', async (req, res) => {
     }
     const user_id = user.user_id;
     const data = await db.query(
-        "select * from payment where uploader=$1",
+        "select * from payment where p_uploader=$1",
         [ user_id ]
     );
     res.send(data.rows);
@@ -844,7 +828,7 @@ app.get('/payment/response', async (req, res) => {
     }
     const user_id = user.user_id;
     const data = await db.query(
-        "select * from payment where app=$1",
+        "select * from payment where p_app=$1",
         [ user_id ]
     );
     res.send(data.rows);
@@ -859,16 +843,15 @@ app.get('/payment/:uuid', async (req, res) => {
     }
     const id = req.params.uuid;
     const data = await db.query(
-        "select * from payment where id=$1",
+        "select * from payment where p_id=$1",
         [ id ]
     );
-    console.log(!data.rows[0]);
     if (!data.rows[0]) {
         res.send('invalid request');
         return;
     }
     const applied = (data.rows[0].app_at) ? true : false;
-    const isApplier = (data.rows[0].app == user.user_id) ? true : false;
+    const isApplier = (data.rows[0].p_app == user.user_id) ? true : false;
     res.render('payment.ejs', { uuid: id, applied: applied, isApplier: isApplier })
 });
 
@@ -876,13 +859,13 @@ app.get('/payment/:uuid', async (req, res) => {
 app.get('/payment_file/:uuid', async (req, res) => {
     const id = req.params.uuid;
     const data = await db.query(
-        "select * from payment where id=$1",
+        "select * from payment where p_id=$1",
         [ id ]
     );
     if (data.rows[0].app_path) {
-        res.download(data.rows[0].app_path);
+        res.download(data.rows[0].p_app_path);
     } else {
-        res.download(data.rows[0].path);
+        res.download(data.rows[0].p_path);
     }
 });
 
@@ -923,7 +906,7 @@ app.get('/setting', async (req, res) => {
     try {
         // 사용자 전화번호를 데이터베이스에서 조회
         const result = await db.query(
-            'SELECT user_id, user_name, phone, image FROM users WHERE user_id = $1',
+            'SELECT user_id, user_name, user_phone, user_image FROM users WHERE user_id = $1',
             [user.user_id]
         );
 
@@ -938,8 +921,8 @@ app.get('/setting', async (req, res) => {
 
         res.render('setting', {
             user: user,
-            profileImage: userData.image,
-            phone: userData.phone // 데이터베이스에서 가져온 전화번호
+            profileImage: userData.user_image,
+            phone: userData.user_phone // 데이터베이스에서 가져온 전화번호
         });
     } catch (error) {
         console.error("Error querying database:", error);
@@ -955,14 +938,21 @@ app.get('/setting', async (req, res) => {
 app.post('/api/events', async (req, res) => {
     // console.log(req.body);
     // const { id, title, category, start, end, state, location, isReadOnly } = req.body;
+    const { user } = req.session;
+    
+    if (!user) {
+        res.redirect('/');
+    }
+
     const { end, id, isAllday, isPrivate, location, start, state, title, calendarId } = req.body;
     
+
     try {
         // PostgreSQL에 이벤트 데이터를 저장
         await db.query(
-            'INSERT INTO calendars(id, user_id, start_date, end_date, title, location, isallday, state, calendar_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-            [id, 'user_id', dateParser(start.d.d), dateParser(end.d.d), title, location, isAllday, state, calendarId ]
-            
+            `INSERT INTO calendars(cal_id, user_id, cal_start_date, cal_end_date, cal_title, cal_location, is_allday, cal_state, cal_sub_id)
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [id, user.user_id, dateParser(start.d.d), dateParser(end.d.d), title, location, isAllday, state, calendarId ]
         );
 
         res.status(201).json({ message: 'Event successfully saved to the database' });
@@ -977,7 +967,7 @@ app.delete('/api/events/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const result = await db.query('DELETE FROM calendars WHERE id = $1 RETURNING *', [id]);
+        const result = await db.query('DELETE FROM calendars WHERE cal_id = $1 RETURNING *', [id]);
 
         if (result.rowCount > 0) {
             res.status(200).json({ message: 'Event deleted successfully', deletedEvent: result.rows[0] });
@@ -998,8 +988,8 @@ app.put('/api/events/:id', async (req, res) => {
     try {
         const result = await db.query(
             `UPDATE calendars
-             SET title = $1, start_date = $2, end_date = $3, location = $4, isallday = $5, state = $6
-             WHERE id = $7
+             SET cal_title = $1, cal_start_date = $2, cal_end_date = $3, cal_location = $4, is_allday = $5, cal_state = $6
+             WHERE cal_id = $7
              RETURNING *`,
             [title, dateParser(start.d.d), dateParser(end.d.d), location, isAllday, state, id]
         );
@@ -1007,7 +997,7 @@ app.put('/api/events/:id', async (req, res) => {
         if (result.rowCount === 0) {
             res.status(404).json({ message: 'Event not found' });
         } else {
-            res.status(200).json(result.rows[0]);
+            res.status(200).json({ message: 'Event not found' });
         }
     } catch (error) {
         console.error('Error updating event in the database:', error);
@@ -1026,7 +1016,7 @@ app.get('/api/events/:user_id', async (req, res) => {
             [user_id]
         );
         const resultShare = await db.query(
-            'select c.*, u.user_name from calendars c join users u on c.user_id=u.user_id where c.id in (select calendar_id from calendar_shared where user_id=$1)',
+            'select c.*, u.user_name from calendars c join users u on c.user_id=u.user_id where c.cal_id in (select cal_id from calendar_shared where user_id=$1)',
             [user_id]
         )
         // console.log(result.rows);
@@ -1061,13 +1051,13 @@ app.get('/session/user_name', (req, res) => {
 app.get('/departments', async (req, res) => {
     try {
         // 부서 목록을 조회
-        const result = await db.query('SELECT dep_id, dep_name FROM departments');
-        let departments = result.rows;
-        console.log(departments);
+        // const result = await db.query('SELECT dep_id, dep_name FROM departments');
+        // let departments = result.rows;
+        // console.log(departments);
 
         // 모든 직원 정보를 조회
         const usersResult = await db.query(
-            'SELECT user_name, job_id, phone, user_type, d.dep_id, dep_name FROM users u JOIN departments d ON u.dep_id=d.dep_id'
+            'SELECT user_name, job_id, user_phone, user_type, d.dep_id, dep_name FROM users u JOIN departments d ON u.dep_id=d.dep_id'
         );
         const users = usersResult.rows;
 
@@ -1075,7 +1065,7 @@ app.get('/departments', async (req, res) => {
         const { user } = req.session;
         const isAdmin = user.user_type == 'admin';
 
-        res.render('departments', { departments, users, isAdmin });
+        res.render('departments', { users, isAdmin });
     } catch (error) {
         console.error('Error fetching data:', error);
         res.status(500).send('서버 오류');
@@ -1099,45 +1089,48 @@ app.get('/departmentList', async (req, res) => {
 });
 
 
-app.get('/users/:id', async (req, res) => {
-    const userId = req.params.id;
-    try {
-        const result = await db.query(
-            'SELECT user_name, job_id, phone FROM users WHERE user_id = $1',
-            [userId]
-        );
-        if (result.rows.length === 0) {
-            res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
-        } else {
-            res.json(result.rows[0]);
-        }
-    } catch (error) {
-        console.error('사용자 정보 조회 중 오류 발생:', error);
-        res.status(500).json({ message: '사용자 정보 조회 실패' });
-    }
-});
+// app.get('/users/:id', async (req, res) => {
+//     const userId = req.params.id;
+//     try {
+//         const result = await db.query(
+//             'SELECT user_name, job_id, user_phone FROM users WHERE user_id = $1',
+//             [userId]
+//         );
+//         if (result.rows.length === 0) {
+//             res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
+//         } else {
+//             res.json(result.rows[0]);
+//         }
+//     } catch (error) {
+//         console.error('사용자 정보 조회 중 오류 발생:', error);
+//         res.status(500).json({ message: '사용자 정보 조회 실패' });
+//     }
+// });
 
 
 // 모든 사용자의 정보를 조회하는 엔드포인트
-app.get('/users', async (req, res) => {
-    try {
-        const result = await db.query(
-            'SELECT user_name, job_id, phone, user_type, u.dep_id dep_name FROM users u join departments d on u.dep_id=d.dep_id'
-        );
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).json({ message: 'Failed to fetch users' });
-    }
-});
+// app.get('/users', async (req, res) => {
+//     try {
+//         const result = await db.query(
+//             'SELECT user_name, job_id, user_phone, user_type, u.dep_id, dep_name FROM users u join departments d on u.dep_id=d.dep_id'
+//         );
+//         res.json(result.rows);
+//     } catch (error) {
+//         console.error('Error fetching users:', error);
+//         res.status(500).json({ message: 'Failed to fetch users' });
+//     }
+// });
 
 
 ///////////////////////////////////////////// kanban board api
 app.get('/api/assignees', async (req, res) => {
     const dep_id =  req.session.user.dep_id
     try {
-        const result = await db.query('SELECT user_name FROM users where dep_id=$1',[dep_id]);
-        console.log(result);        
+        const result = await db.query(
+            'SELECT user_name FROM users where dep_id=$1', 
+            [ dep_id ]
+        );
+        // console.log(result);        
         const assignees = result.rows.map(row => row.user_name);       
         res.json(assignees);
     } catch (error) {
@@ -1147,26 +1140,30 @@ app.get('/api/assignees', async (req, res) => {
 });
 
 app.get('/api/cards', async (req, res) =>{
+    
     try {
         const dep_id = req.session.user.dep_id; // 세션에서 사용자 정보 가져오기
-
-        if (!req.session.user || !dep_id) {
+        if (!req.session.user || (!dep_id && dep_id!=0)) {
             // 사용자 정보가 없거나 dep_id가 없는 경우
             return res.status(401).send('Unauthorized: No user or dep_id found');
         }
 
         // dep_id를 사용하여 쿼리 수행
         const result = await db.query('SELECT * FROM cards WHERE dep_id = $1', [dep_id]);
-
+        
         // 필요한 형식으로 변환
         const cards = result.rows.map(row => ({
-            ...row,
-            dateRange: row.date_range,
-            startDate: row.start_date,
-            endDate: row.end_date
+            id: row.c_id,
+            title: row.c_title,
+            content: row.c_content,
+            category: row.c_category,
+            dateRange: row.c_date_range,
+            startDate: row.c_start_date,
+            endDate: row.c_end_date,
+            assignee: row.c_assignee,
+            dep_id: row.dep_id
         }));
 
-        console.log(cards);
         res.json(cards);
     } catch (error) {
         console.error('Error fetching assignees:', error);
@@ -1176,7 +1173,7 @@ app.get('/api/cards', async (req, res) =>{
 
 app.get('/api/newcard/id', async (req, res) => {
     const last_id = await db.query(
-        'select max(id)+1 as id from cards'
+        'select max(c_id)+1 as id from cards'
     );
     if (last_id.rows[0].id) {
         res.json(last_id.rows[0]);
@@ -1205,7 +1202,7 @@ app.post('/api/editcard/title', async (req, res) => {
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set title=$2 where id=$1 and dep_id=$3',
+            'update cards set c_title=$2 where c_id=$1 and dep_id=$3',
             [ id, title, dep_id ]
         );
         res.status(200).send('success');
@@ -1220,7 +1217,7 @@ app.post('/api/editcard/text', async (req, res) => {
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set content=$2 where id=$1 and dep_id=$3',
+            'update cards set c_content=$2 where c_id=$1 and dep_id=$3',
             [ id, content, dep_id ]
         );
         res.status(200).send('success');
@@ -1235,7 +1232,7 @@ app.post('/api/editcard/category', async (req, res) => {
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set category=$2 where id=$1 and dep_id=$3',
+            'update cards set c_category=$2 where c_id=$1 and dep_id=$3',
             [ id, category, dep_id ]
         );
         res.status(200).send('success');
@@ -1250,7 +1247,7 @@ app.post('/api/editcard/date', async (req, res) => {
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set date_range=$2, start_date=$3, end_date=$4 where id=$1 and dep_id=$5',
+            'update cards set c_date_range=$2, c_start_date=$3, c_end_date=$4 where c_id=$1 and dep_id=$5',
             [ id, dateRange, startDate, endDate, dep_id ]
         );
         res.status(200).send('success');
@@ -1265,7 +1262,7 @@ app.post('/api/editcard/assignee', async (req, res) => {
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'update cards set assignee=$2 where id=$1 and dep_id=$3',
+            'update cards set c_assignee=$2 where c_id=$1 and dep_id=$3',
             [ id, assignee, dep_id ]
         );
         res.status(200).send('success');
@@ -1280,7 +1277,7 @@ app.post('/api/deletecard', async (req, res) => {
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
-            'delete from cards where id=$1 and dep_id=$2',
+            'delete from cards where c_id=$1 and dep_id=$2',
             [ id, dep_id ]
         );
         res.status(200).send('success');
@@ -1290,26 +1287,28 @@ app.post('/api/deletecard', async (req, res) => {
     }
 });
 
-app.get('/users', function(req, res) {
-    const dep_name = req.query.dep_name;
+// app.get('/users', function(req, res) {
+//     const dep_name = req.query.dep_name;
 
-    // 해당 부서에 속하는 사원 목록을 데이터베이스에서 조회
-    db.query('SELECT * FROM users WHERE dep_name = ?', [dep_name], function(err, results) {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: '서버 오류' });
-        }
-        res.json({ users: results });
-    });
-});
-
+//     // 해당 부서에 속하는 사원 목록을 데이터베이스에서 조회
+//     db.query('SELECT * FROM users WHERE dep_name = ?', [dep_name], function(err, results) {
+//         if (err) {
+//             console.error(err);
+//             return res.status(500).json({ error: '서버 오류' });
+//         }
+//         res.json({ users: results });
+//     });
+// });
 
 
 app.post('/app-department', function(req, res) {
     const { dep_name } = req.body;
 
     // 데이터베이스에 새로운 부서 추가
-    db.query('INSERT INTO departments (dep_name) VALUES (?)', [dep_name], function(err, result) {
+    db.query(
+        'INSERT INTO departments (dep_name) VALUES ($1)',
+        [dep_name],
+        function(err, result) {
         if (err) {
             console.error(err);
             return res.json({ success: false, message: '부서 추가에 실패했습니다.' });
@@ -1396,7 +1395,7 @@ app.post('/updateUser/:id', async (req, res) => {
 
         // Update user information
         const result = await db.query(
-            'UPDATE users SET user_name = $1, phone = $2, job_id = $3, dep_id = $4 WHERE user_id = $5',
+            'UPDATE users SET user_name=$1, user_phone=$2, job_id=$3, dep_id=$4 WHERE user_id=$5',
             [user_name, phone, job_id, depId, userId]
         );
 
@@ -1410,7 +1409,3 @@ app.post('/updateUser/:id', async (req, res) => {
         res.status(500).json({ message: 'Failed to update user' });
     }
 });
-
-
-
-

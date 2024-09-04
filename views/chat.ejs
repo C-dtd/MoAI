@@ -113,27 +113,27 @@
         <div class="scroll"></div>
         <div class="msg-cont">
         <% chat_log.forEach((row) => { %>
-            <article class="<%= ((row.user_id==user.user_id) ? 'my-chat' : 'other-chat') %> <%= row.type %>">
+            <article class="<%= ((row.user_id==user.user_id) ? 'my-chat' : 'other-chat') %> <%= row.cl_type %>">
                 <header>
                     <%= row.user_name %>
                 </header>
                 <main>
-                    <% if (row.type == 'text') { %>
-                        <% row.chat.split('\n').forEach((c, i) => { %>
+                    <% if (row.cl_type == 'text') { %>
+                        <% row.cl_chat.split('\n').forEach((c, i) => { %>
                             <%= c %>
-                            <% if (i!=row.chat.split('\n').length-1) { %>
+                            <% if (i!=row.cl_chat.split('\n').length-1) { %>
                                 <br>
                             <% } %>
                         <% }) %>
-                    <% } else if (row.type == 'img') { %> 
-                        <img src="/<%= row.chat %>" alt="deleted img" class="chat-img">
-                    <% } else if (row.type == 'payment') { %>
-                        <a href="/payment/<%= row.chat %>" target="_blank">결재 요청</a>
-                    <% } else if (row.type == 'calendar') { %>
+                    <% } else if (row.cl_type == 'img') { %> 
+                        <img src="/<%= row.cl_chat %>" alt="deleted img" class="chat-img">
+                    <% } else if (row.cl_type == 'payment') { %>
+                        <a href="/payment/<%= row.cl_chat %>" target="_blank">결재 요청</a>
+                    <% } else if (row.cl_type == 'calendar') { %>
                         일정을 공유했습니다.
                         <article class="contrast">
-                            <header><%= row.chat.split('\t')[1] %></header>
-                            <main><%= row.chat.split('\t')[2] %> ~ <%= row.chat.split('\t')[3] %></main>
+                            <header><%= row.cl_chat.split('\t')[1] %></header>
+                            <main><%= row.cl_chat.split('\t')[2] %> ~ <%= row.cl_chat.split('\t')[3] %></main>
                         </article>
                     <% } %>
                 </main>

@@ -137,11 +137,14 @@
                             //console.log('Loaded events:', events);
                             events.myCalendar.forEach((event) => {
                                 const eventObj = {
-                                    ...event,
-                                    start: event.start_date,
-                                    end: event.end_date,
-                                    isAllday: event.isallday,
-                                    calendarId: event.calendar_id,
+                                    id: event.cal_id,
+                                    title: event.cal_title,
+                                    location: event.cal_location,
+                                    state: event.cal_state,
+                                    start: event.cal_start_date,
+                                    end: event.cal_end_date,
+                                    isAllday: event.is_allday,
+                                    calendarId: event.cal_sub_id,
                                     attendees: [ event.user_name ],
                                     isReadOnly: false
                                 }
@@ -149,11 +152,14 @@
                             });
                             events.shareCalendar.forEach((event) => {
                                 const eventObj = {
-                                    ...event,
-                                    start: event.start_date,
-                                    end: event.end_date,
-                                    isAllday: event.isallday,
-                                    calendarId: event.calendar_id,
+                                    id: event.cal_id,
+                                    title: event.cal_title,
+                                    location: event.cal_location,
+                                    state: event.cal_state,
+                                    start: event.cal_start_date,
+                                    end: event.cal_end_date,
+                                    isAllday: event.is_allday,
+                                    calendarId: event.cal_sub_id,
                                     attendees: [ event.user_name ],
                                     isReadOnly: true
                                 }
@@ -177,10 +183,11 @@
                 const handleBeforeCreateEvent = async (eventObj) => {
                     let userName = await fetch('/session/user_name'); // 실제로 로그인한 사용자로 대체
                     userName = await userName.text();
+                    console.log(typeof(userName));
                     const newEvent = {
                         ...eventObj,
                         id: uuid(), // 고유 ID 생성
-                        attendees: userName
+                        attendees: [ userName ]
                     };
                     // console.log('create', newEvent);
                     // //console.log(dateParser(newEvent.start.d.d));
@@ -224,9 +231,9 @@
                 
                         if (response.ok) {
                             const updatedEventFromServer = await response.json();
-                            console.log('Updated event from server:', updatedEventFromServer);
+                            // console.log('Updated event from server:', updatedEventFromServer);
                 
-                            // 서버에서 받아온 데이터로 캘린더 이벤트 업데이트
+                            // 변경된 정보로 업데이트
                             calendarInstance.updateEvent(event.id, event.calendarId, changes);
                         } else {
                             console.log('Failed to update event on the server');

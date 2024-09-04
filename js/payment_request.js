@@ -18,16 +18,16 @@ async function get_user_id() {
 function payment_article(payment) {
     const article = document.createElement('article');
     const header = document.createElement('header');
-    header.innerText = payment.title;
+    header.innerText = payment.p_title;
     article.appendChild(header);
     const main = document.createElement('main');
-    main.innerText = `발신자: ${payment.uploader}
+    main.innerText = `발신자: ${payment.p_uploader}
     발신일: ${payment.created_at.split('T')[0]}
-    승인자: ${payment.app}
+    승인자: ${payment.p_app}
     ${(payment.app_at) ? `승인일: ${payment.app_at.split('T')[0]}` : '승인일: '}`
     article.appendChild(main);
     article.addEventListener('click', () => {
-        window.open('/payment/' +payment.id);
+        window.open('/payment/' +payment.p_id);
     });
     return article;
 }

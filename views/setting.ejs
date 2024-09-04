@@ -45,7 +45,7 @@
                     사용자 ID : <%= user.user_id %>
                 </div>
                 <div class="phone">
-                    전화번호 : <%= user.phone %>
+                    전화번호 : <%= user.user_phone %>
                 </div>
                 <!-- Logout Button -->
                 <div class="logout-button">
@@ -99,8 +99,6 @@
                     if (response.ok) {
                         const data = await response.json();
                         const imageUrl = data.imageUrl;
-                        // 로컬 스토리지에 이미지 URL 저장
-                        // localStorage.setItem('profileImageUrl', imageUrl);
                         // 이미지 업데이트
                         const userAvatar = document.querySelector('.user-avatar');
                         if (userAvatar) {
@@ -118,8 +116,6 @@
                 }
             });
 
-            // 페이지 로드 시 로컬 스토리지에서 이미지 URL 불러오기
-            // const imageUrl = localStorage.getItem('profileImageUrl');
             const userAvatar = document.querySelector('.user-avatar');
             if (imageUrl && userAvatar) {
                 userAvatar.src = imageUrl;
