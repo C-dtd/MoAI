@@ -27,7 +27,7 @@ port = 5100
 connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres'
 
 # Configuration
-ngrok = 'https://6c82-35-229-167-67.ngrok-free.app'
+ngrok = 'https://3482-34-125-254-167.ngrok-free.app'
 device = 'cpu'
 
 # Load language model
