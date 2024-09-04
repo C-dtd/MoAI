@@ -24,64 +24,46 @@
             <div class="actions">
                 <div class="action-icon_setting" onclick = 'showSetting()'>
                     <img src="/image/setting.png" alt="Setting Icon" />
+                    <span class="setting-tooltip">마이 페이지</span>
                 </div>
                 <div class="action-icon_sidebar" onclick = 'toggleRightSection()'>
                     <img src="/image/sidebar.png" alt="Sidebar Icon" id="sidebar-toggle-icon" />
+                    <span id="sidebar-tooltip">사이드바 닫기</span>
                 </div>
             </div>
         </header>
 
-        <div role="search" class="search-input">
-            <!-- <img src="/image/reading_glasses.png" alt="reading_glasses Icon" /> -->
-            <input type="search" placeholder="Search for chats...">
-            <button class="search-btn">search</button>
-        </div>
-        
+
         <nav class="menu">
             <div class="menu-item" onclick="showCalendar()">
                 <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">캘린더</span>
-                <div class="badge">4</div>
             </div>
             <div class="menu-item" onclick="showChat()">
                 <img class="menu-icon" src="/image/chat_icon.png" alt="chating Icon" />
                 <span class="menu-label">채팅</span>
-                <div class="badge">1</div>
             </div>
             <div class="menu-item" onclick="showKanban()">
                 <img class="menu-icon" src="/image/project.png" alt="project Icon" />
                 <span class="menu-label">프로젝트</span>
-                <div class="badge">2</div>
-            </div>
-            <div class="menu-item">
-                <img class="menu-icon" src="/image/application.png" alt="application Icon" />
-                <span class="menu-label">어플리케이션</span>
-                <div class="badge">3</div>
             </div>
             <div class="menu-item" onclick="showDepartments()">
                 <img class="menu-icon" src="/image/department_icon.png" alt="Departments Icon" />
                 <span class="menu-label">부서 목록</span>
-                <div class="badge">4</div>
             </div>
             <div class="menu-item" onclick="showDocumentSummary()">
                 <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">문서 요약</span>
-                <div class="badge">5</div>
             </div>
             <div class="menu-item" onclick="showCreatereport()">
                 <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">보고서 작성</span>
-                <div class="badge">6</div>
             </div>
             <div class="menu-item" onclick="showPayment()">
                 <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">서류 결제</span>
-                <div class="badge">7</div>
             </div>
         </nav>
-        <div class="additional-content">
-            <div class="additional-section"></div>
-        </div>
     </aside>
     <main class="main-content">
         <section class="calendar">

@@ -17,12 +17,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const moaiTitle = document.getElementById('moai-title');
+    const loginForm = document.querySelector('form');
 
     // MoAI 클릭 시 로그인 페이지로 이동
     moaiTitle.addEventListener('click', function() {
         window.location.href = '/login';
     });
-    
+
     function getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
@@ -44,8 +45,8 @@ document.addEventListener('DOMContentLoaded', function() {
         usernameInput.value = getCookie('username') || '';
     }
 
-    document.querySelector('form').addEventListener('submit', function(event) {
-        event.preventDefault();
+    loginForm.addEventListener('submit', function(event) {
+        event.preventDefault();  // 폼 기본 제출 동작 방지
     
         const formData = {
             id: usernameInput.value,
@@ -76,6 +77,12 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Error:', error));
     });
-    
-    
+
+    // Enter 키가 눌렸을 때 폼이 제출되도록 설정
+    passwordInput.addEventListener('keydown', function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // 기본 Enter 키 동작을 방지
+            loginForm.dispatchEvent(new Event('submit')); // 폼 제출 이벤트 트리거
+        }
+    });
 });

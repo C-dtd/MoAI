@@ -1,3 +1,13 @@
+@font-face {
+    font-family: 'Pretendard-Regular';
+    src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+}
+
+* {
+    font-family:'Pretendard-Regular';
+}
 #img-modal {
     width: 100%;
     height: 100%;
@@ -29,20 +39,16 @@ div.main {
     /* background: #F7F8FA; */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 
 .sidebar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 15px;
 }
 
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
 
 .user-avatar {
     width: 32px;
@@ -61,6 +67,87 @@ div.main {
     gap: 12px;
 }
 
+.action-icon_setting {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+  }
+  
+  .setting-tooltip {
+    visibility: hidden;
+    width: 80px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 3px;
+    padding: 3px;
+    font-size: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%; /* Tooltip 위치 (위쪽) */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .setting-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%; /* Tooltip의 아래쪽 끝 */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+  }
+  
+  .action-icon_setting:hover .setting-tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  .action-icon_sidebar {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+  }
+  
+  #sidebar-tooltip {
+    visibility: hidden;
+    width: 80px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 3px;
+    padding: 3px;
+    font-size: 10px;
+    position: absolute;
+    z-index: 1;
+    top: 100%; /* Tooltip 위치 (아이콘에서 약간 떨어지게) */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  #sidebar-tooltip::after {
+    content: "";
+    position: absolute;
+    top: -10px; /* Tooltip의 상단에 삼각형 붙이기 */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent; /* 삼각형이 툴팁에 붙게 색상 조정 */
+    z-index: 1;
+  }
+  
+  .action-icon_sidebar:hover #sidebar-tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+  
 /* .action-icon {
     width: 16px;
     height: 16px;
@@ -92,7 +179,7 @@ div.main {
 }
 
 .menu {
-    margin-top: 40px;
+    margin-top: 120px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -103,11 +190,12 @@ div.main {
     padding: 8px 12px;
     background: var(--pico-background-color);
     border-radius: 8px;
-    box-shadow: 0px 1px 3px rgba(25, 33, 61, 0.10);
+    box-shadow: 0px 1px 3px rgba(25, 33, 61, 0.20);
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
+    height: 70px;
 }
 
 .menu-item.active, .menu-item:hover {
@@ -126,7 +214,7 @@ div.main {
 
 .menu-label {
     color: var(--pico-color);
-    font-size: 14px;
+    font-size: 15px;
     flex-grow: 1;
 }
 
@@ -148,7 +236,7 @@ div.main {
 }
 
 .additional-section {
-    height: 43px;
+    height: 30px;
     padding: 8px 12px;
     border-radius: 8px;
     background: white;
@@ -239,7 +327,7 @@ nav a {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
+    gap : 10px;
 }
 
 .profile-image {
