@@ -14,7 +14,7 @@ const sharedSession = require('socket.io-express-session');
 const twilio = require('twilio');
 const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
 const verificationCodes = {};
-const host = '192.168.219.51';
+const host = 'localhost';
 
 // db 객체에 데이터베이스 슈퍼베이스 username, host, database, password 지정 후 대입
 const db = new Pool({
@@ -130,7 +130,6 @@ app.post('/logout', (req, res) => {
         }
     });
 });
-
 
 app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
@@ -480,6 +479,21 @@ app.get('/newchatroom', async (req, res) => {
         user: user, 
         userList: userList.rows
     });
+});
+
+app.get('/aichat', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/');
+    }
+
+    const chat_log = await db.query(
+        'select ac_question, ac_answer from ai_chat_logs where user_id = $1 order by chat_at',
+        [ user.user_id ]
+    );
+
+
+    res.render('ai_chat', {user: user, chat_log: chat_log.rows});
 });
 
 //채팅페이지

@@ -1,0 +1,94 @@
+body {
+    height: 100vh;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+body>header, body>footer {
+    padding: 0;
+}
+article.my-chat, article.other-chat {
+    width: 60%;
+    text-align: left;
+}
+article.my-chat {
+    margin-left: 40%;
+}
+article.contrast {
+    background-color: var(--pico-contrast-background);
+    color: var(--pico-contrast-inverse);
+    --pico-card-border-color: var(--pico-contrast);
+}
+article.contrast header {
+    background-color: var(--pico-contrast-hover);
+    color: var(--pico-contrast-inverse);
+}
+.header-button {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+}
+#goBack {
+    position: absolute;
+    left: 10px;
+}
+#memberInfo {
+    position: absolute;
+    right: 10px;
+}
+footer>[role=group] {
+    margin: 0;
+}
+textarea {
+    resize: none;
+}
+.modal {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.25);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+#event-list, #member-list {
+    width: 90%;
+    height: 90%;
+    overflow-y: scroll;
+    background-color: var(--pico-background-color);
+    padding: 10px;
+    border-radius: 10px;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+#member-list article {
+    text-align: left;
+}
+#event-list article:hover {
+    outline: 1.4px solid var(--pico-contrast-hover-border);
+}
+#event-list:-webkit-scrollbar {
+    display: none;
+}
+.main-section {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    position: relative;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+main:-webkit-scrollbar {
+    display: none;
+}
+.scroll {
+    position: absolute;
+    width: 16px;
+    height: 32px;
+    border-radius: 16px;
+    background-color: var(--pico-contrast-background);
+    opacity: 0.5;
+    margin-top: 10px;
+    top: 0;
+    right: 0;
+}
