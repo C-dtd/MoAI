@@ -38,19 +38,28 @@
                 <!-- 사용자 목록은 JavaScript로 동적으로 추가됨 -->
                 <% users.forEach(user => { %>
                     <article class="user-card">
-                        <img class="profile-pic" src="<%= user.user_image %>" alt="프로필 사진" />
+                        <img class="profile-pic" src="<%= user.user_image %>" alt="" />
                         <div class="user-info">
-                            <p><strong><%= user.user_name %></strong><br>
+                            <p><strong><%= user.user_name %></strong><br><br>
                             전화번호: <%= user.user_phone %><br>
-                            직책: <%= user.job_id %><br>
-                            부서: <span class="dep"><%= user.dep_name %></span></p>
+                            <div class="oneline-div">
+                                직책:
+                                <span class="job-show"><%= user.job_id %></span>
+                                <input type="text" class="job-input" value="<%= user.job_id %>" style="display: none; width: 80%; height: 64px; margin: 0 0 0 10px;">
+                            </div>
+                            <div class="oneline-div">
+                                부서:
+                                <span class="dep-show"><%= user.dep_name %></span>
+                                <select class="dep-input" style="display: none; height: 64px;"></select>
+                            </div>
+                            </p>
                         </div>
                         <!-- 관리자인 경우 수정 버튼 표시 -->
                         <% if (isAdmin) { %>
-                            <button class="edit-button" onclick="editUser('<%= user.user_id %>')">수정</button>
+                            <button class="edit-button" role="edit" data-user-id="<%= user.user_id %>">수정</button>
                         <% } %>
                         <!-- 채팅방 버튼 추가 -->
-                        <button class="chat-button" onclick="startChat('<%= user.user_id %>')">채팅 시작</button>
+                        <button class="chat-button" data-user-id="<%= user.user_id %>">채팅 시작</button>
                     </article>
                 <% }); %>
                 <p class="no-results-message" style="display: none;">사용자 데이터가 없습니다.</p>
@@ -59,9 +68,10 @@
     </main>
 
     <!-- JavaScript 파일 로드 -->
-
     <script src="/js/departments.js"></script>
 </body>
 </html>
+
+
 
 

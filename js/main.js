@@ -65,13 +65,16 @@ function userProfileUpdate(src) {
 function toggleRightSection() {
     const rightSection = document.getElementById('right-section');
     const toggleIcon = document.getElementById('sidebar-toggle-icon');
+    const tooltip = document.getElementById('sidebar-tooltip');
 
     if (rightSection.style.display === 'none' || rightSection.style.display === '') {
         rightSection.style.display = 'flex';
         toggleIcon.src = '/image/sidebar.png'; // 아이콘을 닫기 모양으로 변경 close로 변경
+        tooltip.textContent = '사이드바 닫기';
     } else {
         rightSection.style.display = 'none';
         toggleIcon.src = '/image/sidebar.png'; // 아이콘을 열기 모양으로 변경
+        tooltip.textContent = '사이드바 열기';
     }
 }
 

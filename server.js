@@ -1070,7 +1070,7 @@ app.get('/departments', async (req, res) => {
 
         // 모든 직원 정보를 조회
         const usersResult = await db.query(
-            'SELECT user_name, job_id, user_phone, user_type, d.dep_id, dep_name FROM users u JOIN departments d ON u.dep_id=d.dep_id'
+            'SELECT user_id, user_name, job_id, user_phone, user_type, user_image, d.dep_id, dep_name FROM users u JOIN departments d ON u.dep_id=d.dep_id'
         );
         const users = usersResult.rows;
 
@@ -1391,7 +1391,7 @@ app.post('/add-department', async (req, res) => {
 // 사용자 정보를 수정하는 엔드포인트
 app.post('/updateUser/:id', async (req, res) => {
     const userId = req.params.id;
-    const { user_name, phone, job_id, dep_name } = req.body;
+    const { job_id, dep_name } = req.body;
 
     try {
         // Get department ID based on department name
@@ -1400,16 +1400,13 @@ app.post('/updateUser/:id', async (req, res) => {
             [dep_name]
         );
 
-        if (depResult.rows.length === 0) {
-            return res.status(400).json({ success: false, message: 'Invalid department' });
-        }
-
-        const depId = depResult.rows[0].dep_id;
+        // Determine department ID, use null if not found
+        const depId = depResult.rows.length > 0 ? depResult.rows[0].dep_id : null;
 
         // Update user information
         const result = await db.query(
-            'UPDATE users SET user_name=$1, user_phone=$2, job_id=$3, dep_id=$4 WHERE user_id=$5',
-            [user_name, phone, job_id, depId, userId]
+            'UPDATE users SET job_id=$1, dep_id=$2 WHERE user_id=$3',
+            [ job_id, depId, userId ]
         );
 
         if (result.rowCount > 0) {
@@ -1422,3 +1419,5 @@ app.post('/updateUser/:id', async (req, res) => {
         res.status(500).json({ message: 'Failed to update user' });
     }
 });
+
+

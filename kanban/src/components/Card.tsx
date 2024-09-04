@@ -195,23 +195,17 @@ function Card({ item }: { item: cardtype }) {
     setEndDate(end);
 
     if (start && end) {
-      const adjustedStart = new Date(start);  // 새로운 Date 객체 생성 (원본 변경 방지)
-      const adjustedEnd = new Date(end);      // 새로운 Date 객체 생성 (원본 변경 방지)
-
-      adjustedStart.setDate(adjustedStart.getDate() - 1);
-      adjustedEnd.setDate(adjustedEnd.getDate() - 1);
-
-      const startFormatted = adjustedStart.toLocaleDateString('ko-KR');
-      const endFormatted = adjustedEnd.toLocaleDateString('ko-KR');
-      const totalDays = Math.ceil((adjustedEnd.getTime() - adjustedStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const startFormatted = start.toLocaleDateString('ko-KR');
+      const endFormatted = end.toLocaleDateString('ko-KR');
+      const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       setSelectedDateRange(`${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`);
       setIsDatePickerVisible(false);
 
       const newList = replaceIndex(list, index, {
         ...item,
         dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
-        startDate: adjustedStart,
-        endDate: adjustedEnd,
+        startDate: start,
+        endDate: end,
       });
       setList(newList);
 
@@ -221,8 +215,8 @@ function Card({ item }: { item: cardtype }) {
         body: JSON.stringify({
           id: item.id,
           dateRange: `${startFormatted} ~ ${endFormatted} (총 ${totalDays}일)`,
-          startDate: adjustedStart,
-          endDate: adjustedEnd
+          startDate: start,
+          endDate: end
         })
       });
     } else {
@@ -233,6 +227,9 @@ function Card({ item }: { item: cardtype }) {
   const getDatePickerPosition = () => {
     let top = 0;
     let left = 0;
+    let datePickerWidth = 0;
+    let datePickerHeight = 0;
+
     if (datePickerButtonRef.current) {
       const rect = datePickerButtonRef.current.getBoundingClientRect();
       top = rect.bottom + window.scrollY + 10;
@@ -242,6 +239,23 @@ function Card({ item }: { item: cardtype }) {
       const rangeRect = selectedDateRangeRef.current.getBoundingClientRect();
       top = rangeRect.bottom + window.scrollY + 10;
       left = rangeRect.left + window.scrollX;
+    }
+    // DatePicker 크기 계산 (고정 크기를 지정하거나 예상 크기를 설정)
+    datePickerWidth = 250; // DatePicker의 예상 너비
+    datePickerHeight = 300; // DatePicker의 예상 높이
+
+    // 화면 밖으로 나가지 않도록 조정
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // 좌측 경계 초과 방지
+    if (left + datePickerWidth > viewportWidth) {
+        left = viewportWidth - datePickerWidth - 10; // 오른쪽 여백 10px 남기기
+    }
+
+    // 상단 경계 초과 방지
+    if (top + datePickerHeight > viewportHeight) {
+        top = viewportHeight - datePickerHeight - 10; // 하단 여백 10px 남기기
     }
     return { top, left };
   };
@@ -422,6 +436,7 @@ function Card({ item }: { item: cardtype }) {
                   onChange={(dates: [Date | null, Date | null]) => handleDateChange(dates)}
                   startDate={startDate ?? undefined}
                   endDate={endDate ?? undefined}
+                  portalId="root-portal"
                   selectsRange
                   inline
                   dateFormat="yyyy-MM-dd"
