@@ -643,7 +643,7 @@ app.post('/newroom', async (req, res) => {
         return;
     }
     const { inviteList, roomName } = req.body;
-    inviteList.push(user.user_name);
+    inviteList.push(user.user_id);
     const room_id = v4();
     const is_group = (inviteList.length != 2);
     const roomNameDb = (roomName=='') ? '\tauto name' : roomName;
