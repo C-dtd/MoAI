@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/css/pico.css">
     
     <title>Document</title>
     <style>
@@ -59,7 +59,7 @@
         <div class="scroll"></div>
         <% userList.forEach((user, i) => { %>
             <label>
-                <input type="checkbox" name="<%= user.user_name %>" class="invite">
+                <input type="checkbox" name="<%= user.user_id %>" class="invite">
                 <%= user.user_name %>
             </label>
             <% if (i!=userList.length-1) { %>
@@ -80,7 +80,6 @@ const goBack = document.querySelector('#goBack');
 const mainSection = document.querySelector('body>main');
 const scroll = document.querySelector('.scroll');
 mainSection.addEventListener('scroll', ()=> {
-    console.log(mainSection.scrollTop/(mainSection.scrollHeight -mainSection.clientHeight +32));
     scroll.style.top = `${mainSection.scrollTop/(mainSection.scrollHeight -mainSection.clientHeight +32) *(mainSection.scrollHeight - scroll.clientHeight +32)}px`;
 });
 createRoomButton.addEventListener('click', async () => {

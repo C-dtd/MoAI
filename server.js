@@ -14,6 +14,7 @@ const sharedSession = require('socket.io-express-session');
 const twilio = require('twilio');
 const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
 const verificationCodes = {};
+const host = 'localhost';
 
 // db 객체에 데이터베이스 슈퍼베이스 username, host, database, password 지정 후 대입
 const db = new Pool({
@@ -56,8 +57,8 @@ app.set('view engine', 'ejs');
 
 const port = 8000;
 
-server.listen(port, function() {
-    log('Server host in http://localhost:' + port);   // http://localhost + 위에 설정한 port(8000) 연결 후 메세지
+server.listen(port, host, function() {
+    log(`Server host in http://${host}:${port}`);   // http://localhost + 위에 설정한 port(8000) 연결 후 메세지
 });
 
 // 정적 파일들 html, css 연결 도구
@@ -129,7 +130,6 @@ app.post('/logout', (req, res) => {
         }
     });
 });
-
 
 app.get('/calendar', function(req, res) {
     res.render('calendar.ejs');
@@ -481,6 +481,21 @@ app.get('/newchatroom', async (req, res) => {
     });
 });
 
+app.get('/aichat', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/');
+    }
+
+    const chat_log = await db.query(
+        'select ac_question, ac_answer from ai_chat_logs where user_id = $1 order by chat_at',
+        [ user.user_id ]
+    );
+
+
+    res.render('ai_chat', {user: user, chat_log: chat_log.rows});
+});
+
 //채팅페이지
 app.get('/chat/:id', async function(req, res) {
     const { user } = req.session;
@@ -564,10 +579,10 @@ app.post('/newroom', async (req, res) => {
         [room_id, roomNameDb, is_group]
     );
     
-    for (let name of inviteList) {
+    for (let id of inviteList) {
         await db.query(
-            'insert into room_users (room_id, user_id) values ($1, (select user_id from users where user_name=$2))',
-            [room_id, name]
+            'insert into room_users (room_id, user_id) values ($1, $2)',
+            [room_id, id]
         );
     }
     res.send({result: true, uuid: room_id});
@@ -584,12 +599,10 @@ app.get('/documentsummary', (req, res) => {
 
 app.post('/upload', upload.single('file'), function(req, res) {
     const file = req.file;
-    res.send(
-        {
-            result: 'ok',
-            path: file.path
-        }
-    );
+    res.send({
+        result: 'ok',
+        path: file.path
+    });
 });
 
 // 업로드 경로 설정
@@ -1184,6 +1197,7 @@ app.get('/api/newcard/id', async (req, res) => {
 
 app.post('/api/newcard', async (req, res) => {
     const {id, title, content, category, data_range, start_date, end_date, assignee} = req.body;
+    console.log('/api/newcard, req,body: ', req.body);
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
@@ -1408,3 +1422,6 @@ app.post('/updateUser/:id', async (req, res) => {
 });
 
 
+app.get('/font/pretendard-regular', (req, res) => {
+    res.download('./css/font/Pretendard-Regular.woff'); 
+});

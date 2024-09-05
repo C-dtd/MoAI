@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/pico.css">
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <header>
+        <h3>AI chat</h3>
+    </header>
+    <main class="main-section">
+        <div class="scroll"></div>
+        <div class="msg-cont">
+        <% chat_log.forEach((row) => { %>
+            <article class="my-chat">
+                <header>
+                    <%= user.user_name %>
+                </header>
+                <main>
+                    <%= row.ac_question %>
+                </main>
+            </article>
+            <article class="other-chat">
+                <header>
+                    AI
+                </header>
+                <main>
+                    <%= row.ac_answer %>
+                </main>
+            </article>
+        <% }) %>
+        </div>
+    </main>
+    <footer>
+        <div class="msg-form" role="group">
+            <textarea type="text" id="msg"></textarea>
+            <button id="submit">submit</button>
+        </div>
+    </footer>
+    <script src="/js/aichat.js"></script>
+</body>
+</html>

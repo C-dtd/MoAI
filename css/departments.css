@@ -27,6 +27,9 @@ body>main {
     border: 1px solid #ddd;
     border-radius: 4px;
     box-sizing: border-box; /* Padding이 전체 너비에 포함되도록 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 .department-item:hover {
     outline: 1.4px solid var(--pico-contrast-hover-border);

@@ -16,3 +16,6 @@
 #moai-title:hover {
     cursor: pointer;
 }
+button {
+    white-space: nowrap;
+}

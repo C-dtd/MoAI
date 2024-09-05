@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>문서 요약 챗봇</title>
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/css/pico.css">
     <style>
         textarea {
             resize: none;
             height: 272px;
+        }
+        .fileUploader {
+            margin-left: 80%;
+            width: 20%;
         }
     </style>
 </head>
@@ -25,19 +29,22 @@
         <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
             <label for="user-input">보고서의 주제</label>
             <textarea name="user_input" id="user-input"></textarea>
-            <div style="text-align: right">
-                <button onclick="document.querySelector('#file-upload').click()">파일 선택</button>
+            <div style="position: relative;">
+                <div role="button" onclick="fileUpload()" class="fileUploader">파일 선택</div>
             </div>
-            <input type="file" id="file-upload" name="file" required accept=".pdf" multiple style="display: none;">
+            <input type="file" id="file-upload" name="file" accept=".pdf" multiple style="display: none;">
             
             <ul class="file-list"></ul>
-
             <button type="submit">파일 업로드 및 처리</button>
         </form>
         <div id="result" style="margin-top: 20px;"></div>
     </main>
 
     <script>
+        function fileUpload() {
+            document.querySelector('#file-upload').click();
+        }
+
         const fileInput = document.querySelector('#file-upload');
         fileInput.addEventListener('change', () => {
             const files = fileInput.files;
@@ -52,23 +59,30 @@
         });
 
         const form = document.getElementById('upload-form');
-        form.addEventListener('submit', function (event) {
+        form.addEventListener('submit', async function (event) {
+            console.log("???");
             event.preventDefault(); // 기본 폼 제출 동작 방지
             form.querySelector('button[type=submit]').setAttribute('aria-busy', true);
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = '';
+
+            const response_id = await fetch('/session/user_id');
+            const user_id = await response_id.text();
+
             const formData = new FormData(form);
             formData.append('user_input', document.querySelector('#user-input').value);
-            fetch('http://localhost:5100/summary', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            formData.append('user_id', user_id);
+            try {
+                const response = await fetch('http://localhost:5100/summary', {
+                    method: 'POST',
+                    body: formData
+                })
+                if (!response.ok) {
+                    throw new Error(response.statusText);
+                }
+                const data = await response.json(); 
                 if (data.result === 'ok') {
-                    resultDiv.innerHTML = `<p>파일이 성공적으로 처리되었습니다.</p>`
-                    //     <a href="..${data.processedFilePath}" download>처리된 파일 다운로드</a>
-                    // `;
+                    resultDiv.innerHTML = `<p>파일이 성공적으로 처리되었습니다.</p>`;
                     const a = document.createElement('a');
                     a.setAttribute('href',`${data.processedFilePath}`);
                     a.innerText = '처리된 파일 다운로드';
@@ -77,13 +91,11 @@
                 } else {
                     resultDiv.innerHTML = `<p>파일 처리에 실패했습니다.: ${data.error}</p>`;
                 }
-                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
                 resultDiv.innerHTML = `<p>파일 처리 중 오류가 발생했습니다.</p>`;
-                form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
-            });
+            }
+            form.querySelector('button[type=submit]').setAttribute('aria-busy', false);
         });
     </script>
 </body>

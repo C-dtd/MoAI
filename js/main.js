@@ -24,33 +24,49 @@ imgModal.addEventListener('click', () => {
     imgModal.style.display = 'none';
 });
 
+function menuDeactiveAll(num) {
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach((menuItem, i) => {
+        menuItem.classList.remove('active');
+        if (i == num) {
+            menuItem.classList.add('active');
+        }
+    });
+}
+
 function showCalendar() {
     document.querySelector('#main-iframe').setAttribute('src', '/calendar');
+    menuDeactiveAll(0);
 }
 
 function showChat() {
     document.querySelector('#main-iframe').setAttribute('src', '/chatroomframe');
+    menuDeactiveAll(1);
 }
 
 function showKanban() {
     document.querySelector('#main-iframe').setAttribute('src', '/kanban');
-}
-
-function showDocumentSummary() {
-    document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
+    menuDeactiveAll(2);
 }
 
 function showDepartments() {
     document.querySelector('#main-iframe').setAttribute('src', '/departments');
+    menuDeactiveAll(3);
+}
+
+function showDocumentSummary() {
+    document.querySelector('#main-iframe').setAttribute('src', '/documentsummary');
+    menuDeactiveAll(4);
 }
 
 function showPayment() {
     document.querySelector('#main-iframe').setAttribute('src', '/payment');
+    menuDeactiveAll(5);
 }
 
-function showCreatereport() {
-    document.querySelector('#main-iframe').setAttribute('src', '/createreport');
-}
+// function showCreatereport() {
+//     document.querySelector('#main-iframe').setAttribute('src', '/createreport');
+// }
 
 function showSetting() {
     document.querySelector('#main-iframe').setAttribute('src', '/setting');

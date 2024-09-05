@@ -318,7 +318,7 @@ document.getElementById('cancel-edit-button')?.addEventListener('click', cancelU
     chatMain.addEventListener('scroll', () => {
         const scroll = document.querySelector('.scroll');
         if (scroll) {
-            scroll.style.top = `${chatMain.scrollTop / (chatMain.scrollHeight - chatMain.clientHeight) * (chatMain.scrollHeight - scroll.clientHeight)}px`;
+            scroll.style.top = `${chatMain.scrollTop / (chatMain.scrollHeight - chatMain.clientHeight) * (chatMain.scrollHeight - scroll.clientHeight -16)}px`;
         }
     });
 
