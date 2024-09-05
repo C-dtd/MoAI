@@ -1,0 +1,21 @@
+header h3 {
+    text-align: center;
+}
+
+.user-profile {
+    justify-content: flex-start;
+}
+
+.profile-image {
+    margin-right: 15px;
+}
+
+.profile-image img {
+    border-radius: 50%; /* 원형 이미지 */
+    width: 240px;
+    height: 240px;
+    object-fit: cover; /* 이미지 자르기 */
+}
+#change-button {
+    width: 240px;
+}

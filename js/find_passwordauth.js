@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const verificationCodeInput = document.getElementById('verification-code');
     const submitBtn = document.getElementById("submitBtn");
     const moaiTitle = document.getElementById('moai-title');
+    const alertDiv = document.querySelector('.alert');
 
     // MoAI 클릭 시 로그인 페이지로 이동
     moaiTitle.addEventListener('click', function() {
@@ -25,9 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }).then(response => response.json())
           .then(data => {
               if (data.success) {
-                  alert('인증번호가 발송되었습니다.');
+                  alertDiv.innerText = '인증번호가 발송되었습니다.';
+                //   alert('인증번호가 발송되었습니다.');
               } else {
-                  alert('인증번호 발송에 실패했습니다.');
+                  alertDiv.innerText = '인증번호가 발송에 실패했습니다.';
+                //   alert('인증번호 발송에 실패했습니다.');
               }
           });
     }
@@ -43,11 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }).then(response => response.json())
           .then(data => {
               if (data.success) {
-                  alert('인증이 완료되었습니다.');
+                  alertDiv.innerText = '인증이 완료되었습니다.';
+                //   alert('인증이 완료되었습니다.');
                   isVerified = true;  // 인증 성공 시 상태 변경
                   registerButton.disabled = false;
               } else {
-                  alert('인증번호가 올바르지 않습니다.');
+                  alertDiv.innerText = '인증번호가 올바르지 않습니다.';
+                //   alert('인증번호가 올바르지 않습니다.');
                   isVerified = false; // 인증 실패 시 상태 초기화
               }
           });
@@ -89,7 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     //     alert('리디렉션 URL을 가져오는 데 실패했습니다.');
                     // });
             } else {
-                alert('인증이 완료되지 않았습니다. 인증을 완료해주세요.');
+                alertDiv.innerText = '인증이 완료되지 않았습니다. 인증을 완료해주세요.';
+                // alert('인증이 완료되지 않았습니다. 인증을 완료해주세요.');
             }
         });
     }

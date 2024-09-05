@@ -6,28 +6,23 @@
     <title>문서 요약 챗봇</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/pico.css">
+    <link rel="stylesheet" href="/css/document-summary.css">
     <style>
-        textarea {
-            resize: none;
-            height: 272px;
-        }
-        .fileUploader {
-            margin-left: 80%;
-            width: 20%;
-        }
+        
     </style>
 </head>
 <body>
     <header>
-        <nav>
-            <!-- 네비게이션 메뉴 -->
-            <a href="/calendar">홈으로 돌아가기</a>
-        </nav>
+        <h3>문서 기반 보고서 작성</h3>
     </header>
     <main>
-        <h1>문서 기반 보고서 작성</h1>
         <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
-            <label for="user-input">보고서의 주제</label>
+            <h5><label for="user-input">보고서의 주제</label></h5>
+            <div style="opacity: 0.5;">
+                보고서의 주제, 필요한 분량 등 요구사항을 입력해주세요.<br>
+                보고서 작성에 필요한 자료를 함께 주시면 도움이 됩니다.<br>
+                작성된 보고서는 꼭 내용 정보를 확인하고 사용해주세요!
+            </div>
             <textarea name="user_input" id="user-input"></textarea>
             <div style="position: relative;">
                 <div role="button" onclick="fileUpload()" class="fileUploader">파일 선택</div>

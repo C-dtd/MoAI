@@ -4,48 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지</title>
-    <link rel="stylesheet" href="./css/main.css"> <!-- CSS 파일 연결 -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/setting.css">
     <link rel="stylesheet" href="/css/pico.css">
 </head>
 <body>
     <header>
-        <nav>
-            <!-- 네비게이션 메뉴 -->
-            <a href="/calendar">홈으로 돌아가기</a>
-        </nav>
+        <div>
+            <h3>마이페이지</h3>
+        </div>
     </header>
     <!-- Main Content -->
-    <main class="main-content">
+    <main>
         <form id="setting-form" action="/setting" method="post" enctype="multipart/form-data">
             <div class="main-section">
-                <div class="main-title">
-                    <div class="title-text">마이페이지</div>
-                </div>
                 <!-- User Info -->
                 <div class="user-profile">
-                    <div class="profile-image">
-                        <img class="user-avatar" 
-                        <% if (profileImage) { %>
-                            src="<%=profileImage%>"
-                        <% } else { %>
-                            src="https://via.placeholder.com/120x120" 
-                        <% } %>
-                        alt="User Avatar">
+                    <div>
+                        <div class="profile-image">
+                            <img class="user-avatar" 
+                            <% if (profileImage) { %>
+                                src="<%=profileImage%>"
+                            <% } else { %>
+                                src="https://via.placeholder.com/120x120" 
+                            <% } %>
+                            alt="User Avatar">
+                        </div>
+                        <div class="change_photo">
+                            <button type="button" id="change-button">사진 파일 업로드</button>
+                            <input type="file" id="file-input" style="display: none;" accept="image/*">
+                        </div>
                     </div>
-                    <div class="profile-name"><%= user.user_name %></div>
-                    <div class="change_photo">
-                        <button type="button" id="change-button">사진 파일 업로드</button>
-                        <input type="file" id="file-input" style="display: none;" accept="image/*">
+                    <div>
+                        <div class="profile-name name"><%= user.user_name %></div>
+                        <div class="id">사용자 ID: <%= user.user_id %></div>
+                        <div class="phone">전화번호: <%= phone %></div>
                     </div>
-                </div>
-                <div class="name">
-                    이름 : <%= user.user_name %>님
-                </div>
-                <div class="id">
-                    사용자 ID : <%= user.user_id %>
-                </div>
-                <div class="phone">
-                    전화번호 : <%= phone %>
                 </div>
                 <!-- Logout Button -->
                 <div class="logout-button">

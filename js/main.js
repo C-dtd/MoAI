@@ -72,6 +72,7 @@ function showPayment() {
 
 function showSetting() {
     document.querySelector('#main-iframe').setAttribute('src', '/setting');
+    menuDeactiveAll(-1);
 }
 
 function userProfileUpdate(src) {
