@@ -17,6 +17,16 @@ import sys
 import datetime
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
+import psycopg2
+from psycopg2 import pool
+
+dbcp = psycopg2.pool.SimpleConnectionPool(1, 20,
+    user='postgres.vpcdvbdktvvzrvjfyyzm',
+    password='Odvv8E1iChKjwai4',
+    host='aws-0-ap-southeast-1.pooler.supabase.com',
+    port=6543,
+    dbname='postgres'
+)
 
 app = Flask(__name__)
 # CORS(app, resources={r'*': {'origins': 'http://localhost:8000'}})
@@ -27,19 +37,29 @@ port = 5100
 connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres'
 
 # Configuration
-ngrok = 'https://3482-34-125-254-167.ngrok-free.app'
+ngrok = ''
+ngrok = 'https://b1f9-35-197-57-104.ngrok-free.app'
 device = 'cpu'
 
-# Load language model
-llm_model = ChatOllama(
-    model='meta-llama-3.1',
-    #base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
-)
-llm_model_json = ChatOllama(
-    model='meta-llama-3.1',
-    format='json', 
-    # base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
-)
+if ngrok == '':
+    llm_model = ChatOllama(
+        model='meta-llama-3.1',
+    )
+    llm_model_json = ChatOllama(
+        model='meta-llama-3.1',
+        format='json', 
+    )
+else:
+    # Load language model
+    llm_model = ChatOllama(
+        model='meta-llama-3.1',
+        base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    )
+    llm_model_json = ChatOllama(
+        model='meta-llama-3.1',
+        format='json', 
+        base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+    )
 
 # Load embeddings model
 embedding_model = HuggingFaceEmbeddings(
@@ -55,11 +75,124 @@ prompt_template = '''Use the following pieces of context to answer the question 
 If you don't find the answer in context, don't try to make up an answer.
 If you find the answer in context, answer me only use korean.
 
-context: {context}
+context: {chat_history}
 
 Question: {question}
 Helpful Answer:'''
-rag_prompt = PromptTemplate.from_template(prompt_template)
+# rag_prompt = PromptTemplate.from_template(prompt_template)
+rag_prompt = PromptTemplate(template=prompt_template, input_variables=['chat_history', 'question'])
+
+prompt_template = '''Use the following pieces of context to answer the question at the end.
+If you don't find the answer in context, don't try to make up an answer.
+If you find the answer in context, answer me only use korean.
+
+context: {chat_history}
+
+Question: {question}
+Helpful Answer:'''
+# rag_prompt = PromptTemplate.from_template(prompt_template)
+chat_prompt = PromptTemplate(template=prompt_template, input_variables=['chat_history', 'question'])
+
+
+
+#db에서 접근 권한이 있는 정보를 문장으로 만들어 분할하는 함수
+def db_crawler(user_id):
+    db = dbcp.getconn()
+    cur = db.cursor()
+    cur.execute("""
+                select user_name, job_id, dep_name 
+                from users u join departments d on u.dep_id = d.dep_id
+                where user_id=%s
+                """,
+                (user_id,))
+    user_info = cur.fetchone()
+    cur.execute("""
+                select cl.chat_at, u.user_name, cl.cl_chat
+                from chat_logs cl join users u on cl.user_id = u.user_id
+                where cl_type = 'text' and room_id in (select room_id from room_users where user_id = %s)
+                order by chat_at
+                """,
+                (user_id,))
+    chat_rows = cur.fetchall()
+    cur.execute("""
+                select cal_title, cal_start_date, cal_end_date, cal_location
+                from calendars
+                where user_id = %s or cal_id in (select cal_sub_id from calendar_shared)
+                order by cal_start_date
+                """,
+                (user_id,))
+    cal_rows = cur.fetchall()
+    cur.execute("""
+                select user_name, job_id, dep_name, user_phone
+                from users u join departments d on u.dep_id = d.dep_id
+                """)
+    member_rows = cur.fetchall()
+    
+    dbcp.putconn(db)
+
+    db_crawls = f'사용자 이름: {user_info[0]}, 사용자 직책: {user_info[1]}, 사용자 부서: {user_info[2]}'
+    db_crawls += datetime.datetime.now().strftime('오늘은 %G-%m-%d, %A입니다.')
+
+    for row in chat_rows:
+        _ = '\n'
+        db_crawls += f"{row[0].strftime('%G-%m-%d %T')}에 {row[1]}이(가) '{row[2].replace(_, '')}'라 말함. "
+    for row in cal_rows:
+        db_crawls += f"{row[1].replace('T', ' ')}부터 {row[2].replace('T', ' ')}까지 일정: '{row[0]}'이 {row[3] +'에서 ' if row[3] else ''}있습니다. "
+    for row in member_rows:
+        db_crawls += f"{row[0]}은 {row[2]} 부서의 {row[1]} 직책을 담당하고 있습니다. 연락처는 {row[3]} 입니다."
+    
+    
+    db_split = text_splitter.split_text(db_crawls)
+    
+    return db_split
+
+def process_file(file_path, user_input, user_id):
+    text_sum = ''
+    db_split = db_crawler(user_id)
+
+    for file in file_path:
+        try:
+            reader = PdfReader(file)
+            for page in reader.pages:  # 페이지 별로 텍스트 추출
+                text = page.extract_text()
+                corrected_text = text.encode('utf-8', errors='ignore').decode('utf-8')  # 인코딩 오류 무시 및 텍스트 누적
+                text_sum += corrected_text + '\n'
+        except Exception as e:
+            print(e)
+            continue
+    splits = text_splitter.split_text(text_sum)
+    splits += db_split
+    # if len(splits) == 0: 
+    #         return False
+        
+    # Create FAISS index
+    vectorstore = FAISS.from_texts(splits, embedding_model)
+    
+    question = f'사용자의 입력: {user_input}'+'''
+    사용자의 입력을 보고 주제를 정해서 문서 요약 관련 보고서를 만들어줘
+    {
+        'title': '보고서의 제목',
+        'content':list['보고서의 목차별 제목'] 20글자 이내,
+        'summary': '보고서의 개요' 1000글자 이내
+    }
+    key is title, content, summary.
+    Respond using JSON only.'''
+    memory = ConversationBufferMemory(
+        memory_key='chat_history',
+        return_messages=True,
+    )
+
+    conversation_chain = ConversationalRetrievalChain.from_llm(
+        llm=llm_model_json,
+        retriever=vectorstore.as_retriever(),
+        condense_question_prompt=rag_prompt,
+        memory=memory,
+    )
+    res = conversation_chain({'question': question})
+    response = res['chat_history'][1].content.replace('\n', '').lstrip().rstrip()
+    response = json.loads(response)
+
+    return create_docx(response, vectorstore)
 
 # Function to create the DOCX file
 def create_docx(response, vectorstore):
@@ -97,80 +230,12 @@ def create_docx(response, vectorstore):
     doc.save(f'./processed/{datetime.datetime.today().strftime("%g%m%d%H%M%S")}.docx')
     return f'/processed/{datetime.datetime.today().strftime("%g%m%d%H%M%S")}.docx'
 
-def process_file(file_path):
-    # if not os.path.isfile(file_path):
-    #     print(f'파일이 존재하지 않습니다: {file_path}')
-    #     return
-    
-    text_sum = ''
-    # files = [file_path]
-    
-    for file in file_path:
-        reader = PdfReader(file)
-        for page in reader.pages:  # 페이지 별로 텍스트 추출
-            text = page.extract_text()
-            corrected_text = text.encode('utf-8', errors='ignore').decode('utf-8')  # 인코딩 오류 무시 및 텍스트 누적
-            text_sum += corrected_text + '\n'
-    splits = text_splitter.split_text(text_sum)
-    print(len(splits))
-    if len(splits) == 0: 
-        return False
-    # Create FAISS index
-    vectorstore = FAISS.from_texts(splits, embedding_model)
-    
-    question = '''문서 요약 관련 보고서를 만들어줘 
-        'title': '보고서의 제목',
-        'content':list['보고서의 목차별 제목'] 20글자 이내,
-        'summary': '보고서의 개요' 1000글자 이내
-    key is title, content, summary.
-    Respond using JSON only.'''
-    memory = ConversationBufferMemory(
-        memory_key='chat_history',
-        return_messages=True,
-    )
-
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm_model_json,
-        retriever=vectorstore.as_retriever(),
-        condense_question_prompt=rag_prompt,
-        memory=memory,
-    )
-    res = conversation_chain({'question': question})
-    response = res['chat_history'][1].content.replace('\n', '').lstrip().rstrip()
-    response = json.loads(response)
-
-    return create_docx(response, vectorstore)
-
-@app.route('/embedding', methods=['post'])
-def new_calendar():
-    embedding = request.json()
-    user_id = request.get('user_id')
-    content = request.get('content')
-    
-    if user_id == None or content == None:
-        return jsonify({
-            'result': 'fail'
-        })
-    
-    vs = PGVector(
-        embeddings = embedding_model,
-        collection_name = user_id,
-        connection = connection,
-        use_jsonb = True
-    )
-    
-    split_content = text_splitter.split_text(content)
-    vs.add_texts(splits)
-    
-    return jsonify({
-        'result': 'ok'
-    })    
-
 @app.route('/summary', methods=['POST'])
 def summary():
-    
+    user_input = request.form.get('inputText', '').strip()
+    user_id = request.form.get('user_id')
     files = [request.files[i] for i in request.files]
-    processedFilePath = process_file(files)
+    processedFilePath = process_file(files, user_input, user_id)
     
     if processedFilePath:
         return jsonify({
@@ -183,83 +248,60 @@ def summary():
             'error': '텍스트를 인식할 수 없음'
         })
 
-@app.route('/generate_report', methods=['POST'])
-def generate_report():
-    # 사용자가 입력한 텍스트 가져오기
-    input_text = request.form.get('inputText', '').strip()
-    
-    if not input_text:
-        return jsonify({
-            'result': 'error',
-            'error': '입력된 텍스트가 없습니다.'
-        })
-
-    # 텍스트를 분할하여 벡터스토어 생성
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    splits = text_splitter.split_text(input_text)
-
-    if len(splits) == 0: 
-        return jsonify({
-            'result': 'error',
-            'error': '텍스트 분할에 실패했습니다.'
-        })
-    
-    # Create FAISS index from input text splits
+@app.route('/chat', methods=['POST'])
+def chat():
+    params = request.get_json()
+    user_input = params.get('user_input')
+    user_id = params.get('user_id')
+    # print(params)
+    splits = db_crawler(user_id)
     vectorstore = FAISS.from_texts(splits, embedding_model)
 
-    # 보고서 생성 요청 프롬프트
-    question = f'''사용자의 입력: {input_text} 
-    사용자의 입력을 읽고 관련 보고서를 만들어줘
-        'title': '보고서의 제목',
-        'content':list['보고서의 목차별 제목'] 50글자 이내,
-        'summary': '보고서의 개요' 1000글자 이내
-    key is title, content, summary.
-    Respond using JSON only.'''
-
-    # 메모리 설정 및 대화형 체인 생성
     memory = ConversationBufferMemory(
         memory_key='chat_history',
-        return_messages=True,
+        return_messages=True
     )
-
     conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm_model_json,
+        llm=llm_model,
         retriever=vectorstore.as_retriever(),
-        condense_question_prompt=rag_prompt,
-        memory=memory,
+        condense_question_prompt=chat_prompt,
+        memory=memory
     )
-
-    # 보고서 생성
-    res = conversation_chain({'question': question})
-    response_content = res['chat_history'][1].content.replace('\n', '').lstrip().rstrip()
-
-    try:
-        # JSON 형식으로 파싱
-        response = json.loads(response_content)
-    except json.JSONDecodeError:
-        return jsonify({
-            'result': 'error',
-            'error': '보고서 생성 중 JSON 파싱 오류가 발생했습니다.'
-        })
     
-    # DOCX 파일 생성
-    processedFilePath = create_docx(response, vectorstore)
+    conn = dbcp.getconn()
+    cur = conn.cursor()
     
-    # 결과 반환
-    if processedFilePath:
-        return jsonify({
-            'result': 'ok',
-            'report': f'보고서가 성공적으로 생성되었습니다. 다운로드 링크: {processedFilePath}',
-            'processedFilePath': processedFilePath
-        })
-    else:
-        return jsonify({
-            'result': 'error',
-            'error': '보고서 생성에 실패했습니다.'
-        })
-
-
-
-
+    cur.execute(
+        "select ac_question, ac_answer from ai_chat_logs where user_id=%s order by chat_at asc",
+        (user_id,)
+    )
+    rows = cur.fetchall()
+    
+    cur.close()
+    dbcp.putconn(conn)
+    
+    print(rows)
+    
+    for row in rows:
+        memory.save_context(
+            inputs={'human': row[0]},
+            outputs={'ai': row[1]}
+        )
+        
+    res = conversation_chain({'question': user_input})
+    
+    conn = dbcp.getconn()
+    cur = conn.cursor()
+    
+    cur.execute(
+        "insert into ai_chat_logs (user_id, ac_question, ac_answer) values (%s, %s, %s)",
+        (user_id, user_input, res['answer'])
+    )
+    conn.commit()
+    
+    cur.close()
+    dbcp.putconn(conn)
+    return jsonify({'answer': res['answer']})
+       
 if __name__ == '__main__':
     app.run(host= host, port=port)

@@ -59,14 +59,16 @@ function showDocumentSummary() {
     menuDeactiveAll(4);
 }
 
-function showPayment() {
-    document.querySelector('#main-iframe').setAttribute('src', '/payment');
+function showAichat() {
+    document.querySelector('#main-iframe').setAttribute('src', '/aichat');
     menuDeactiveAll(5);
 }
 
-// function showCreatereport() {
-//     document.querySelector('#main-iframe').setAttribute('src', '/createreport');
-// }
+function showPayment() {
+    document.querySelector('#main-iframe').setAttribute('src', '/payment');
+    menuDeactiveAll(6);
+}
+
 
 function showSetting() {
     document.querySelector('#main-iframe').setAttribute('src', '/setting');

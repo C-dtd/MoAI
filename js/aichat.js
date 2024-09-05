@@ -2,6 +2,9 @@ const chat_main = document.querySelector('.main-section');
 const cont = document.querySelector('.msg-cont');
 const scroll = document.querySelector('.scroll');
 
+
+chat_main.scrollTop = chat_main.scrollHeight;
+
 chat_main.addEventListener('scroll', ()=> {
     scroll.style.top = `${chat_main.scrollTop/(chat_main.scrollHeight -chat_main.clientHeight +32) *(chat_main.scrollHeight - scroll.clientHeight +32)}px`;
 });
@@ -35,6 +38,8 @@ document.querySelector('#submit').addEventListener('click', async (e) => {
     cont.appendChild(chatbox);
     chat_main.scrollTop = chat_main.scrollHeight;
 
+    let chat_response = '';
+
     try {
         const response = await fetch('http://localhost:5100/chat', {
             method: 'POST',
@@ -49,19 +54,25 @@ document.querySelector('#submit').addEventListener('click', async (e) => {
         }
         const data = await response.json(); 
         // console.log(data.answer);
+        chat_response = data.answer;
+        
+    } catch (error) {
+        console.error('Error:', error);
+        chat_response = '서버에서 오류가 발생했습니다. :' +error; 
+    }
 
+    {
         const chatbox = document.createElement('article');
         chatbox.className = 'other-chat';
         const header = document.createElement('header');
         header.innerText = 'AI';
         chatbox.appendChild(header);
         const main = document.createElement('main');
-        main.innerText = data.answer;
+        main.innerText = chat_response;
         chatbox.appendChild(main);
         cont.appendChild(chatbox);
         chat_main.scrollTop = chat_main.scrollHeight;
-    } catch (error) {
-        console.error('Error:', error);
+
     }
 
     submitButton.setAttribute('aria-busy', false);
