@@ -485,6 +485,7 @@ app.get('/aichat', async (req, res) => {
     const { user } = req.session;
     if (!user) {
         res.redirect('/');
+        return;
     }
 
     const chat_log = await db.query(
@@ -494,6 +495,23 @@ app.get('/aichat', async (req, res) => {
 
     res.render('ai_chat', {user: user, chat_log: chat_log.rows});
 });
+
+app.get('/aichat/reset', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/');
+        return;
+    }
+
+    await db.query(
+        'delete from ai_chat_logs where user_id=$1',
+        [ user.user_id ]
+    );
+
+    res.send({
+        response: 'ok'
+    });
+})
 
 //채팅페이지
 app.get('/chat/:id', async function(req, res) {
@@ -538,6 +556,7 @@ app.get('/chatwith/:id', async (req, res) => {
     const { user } = req.session;
     if (!user) {
         res.redirect('/');
+        return;
     }
     const opp_id = req.params.id;
     const isUser = await db.query('select user_id from users where user_id=$1', [ opp_id ]);
@@ -663,6 +682,7 @@ app.post('/upload-profile-image', upload.single('profileImage'), (req, res) => {
     const { user } = req.session;
     if (!user) {
         res.status(500).json({error: 'need to login'});
+        return;
     }
 
     const imageUrl = `/uploads/${req.file.filename}`;
@@ -1007,6 +1027,7 @@ app.post('/api/events', async (req, res) => {
     
     if (!user) {
         res.redirect('/');
+        return;
     }
 
     const { end, id, isAllday, isPrivate, location, start, state, title, calendarId } = req.body;

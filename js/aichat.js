@@ -2,6 +2,7 @@ const chat_main = document.querySelector('.main-section');
 const cont = document.querySelector('.msg-cont');
 const scroll = document.querySelector('.scroll');
 const userMsg = document.querySelector('#msg');
+const newChatButton = document.querySelector('#new-chat');
 
 chat_main.scrollTop = chat_main.scrollHeight;
 
@@ -103,3 +104,12 @@ async function message_send() {
 
     submitButton.setAttribute('aria-busy', false);
 }
+
+newChatButton.addEventListener('click', async () => {
+    const response = await fetch('/aichat/reset');
+    const res = await response.json();
+
+    if (res.response == 'ok') {
+        chat_main.innerHTML = '';
+    }
+});
