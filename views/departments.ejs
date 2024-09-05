@@ -59,7 +59,7 @@
                             <button class="edit-button" role="edit" data-user-id="<%= user.user_id %>">수정</button>
                         <% } %>
                         <!-- 채팅방 버튼 추가 -->
-                        <button class="chat-button" data-user-id="<%= user.user_id %>">채팅 시작</button>
+                        <button class="chat-button" onclick="window.location.href = '/chatwith/<%= user.user_id %>';">채팅 시작</button>
                     </article>
                 <% }); %>
                 <p class="no-results-message" style="display: none;">사용자 데이터가 없습니다.</p>

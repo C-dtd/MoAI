@@ -90,7 +90,7 @@ socket.on('msg', async (msg) => {
     chat_main.scrollTop = chat_main.scrollHeight;
 });
 
-document.querySelector('#submit').addEventListener('click', message_send());
+document.querySelector('#submit').addEventListener('click', message_send);
 
 let isShift = false;
 

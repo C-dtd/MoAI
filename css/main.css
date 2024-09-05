@@ -270,12 +270,11 @@ div.main {
     /* padding: 32px 0; */
     display: flex;
     flex-direction: column;
-    height: 50%;
-}
-
-.note-section, .chat-section main {
+    height: calc(50% - 10.5px);
+    flex-shrink: 1;
     flex-grow: 1;
 }
+
 
 .right-content {
     display: flex;
@@ -349,4 +348,12 @@ nav a {
 
 .logout-text:hover {
     color: #ff1a1a; /* 호버 시 색상 변경 */
+}
+
+#resizer {
+    cursor: move;
+    height: 21px;
+}
+#resizer hr {
+    margin: 10px;
 }

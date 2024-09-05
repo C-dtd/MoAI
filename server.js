@@ -501,6 +501,7 @@ app.get('/chat/:id', async function(req, res) {
     const room_id = req.params.id;
     if (!user) {
         res.redirect('/');
+        return;
     }
     const user_check = await db.query(
         "select ru_id from room_users where room_id=$1 and user_id=$2",
@@ -513,6 +514,12 @@ app.get('/chat/:id', async function(req, res) {
         "select * from rooms where room_id=$1",
         [ room_id ]
     )
+    console.log(!room.rows[0]);
+    if (!room.rows[0]) {
+        res.redirect('/');
+        return;
+    }
+
     if (room.rows[0].room_name == '\tauto name') {
         await autoname(room.rows[0], user);
     }
@@ -526,6 +533,53 @@ app.get('/chat/:id', async function(req, res) {
     )
     res.render('chat.ejs', {room: room.rows[0], chat_log: chat_log.rows, member: member.rows, user: user});
 });
+
+app.get('/chatwith/:id', async (req, res) => {
+    const { user } = req.session;
+    if (!user) {
+        res.redirect('/');
+    }
+    const opp_id = req.params.id;
+    const isUser = await db.query('select user_id from users where user_id=$1', [ opp_id ]);
+    if (!isUser) {
+        res.redirect('/');
+    }
+    console.log(opp_id);
+
+    const room_id = await db.query(
+        `select *
+        from 
+        (select r1.room_id id from 
+        (select room_id from room_users where user_id=$1) r1
+        join 
+        (select room_id from room_users where user_id=$2) r2
+        on r1.room_id = r2.room_id) i
+        join rooms r
+        on i.id = r.room_id
+        where is_group = false`,
+        [ user.user_id, opp_id ]
+    );
+
+    if (!room_id.rows[0]) {
+        const roomId = v4();
+        await db.query(
+            'insert into rooms (room_id, room_name, is_group) values ($1, $2, $3)',
+            [ roomId, '\tauto name', false ]
+        );
+        await db.query(
+            'insert into room_users (room_id, user_id) values ($1, $2)',
+            [roomId, user.user_id]
+        );
+        await db.query(
+            'insert into room_users (room_id, user_id) values ($1, $2)',
+            [roomId, opp_id]
+        );
+        res.redirect(`/chat/${roomId}`);
+    } else {
+        const roomId = room_id.rows[0].id;
+        res.redirect(`/chat/${roomId}`);
+    }
+})
 
 //소켓 통신 (채팅 부분)
 io.on('connection', (socket) => {
@@ -742,7 +796,6 @@ app.post('/payment_req', async (req, res) => {
         where is_group = false`,
         [ user.user_id, app ]
     );
-    console.log('rows: ', room_id.rows, !room_id.rows[0]);
     if (!room_id.rows[0]) {
         const roomId = v4();
         await db.query(
