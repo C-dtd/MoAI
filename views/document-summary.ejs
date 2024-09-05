@@ -60,7 +60,6 @@
 
         const form = document.getElementById('upload-form');
         form.addEventListener('submit', async function (event) {
-            console.log("???");
             event.preventDefault(); // 기본 폼 제출 동작 방지
             form.querySelector('button[type=submit]').setAttribute('aria-busy', true);
             const resultDiv = document.getElementById('result');

@@ -14,7 +14,7 @@
             <div class="user-profile">
                 <img class="user-avatar" 
                 <% if (profileImage) { %>
-                    src="<%=profileImage%>"
+                    src="<%= profileImage %>"
                 <% } else { %>
                     src="https://via.placeholder.com/32x32" 
                 <% } %>
@@ -33,9 +33,8 @@
             </div>
         </header>
 
-
         <nav class="menu">
-            <div class="menu-item" onclick="showCalendar()">
+            <div class="menu-item active" onclick="showCalendar()">
                 <img class="menu-icon" src="/image/quality_control.png" alt="quality_control Icon" />
                 <span class="menu-label">캘린더</span>
             </div>

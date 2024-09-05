@@ -110,6 +110,9 @@ newChatButton.addEventListener('click', async () => {
     const res = await response.json();
 
     if (res.response == 'ok') {
-        chat_main.innerHTML = '';
+        articles = chat_main.querySelectorAll('article');
+        articles.forEach((article) => {
+            article.remove();
+        });
     }
 });

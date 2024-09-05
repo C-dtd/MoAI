@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>React Page with createRoot</title>
     <link rel="stylesheet" href="../css/pico_color.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/@toast-ui/calendar/dist/toastui-calendar.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/tui-date-picker/dist/tui-date-picker.css">
+    <link rel="stylesheet" href="https://unpkg.com/tui-time-picker/dist/tui-time-picker.css">
     <style>
         @font-face {
             font-family: 'Pretendard-Regular';
@@ -71,7 +75,10 @@
             color: black;
         }
         .toastui-calendar-delete-button,.toastui-calendar-edit-button,.toastui-calendar-popup-container {
-            color: black
+            color: black;
+        }
+        .toastui-calendar-weekday-event-dot+.toastui-calendar-weekday-event-title {
+            color: var(--pico-color);
         }
     </style>
 </head>
@@ -86,9 +93,6 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/@toast-ui/react-calendar"></script>
     
-    <link rel="stylesheet" href="https://unpkg.com/@toast-ui/calendar/dist/toastui-calendar.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/tui-date-picker/dist/tui-date-picker.css">
-    <link rel="stylesheet" href="https://unpkg.com/tui-time-picker/dist/tui-time-picker.css">
 
     <script>
         function uuid() {
@@ -190,15 +194,11 @@
                 const handleBeforeCreateEvent = async (eventObj) => {
                     let userName = await fetch('/session/user_name'); // 실제로 로그인한 사용자로 대체
                     userName = await userName.text();
-                    console.log(typeof(userName));
                     const newEvent = {
                         ...eventObj,
                         id: uuid(), // 고유 ID 생성
                         attendees: [ userName ]
                     };
-                    // console.log('create', newEvent);
-                    // //console.log(dateParser(newEvent.start.d.d));
-                    // console.log(newEvent);
                     // calendarInstance.createEvents([newEvent]);
 
                     const response = await fetch('/api/events', {
@@ -210,7 +210,7 @@
                     });
 
                     if (response.ok) {
-                        console.log('서버로 이벤트 보내는 거 성공적임');
+                        // console.log('서버로 이벤트 보내는 거 성공적임');
                         // 캘린더에 이벤트를 추가
                         calendarInstance.createEvents([newEvent]);
                     } else {
@@ -219,8 +219,8 @@
                 };
 
                 const handleBeforeUpdateEvent = async ({ event, changes }) => {
-                    console.log('Updating event:', event);
-                    console.log('Changes:', changes);
+                    // console.log('Updating event:', event);
+                    // console.log('Changes:', changes);
                 
                     const updatedEvent = {
                         ...event,
@@ -252,7 +252,7 @@
                 
 
                 const handleBeforeDeleteEvent = async ({ id, calendarId }) => {
-                    console.log('Deleting event:', id);
+                    // console.log('Deleting event:', id);
                 
                     try {
                         // 서버로 삭제 요청 보내기
@@ -262,7 +262,7 @@
                 
                         if (response.ok) {
                             // 서버에서 삭제 성공 시 클라이언트의 캘린더에서 이벤트 삭제
-                            console.log('Event deleted successfully from the server');
+                            // console.log('Event deleted successfully from the server');
                             calendarInstance.deleteEvent(id, calendarId);
                         } else {
                             console.log('Failed to delete event from the server');

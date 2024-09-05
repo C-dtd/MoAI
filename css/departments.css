@@ -8,13 +8,22 @@ body>main {
 
 /* 부서 목록의 스타일 */
 .departments-container {
+    height: 100vh;
+    overflow-y: scroll;
     width: 30%;
     border-right: 1.4px solid var(--pico-contrast-hover-border);
     padding: 10px;
+    padding-bottom: 80px;
     position: relative; /* 버튼과 목록의 겹침 문제를 해결하기 위한 위치 설정 */
     box-sizing: border-box; /* Padding이 전체 너비에 포함되도록 */
     display: flex;
     flex-direction: column; /* 목록과 버튼을 수직으로 정렬 */
+    position: relative;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+.user-container>main::-webkit-scrollbar {
+    display: none;
 }
 
 /* 부서 아이템의 스타일 */
@@ -23,7 +32,7 @@ body>main {
     cursor: pointer;
     padding: 10px;
     margin-bottom: 5px;
-    background-color: #f0f0f0;
+    /* background-color: #f0f0f0; */
     border: 1px solid #ddd;
     border-radius: 4px;
     box-sizing: border-box; /* Padding이 전체 너비에 포함되도록 */
@@ -37,10 +46,12 @@ body>main {
 
 /* 부서 추가 버튼이 고정 위치로 설정 */
 .department-buttons {
-    margin-top: auto; /* 버튼을 컨테이너의 하단에 고정 */
-    padding-top: 10px; /* 버튼과 목록 사이에 여백 추가 */
-    background-color: white;
+    position: fixed;
+    /* background-color: white; */
     z-index: 10; /* 버튼이 목록 위에 항상 표시되도록 */
+    /* width: calc(100% - 20px); */
+    width: calc(30% - 20px);
+    bottom: 0;
 }
 
 /* 부서 추가 입력 필드 모달의 기본 스타일 */
@@ -52,7 +63,7 @@ body>main {
     transform: translate(-50%, -50%);
     width: 300px;
     padding: 20px;
-    background-color: white;
+    background-color: var(--pico-background-color);
     border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -87,9 +98,10 @@ body>main {
 .search-bar {
     position: sticky;
     top: 0;
-    background-color: white;
+    margin: 0;
+    /* background-color: white; */
     padding: 10px;
-    border-bottom: 1px solid #ddd;
+    /* border-bottom: 1px solid #ddd; */
     z-index: 10; 
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -102,6 +114,7 @@ body>main {
     position: relative;
     flex-grow: 1;
 }
+
 .user-container>main::-webkit-scrollbar {
     display: none;
 }
@@ -117,7 +130,7 @@ body>main {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: #f9f9f9;
+    /* background-color: #f9f9f9; */
     box-sizing: border-box;
     position: relative;
 }
@@ -210,3 +223,6 @@ body>main {
     margin: 0 0 0 10px;
 }
 
+.add-department-button {
+    width: 100%;
+}

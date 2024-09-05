@@ -16,6 +16,8 @@ const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b41
 const verificationCodes = {};
 const host = 'localhost';
 
+//https://colab.research.google.com/drive/1IbRSNeSAZBm_6oszKSRzxABp-PbF9rTF?usp=sharing
+
 // db 객체에 데이터베이스 슈퍼베이스 username, host, database, password 지정 후 대입
 const db = new Pool({
     user: 'postgres.vpcdvbdktvvzrvjfyyzm',

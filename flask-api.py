@@ -285,7 +285,6 @@ def chat():
     params = request.get_json()
     user_input = params.get('user_input')
     user_id = params.get('user_id')
-    # print(params)
     splits = db_crawler(user_id)
     vectorstore = FAISS.from_texts(splits, embedding_model)
 

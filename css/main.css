@@ -63,7 +63,23 @@ div.main {
     cursor: pointer;
   }
   
-  .setting-tooltip {
+.action-icon_setting img {
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.action-icon_sidebar img {
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    background-color: white;
+    border-radius: 50%;
+}
+  
+.setting-tooltip {
     visibility: hidden;
     width: 80px;
     background-color: #333;

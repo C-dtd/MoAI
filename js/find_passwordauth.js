@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 인증번호 전송
     function sendVerificationCode() {
         const phone = phoneInput.value;
-        console.log({ phone });
+        // console.log({ phone });
         fetch('/send-verification-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

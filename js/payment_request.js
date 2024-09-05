@@ -52,11 +52,11 @@ async function get_payment_res_list() {
 
 fileInput.addEventListener('input', async () => {
     const file = fileInput.files[0];
-    if (file) {
-        console.log('uploaded');
-    } else {
-        console.log('cancled');
-    }
+    // if (file) {
+    //     console.log('uploaded');
+    // } else {
+    //     console.log('cancled');
+    // }
 
     paymentTitle.value = '';
     paymentTitle.setAttribute('placeholder', file.name);
