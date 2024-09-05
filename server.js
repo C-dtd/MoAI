@@ -492,7 +492,6 @@ app.get('/aichat', async (req, res) => {
         [ user.user_id ]
     );
 
-
     res.render('ai_chat', {user: user, chat_log: chat_log.rows});
 });
 
