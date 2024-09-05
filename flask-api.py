@@ -127,6 +127,17 @@ def db_crawler(user_id):
                 from users u join departments d on u.dep_id = d.dep_id
                 """)
     member_rows = cur.fetchall()
+    cur.execute("""
+                select c_title, c_category, c_date_range, c_assignee
+                from cards
+                where dep_id = (
+                    select dep_id
+                    from users
+                    where user_id = %s
+                )
+                """,
+                (user_id,))
+    task_rows = cur.fetchall()
     
     dbcp.putconn(db)
 
@@ -139,8 +150,9 @@ def db_crawler(user_id):
     for row in cal_rows:
         db_crawls += f"{row[1].replace('T', ' ')}부터 {row[2].replace('T', ' ')}까지 일정: '{row[0]}'이 {row[3] +'에서 ' if row[3] else ''}있습니다. "
     for row in member_rows:
-        db_crawls += f"{row[0]}은 {row[2]} 부서의 {row[1]} 직책을 담당하고 있습니다. 연락처는 {row[3]} 입니다."
-    
+        db_crawls += f"{row[0]}은(는) {row[2]} 부서의 {row[1]} 직책을 담당하고 있습니다. 연락처는 {row[3]} 입니다."
+    for row in task_rows:
+        db_crawls += f"'{row[0]}' 업무는 {row[1]} 상태이며 {'일정은 '+row[2] +'입니다.' if row[2] else ''} {'담당자는 ' +row[3] +'입니다.' if row[3] else ''}"
     
     db_split = text_splitter.split_text(db_crawls)
     
@@ -279,8 +291,6 @@ def chat():
     
     cur.close()
     dbcp.putconn(conn)
-    
-    print(rows)
     
     for row in rows:
         memory.save_context(
