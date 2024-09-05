@@ -38,7 +38,7 @@ connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4
 
 # Configuration
 ngrok = ''
-ngrok = 'https://b1f9-35-197-57-104.ngrok-free.app'
+ngrok = 'https://f90a-35-240-141-177.ngrok-free.app'
 device = 'cpu'
 
 if ngrok == '':
@@ -137,6 +137,20 @@ def db_crawler(user_id):
                 )
                 """,
                 (user_id,))
+    cur.execute("""
+                select p_title, user_name, app_at
+                from payment p join users u on p.p_app = u.user_id
+                where p_uploader = %s
+                """,
+                (user_id,))
+    payreq_rows = cur.fetchall()
+    cur.execute("""
+                select p_title, user_name, app_at
+                from payment p join users u on p.p_uploader = u.user_id
+                where p_app =  %s 
+                """,
+                (user_id,))
+    payres_rows = cur.fetchall()
     task_rows = cur.fetchall()
     
     dbcp.putconn(db)
@@ -153,6 +167,12 @@ def db_crawler(user_id):
         db_crawls += f"{row[0]}은(는) {row[2]} 부서의 {row[1]} 직책을 담당하고 있습니다. 연락처는 {row[3]} 입니다."
     for row in task_rows:
         db_crawls += f"'{row[0]}' 업무는 {row[1]} 상태이며 {'일정은 '+row[2] +'입니다.' if row[2] else ''} {'담당자는 ' +row[3] +'입니다.' if row[3] else ''}"
+    for row in payreq_rows:
+        # print(row[2] if )
+        db_crawls += f"{row[1]}님에게 결재 신청한 {row[0]} 문서는 {row[2].strftime('%G-%m-%d %T')+ '에 승인되었습니다.' if row[2] else '미승인 상태 입니다.'}"
+    for row in payres_rows:
+        db_crawls += f"{row[1]}님이 결재 신청한 {row[0]} 문서는 {row[2].strftime('%G-%m-%d %T')+ '에 승인하셨습니다.' if row[2] else '미승인 상태 입니다.'}"
+
     
     db_split = text_splitter.split_text(db_crawls)
     
