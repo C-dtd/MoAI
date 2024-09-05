@@ -1,7 +1,7 @@
 const chat_main = document.querySelector('.main-section');
 const cont = document.querySelector('.msg-cont');
 const scroll = document.querySelector('.scroll');
-
+const userMsg = document.querySelector('#msg');
 
 chat_main.scrollTop = chat_main.scrollHeight;
 
@@ -9,9 +9,35 @@ chat_main.addEventListener('scroll', ()=> {
     scroll.style.top = `${chat_main.scrollTop/(chat_main.scrollHeight -chat_main.clientHeight +32) *(chat_main.scrollHeight - scroll.clientHeight +32)}px`;
 });
 
-document.querySelector('#submit').addEventListener('click', async (e) => {
-    const userMsg = document.querySelector('#msg');
+document.querySelector('#submit').addEventListener('click', message_send);
+
+let isShift = false;
+
+userMsg.addEventListener('keydown', (e) => {
+    if (e.key === 'Shift') {
+        isShift = true;
+    }
+});
+userMsg.addEventListener('keyup', (e) => {
+    if (e.key === 'Shift') {
+        isShift = false;
+    }
+});
+
+userMsg.addEventListener('keydown', (e) => {
+    if (e.key === "Enter" && !isShift) {
+        e.preventDefault();
+        message_send();
+        return;
+    }
+});
+
+async function message_send() {
     const submitButton = document.querySelector('#submit');
+
+    if (submitButton.getAttribute('aria-busy') == 'true') {
+        return;
+    }
 
     if (userMsg.value == '') {
         return;
@@ -76,4 +102,4 @@ document.querySelector('#submit').addEventListener('click', async (e) => {
     }
 
     submitButton.setAttribute('aria-busy', false);
-});
+}
