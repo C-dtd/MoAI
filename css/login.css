@@ -13,12 +13,14 @@
 }
 .forgot-password {
   text-align: right;
+  margin-right: 75px;
 }
 .remember-me {
   display: flex;
   align-items: center;
   gap: 11px;
   font-size: 16px;
+  margin-left: 75px;
 }
 
 #moai-title:hover {

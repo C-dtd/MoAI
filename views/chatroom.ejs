@@ -76,7 +76,7 @@ async function roomListUpdate() {
     scroll.className = 'scroll';
     mainSection.appendChild(scroll);
     mainSection.addEventListener('scroll', ()=> {
-        scroll.style.top = `${mainSection.scrollTop/(mainSection.scrollHeight -mainSection.clientHeight +32) *(mainSection.scrollHeight - scroll.clientHeight +32)}px`;
+        scroll.style.top = `${mainSection.scrollTop/(mainSection.scrollHeight -mainSection.clientHeight +32) *(mainSection.scrollHeight - scroll.clientHeight +16)}px`;
     });
     for (let row of res) {
         const article = document.createElement('article');

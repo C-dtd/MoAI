@@ -1197,6 +1197,7 @@ app.get('/api/newcard/id', async (req, res) => {
 
 app.post('/api/newcard', async (req, res) => {
     const {id, title, content, category, data_range, start_date, end_date, assignee} = req.body;
+    console.log('/api/newcard, req,body: ', req.body);
     const dep_id = req.session.user.dep_id
     try {
         await db.query(
@@ -1421,3 +1422,6 @@ app.post('/updateUser/:id', async (req, res) => {
 });
 
 
+app.get('/font/pretendard-regular', (req, res) => {
+    res.download('./css/font/Pretendard-Regular.woff'); 
+});

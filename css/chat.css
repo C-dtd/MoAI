@@ -92,3 +92,7 @@ main:-webkit-scrollbar {
     top: 0;
     right: 0;
 }
+
+#imgUpload, #calendarShare, #submit {
+    border-radius: 0px;
+}
