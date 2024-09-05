@@ -1496,7 +1496,6 @@ app.post('/updateUser/:id', async (req, res) => {
     }
 });
 
-
 app.get('/font/pretendard-regular', (req, res) => {
     res.download('./css/font/Pretendard-Regular.woff'); 
 });

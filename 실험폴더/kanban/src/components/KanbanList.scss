@@ -1,0 +1,13 @@
+@import '../theme.scss';
+
+.kanbanListWrap {
+  width: 25vw;
+  padding: 10px;
+
+  .kanbanTitle {
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $fontColor;
+  }
+}

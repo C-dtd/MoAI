@@ -3,4 +3,4 @@
 /.venv
 /kanban/node_modules
 /processed
-/실험폴더
+# /실험폴더
