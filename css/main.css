@@ -144,8 +144,8 @@ div.main {
     opacity: 0;
     transition: opacity 0.3s;
   }
-  
-  #sidebar-tooltip::after {
+
+#sidebar-tooltip::after {
     content: "";
     position: absolute;
     top: -10px; /* Tooltip의 상단에 삼각형 붙이기 */
@@ -155,12 +155,12 @@ div.main {
     border-style: solid;
     border-color: transparent transparent #333 transparent; /* 삼각형이 툴팁에 붙게 색상 조정 */
     z-index: 1;
-  }
-  
-  .action-icon_sidebar:hover #sidebar-tooltip {
+}
+
+.action-icon_sidebar:hover #sidebar-tooltip {
     visibility: visible;
     opacity: 1;
-  }
+}
   
 /* .action-icon {
     width: 16px;

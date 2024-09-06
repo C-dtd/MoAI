@@ -34,9 +34,10 @@
                     <div class="input-group">
                         <label for="phone">전화번호</label>
                         <div role="group">
-                            <input type="text" id="phone" name="phone" placeholder="전화번호">
+                            <input type="text" id="phone" name="phone" placeholder="ex) +821011112222">
                             <button type="button" id="sendVerificationCode" style="white-space: nowrap;">인증번호 발송</button>
                         </div>
+                        <span class="alertreq"></span>
                     </div>
                     <div class="input-group">
                         <label for="verification-code">인증번호</label>
@@ -44,6 +45,7 @@
                             <input type="text" id="verification-code" name="verificationCode" placeholder="인증번호 입력">
                             <button type="button" id="verifyCode" style="white-space: nowrap;">인증번호 확인</button>
                         </div>
+                        <span class="alertcheck"></span>
                     </div>
                     <div class="input-group">
                         <div role="group" style="margin: 0px">

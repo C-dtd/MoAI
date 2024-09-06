@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const userIdInput = document.getElementById("user_id");
     const submitBtn = document.getElementById("submitBtn");
     const moaiTitle = document.getElementById('moai-title');
+    const alertDiv = document.querySelector('.alert');
 
     // MoAI 클릭 시 로그인 페이지로 이동
     moaiTitle.addEventListener('click', function() {
@@ -12,7 +13,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const userId = userIdInput.value.trim();
 
         if (userId === "") {
-            alert("User ID is required");
+            alertDiv.innerText = 'ID를 입력해주세요';
+            // alert("User ID is required");
             return;
         }
 
@@ -34,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => {
             console.error('Error:', error);
+            alertDiv.innerText = '서버에 문제가 발생했습니다.';
             alert('Internal server error');
         });
     });
