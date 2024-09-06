@@ -15,6 +15,7 @@ const twilio = require('twilio');
 const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
 const verificationCodes = {};
 const host = 'localhost';
+const bcrypt = require('bcrypt');
 
 //https://colab.research.google.com/drive/1IbRSNeSAZBm_6oszKSRzxABp-PbF9rTF?usp=sharing
 
@@ -48,6 +49,8 @@ const _session = session({          // 세션 제작
     secret: 'secret'
 });
 
+const cors = require('cors');
+app.use(cors());
 app.use(cookieParser());
 app.use(_session);
 app.use(express.json());
@@ -1017,6 +1020,37 @@ app.get('/setting', async (req, res) => {
     }
 });
 
+// 비밀번호 변경 요청 처리
+app.post('/setting/change-password', async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const { user } = req.session;
+
+    if (!user || !user.user_id) {
+        return res.status(401).json({ message: '사용자가 로그인되어 있지 않거나 ID가 일치하지 않습니다.' });
+    }
+
+    const userId = user.user_id;
+
+    try {
+        const result = await db.query('SELECT user_pw FROM users WHERE user_id = $1', [userId]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        const storedPassword = result.rows[0].user_pw;
+
+        if (currentPassword !== storedPassword) {
+            return res.status(400).json({ message: '현재 비밀번호가 일치하지 않습니다.' });
+        }
+
+        await db.query('UPDATE users SET user_pw = $1 WHERE user_id = $2', [newPassword, userId]);
+        console.log("비밀번호 업데이트 성공!")
+        res.status(200).json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
+    } catch (error) {
+        console.error('에러떴다 어떻게 하냐:', error);
+        res.status(500).json({ message: '서버 오류가 발생했습니다. 다시 시도해 주세요.' });
+    }
+});
 
 /////////////////////////////////////////////////////////////////////////////////////
 // 캘린더 db 관련 데이터베이스 처리 부분 

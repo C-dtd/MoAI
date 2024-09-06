@@ -64,3 +64,40 @@ document.addEventListener('DOMContentLoaded', () => {
         userAvatar.src = imageUrl;
     }
 });
+
+document.getElementById('change-password-button').addEventListener('click', async function() {
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    if (newPassword !== confirmPassword) {
+        alert('새 비밀번호가 일치하지 않습니다.');
+        return;
+    }
+
+    if (!currentPassword || !newPassword) {
+        alert('모든 비밀번호 필드를 입력하세요.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/setting/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ currentPassword, newPassword }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! Status: ${response.status} - ${errorData.message}`);
+        }
+
+        const result = await response.json();
+        alert(result.message);
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`비밀번호 변경 중 오류가 발생했습니다: ${error.message}`);
+    }
+});
