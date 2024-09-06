@@ -86,18 +86,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (form) form.style.display = 'none';
     }
 
-    document.getElementById('submit-department-button').addEventListener('click', () => {
-        const depNameInput = document.getElementById('new-department-name');
-        const depName = depNameInput.value.trim();
-        if (depName) {
-            addDepartment(depName);
-            depNameInput.value = '';
-        } else {
-            alert('부서 이름을 입력해 주세요.');
-        }
-    });
+    if (document.getElementById('submit-department-button')) {
+        document.getElementById('submit-department-button').addEventListener('click', () => {
+            const depNameInput = document.getElementById('new-department-name');
+            const depName = depNameInput.value.trim();
+            if (depName) {
+                addDepartment(depName);
+                depNameInput.value = '';
+            } else {
+                alert('부서 이름을 입력해 주세요.');
+            }
+        });
+    }
 
-    document.querySelector('#cancel-department-button').addEventListener('click', closeAddDepartmentForm);
+    if (document.querySelector('#cancel-department-button')) {
+        document.querySelector('#cancel-department-button').addEventListener('click', closeAddDepartmentForm);
+    }
 
     function loadUsersByDepartment(department) {
         const query = department.toLowerCase();

@@ -1,0 +1,13 @@
+header h3 {
+    text-align: center;
+}
+
+textarea {
+    resize: none;
+    height: 272px;
+}
+
+.fileUploader {
+    margin-left: 80%;
+    width: 20%;
+}
