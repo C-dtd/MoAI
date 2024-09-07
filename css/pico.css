@@ -203,7 +203,7 @@ nav details.dropdown summary:focus-visible {
 [role=search] [type=button],
 [role=search] [type=submit],
 [role=search] button {
-    --pico-form-element-spacing-horizontal: 2rem
+    --pico-form-element-spacing-horizontal: 1rem
 }
 
 details summary[role=button]:not(.outline)::after {
