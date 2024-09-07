@@ -23,7 +23,6 @@
     --pico-outline-width: 0.125rem;
     --pico-transition: 0.2s ease-in-out;
     --pico-spacing: 1rem;
-    --pico-typography-spacing-vertical: 1rem;
     --pico-block-spacing-vertical: var(--pico-spacing);
     --pico-block-spacing-horizontal: var(--pico-spacing);
     --pico-grid-column-gap: var(--pico-spacing);
@@ -761,9 +760,6 @@ h6 {
     margin-top: var(--pico-typography-spacing-top)
 }
 
-p {
-    margin-bottom: var(--pico-typography-spacing-vertical)
-}
 
 hgroup {
     margin-bottom: var(--pico-typography-spacing-vertical)

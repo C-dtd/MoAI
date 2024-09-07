@@ -130,7 +130,7 @@ body>main {
     align-items: center;
     justify-content: flex-start;
     width: 100%;
-    height: 280px; /* 카드의 높이 고정 */
+    height: 150px; /* 카드의 높이 고정 */
     margin-bottom: 10px;
     padding: 10px;
     border: 1px solid #ddd;
@@ -142,8 +142,8 @@ body>main {
 
 /* 프로필 사진의 스타일 */
 .profile-pic {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     background-color: rgba(34, 20, 20, 0.123);
     aspect-ratio: 1;
     border-radius: 50%;
@@ -216,8 +216,6 @@ body>main {
     display: flex;
     width: 100%;
     white-space: nowrap;
-    height: 64px;
-    margin-bottom: 8px;
     align-items: center;
 }
 .job-input, .dep-input {

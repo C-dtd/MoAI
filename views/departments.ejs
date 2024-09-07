@@ -41,17 +41,16 @@
                     <article class="user-card">
                         <img class="profile-pic" src="<%= user.user_image %>" alt="" />
                         <div class="user-info">
-                            <p><strong><%= user.user_name %></strong><br><br>
+                            <p><strong><%= user.user_name %></strong><br>
                             전화번호: <%= user.user_phone %><br>
                             <div class="oneline-div">
                                 직책:
                                 <span class="job-show"><%= user.job_id %></span>
-                                <input type="text" class="job-input" value="<%= user.job_id %>" style="display: none; width: 80%; height: 64px; margin: 0 0 0 10px;">
+                              
                             </div>
                             <div class="oneline-div">
                                 부서:
-                                <span class="dep-show"><%= user.dep_name %></span>
-                                <select class="dep-input" style="display: none; height: 64px;"></select>
+                                <span class="dep-show"><%= user.dep_name %></span>                
                             </div>
                             </p>
                         </div>
