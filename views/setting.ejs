@@ -41,9 +41,28 @@
                         <div class="phone">전화번호: <%= phone %></div>
                     </div>
                 </div>
+                
                 <!-- Logout Button -->
                 <div class="logout-button">
                     <button type="button" id="logout-button">로그아웃</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- 비밀번호 변경 섹션 -->
+        <form id="change-password-form">
+            <div class="password-change-section">
+                <label for="current-password">현재 비밀번호:</label>
+                <input type="password" id="current-password" name="current-password" placeholder="현재 비밀번호" required>
+                
+                <label for="new-password">새 비밀번호:</label>
+                <input type="password" id="new-password" name="new-password" placeholder="새 비밀번호" required>
+                
+                <label for="confirm-password">새 비밀번호 확인:</label>
+                <input type="password" id="confirm-password" name="confirm-password" placeholder="새 비밀번호 확인" required>
+
+                <div class="password-change-button">
+                    <button type="button" id="change-password-button">비밀번호 변경</button>
                 </div>
             </div>
         </form>
