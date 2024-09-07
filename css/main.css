@@ -209,11 +209,12 @@ div.main {
 }
 
 .menu-icon {
-    background-color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    background-color: transparent;
+    border-radius: 0;
+    width: 32px;
+    height: 32px;
     padding: 4px;
+    border: none;
     margin-right: 4px;
     /* outline: 1.4px solid #666F8D; */
 }
