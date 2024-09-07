@@ -40,11 +40,13 @@ article.contrast header {
     position: absolute;
     left: 10px;
     background-color: #87ceeb;
+    border: none;
 }
 #memberInfo {
     position: absolute;
     right: 10px;
     background-color: #87ceeb;
+    border: none;
 }
 footer>[role=group] {
     margin: 0;
@@ -185,6 +187,7 @@ main:-webkit-scrollbar {
     align-items: center; /* 버튼 내 텍스트를 수직으로 중앙에 정렬합니다. */
     justify-content: center; /* 버튼 내 텍스트를 수평으로 중앙에 정렬합니다. */
     box-sizing: border-box; /* 패딩과 테두리를 포함하여 전체 크기를 계산합니다. */
+    border-color: #1a2c7f;
 }
 
 

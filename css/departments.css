@@ -52,7 +52,6 @@ body>main {
     /* width: calc(100% - 20px); */
     width: calc(30% - 20px);
     bottom: 0;
-    background-color: #3399ff;
 }
 
 /* 부서 추가 입력 필드 모달의 기본 스타일 */
@@ -166,7 +165,7 @@ body>main {
     top: 8px;
     right: 8px;
     padding: 5px 10px;
-    border: 1px solid #007bff;
+    border: 1px;
     background-color: #3399ff;
     color: white;
     cursor: pointer;
@@ -193,8 +192,8 @@ body>main {
 /* 사용자 정보 수정 버튼 스타일 */
 .edit-button {
     padding: 5px 10px;
-    border: 1px solid #ff8c00;
-    background-color: #ff8c00;
+    border: 1px solid #8d8d8d;
+    background-color: #8d8d8d;
     color: white;
     border-radius: 4px;
     cursor: pointer;
