@@ -38,7 +38,7 @@ connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4
 
 # Configuration
 ngrok = ''
-ngrok = 'https://f90a-35-240-141-177.ngrok-free.app'
+ngrok = 'https://b9b3-34-142-171-135.ngrok-free.app'
 device = 'cpu'
 
 if ngrok == '':
