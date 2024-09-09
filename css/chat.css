@@ -39,13 +39,13 @@ article.contrast header {
 #goBack {
     position: absolute;
     left: 10px;
-    background-color: #87ceeb;
+    background-color: #3c99fd;
     border: none;
 }
 #memberInfo {
     position: absolute;
     right: 10px;
-    background-color: #87ceeb;
+    background-color: #3c99fd;
     border: none;
 }
 footer>[role=group] {
@@ -112,7 +112,7 @@ main:-webkit-scrollbar {
     left: 0px; /* 좌측에서 10px 위치 */
     bottom: 10px; /* 하단에서 10px 위치 */
     border-radius: 12px;
-    background-color: #87ceeb;
+    background-color: #3c99fd;
     color: #fff;
     border: 2px;
     padding: 10px 20px;
@@ -132,7 +132,7 @@ main:-webkit-scrollbar {
     left: 128px !important; /* 오른쪽에서 25px 위치를 강제 적용 */
     bottom: 10px !important ; /* 하단에서 10px 위치 */
     border-radius: 12px;
-    background-color: #87ceeb;
+    background-color: #3c99fd;
     color: #fff;
     border: 2px ;
     padding: 10px 20px;
@@ -174,7 +174,7 @@ main:-webkit-scrollbar {
 
 #submit {
     border-radius: 12px; /* 모서리를 둥글게 합니다. */
-    background-color: #87ceeb; /* 배경 색상 */
+    background-color: #3c99fd; /* 배경 색상 */
     color: #fff; /* 텍스트 색상 */
     border: 2px; /* 테두리 색상과 두께 */
     padding: 10px 20px; /* 버튼의 안쪽 여백 */
