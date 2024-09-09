@@ -23,7 +23,6 @@
     --pico-outline-width: 0.125rem;
     --pico-transition: 0.2s ease-in-out;
     --pico-spacing: 1rem;
-    --pico-typography-spacing-vertical: 1rem;
     --pico-block-spacing-vertical: var(--pico-spacing);
     --pico-block-spacing-horizontal: var(--pico-spacing);
     --pico-grid-column-gap: var(--pico-spacing);
@@ -204,7 +203,7 @@ nav details.dropdown summary:focus-visible {
 [role=search] [type=button],
 [role=search] [type=submit],
 [role=search] button {
-    --pico-form-element-spacing-horizontal: 2rem
+    --pico-form-element-spacing-horizontal: 1rem
 }
 
 details summary[role=button]:not(.outline)::after {
@@ -222,8 +221,8 @@ details summary[role=button]:not(.outline)::after {
     --pico-text-selection-color: rgba(2, 154, 232, 0.25);
     --pico-muted-color: #646b79;
     --pico-muted-border-color: #e7eaf0;
-    --pico-primary: #0172ad;
-    --pico-primary-background: #0172ad;
+    --pico-primary: #87ceed;
+    --pico-primary-background: #87ceed;
     --pico-primary-border: var(--pico-primary-background);
     --pico-primary-underline: rgba(1, 114, 173, 0.5);
     --pico-primary-hover: #015887;
@@ -334,7 +333,7 @@ details summary[role=button]:not(.outline)::after {
         --pico-muted-color: #7b8495;
         --pico-muted-border-color: #202632;
         --pico-primary: #01aaff;
-        --pico-primary-background: #0172ad;
+        --pico-primary-background: #87ceed;
         --pico-primary-border: var(--pico-primary-background);
         --pico-primary-underline: rgba(1, 170, 255, 0.5);
         --pico-primary-hover: #79c0ff;
@@ -452,7 +451,7 @@ details summary[role=button]:not(.outline)::after {
     --pico-muted-color: #7b8495;
     --pico-muted-border-color: #202632;
     --pico-primary: #01aaff;
-    --pico-primary-background: #0172ad;
+    --pico-primary-background: #87ceed;
     --pico-primary-border: var(--pico-primary-background);
     --pico-primary-underline: rgba(1, 170, 255, 0.5);
     --pico-primary-hover: #79c0ff;
@@ -761,9 +760,6 @@ h6 {
     margin-top: var(--pico-typography-spacing-top)
 }
 
-p {
-    margin-bottom: var(--pico-typography-spacing-vertical)
-}
 
 hgroup {
     margin-bottom: var(--pico-typography-spacing-vertical)

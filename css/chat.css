@@ -10,6 +10,13 @@ body>header, body>footer {
 article.my-chat, article.other-chat {
     width: 60%;
     text-align: left;
+    border: 2px solid #ccc; /* Adjust thickness and color as needed */
+    border-radius: 8px; /* Optional: for rounded corners */
+}
+
+
+article.other-chat{
+    background-color: #DCDCDC;
 }
 article.my-chat {
     margin-left: 40%;
@@ -27,20 +34,27 @@ article.contrast header {
     width: 40px;
     height: 40px;
     padding: 0;
+
 }
 #goBack {
     position: absolute;
     left: 10px;
+    background-color: #87ceeb;
+    border: none;
 }
 #memberInfo {
     position: absolute;
     right: 10px;
+    background-color: #87ceeb;
+    border: none;
 }
 footer>[role=group] {
     margin: 0;
 }
 textarea {
     resize: none;
+    width: 500px;
+    height: 90px;
 }
 .modal {
     position: absolute;
@@ -93,6 +107,88 @@ main:-webkit-scrollbar {
     right: 0;
 }
 
-#imgUpload, #calendarShare, #submit {
-    border-radius: 0px;
+#imgUpload {
+    position: fixed; /* 화면에 고정 */
+    left: 0px; /* 좌측에서 10px 위치 */
+    bottom: 10px; /* 하단에서 10px 위치 */
+    border-radius: 12px;
+    background-color: #87ceeb;
+    color: #fff;
+    border: 2px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 125px;
+    height: 40px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
+
+#calendarShare {
+    position: fixed; /* 화면에 고정 */
+    left: 128px !important; /* 오른쪽에서 25px 위치를 강제 적용 */
+    bottom: 10px !important ; /* 하단에서 10px 위치 */
+    border-radius: 12px;
+    background-color: #87ceeb;
+    color: #fff;
+    border: 2px ;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 108px;
+    height: 40px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+
+/* 두 버튼이 나란히 왼쪽 하단에 배치되도록 추가 스타일링 */
+#calendarShare {
+    left: 120px; /* 두 번째 버튼은 첫 번째 버튼 오른쪽에 위치하도록 설정 */
+}
+
+
+/* 호버 상태 스타일 */
+#imgUpload:hover, #calendarShare:hover {
+    background-color: #3655b1; /* 호버 시 배경 색상 변경 */
+    border-color: #1a2c7f; /* 호버 시 테두리 색상 변경 */
+}
+
+#imgUpload {
+    position: absolute; /* 절대 위치 지정 */
+    top: -27px; /* 상단에서 10px 위치 */
+    right: 700px; /* 우측에서 10px 위치 */
+
+    }
+#calendarShare {
+    position: absolute; /* 절대 위치 지정 */
+    top: -27px; /* 상단에서 10px 위치 */
+    right: 820px; /* 우측에서 10px 위치 */
+    }
+
+#submit {
+    border-radius: 12px; /* 모서리를 둥글게 합니다. */
+    background-color: #87ceeb; /* 배경 색상 */
+    color: #fff; /* 텍스트 색상 */
+    border: 2px; /* 테두리 색상과 두께 */
+    padding: 10px 20px; /* 버튼의 안쪽 여백 */
+    font-size: 16px; /* 폰트 크기 */
+    cursor: pointer; /* 호버 시 포인터 커서 표시 */
+    width: 95px; /* 버튼의 너비를 조정합니다. */
+    height: 90px; /* 버튼의 높이를 고정합니다. */
+    text-align: center; /* 텍스트를 중앙 정렬합니다. */
+    display: inline-flex; /* 버튼 내 요소를 수평으로 배치합니다. */
+    align-items: center; /* 버튼 내 텍스트를 수직으로 중앙에 정렬합니다. */
+    justify-content: center; /* 버튼 내 텍스트를 수평으로 중앙에 정렬합니다. */
+    box-sizing: border-box; /* 패딩과 테두리를 포함하여 전체 크기를 계산합니다. */
+    border-color: #1a2c7f;
+}
+
+
+

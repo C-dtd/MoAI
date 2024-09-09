@@ -26,3 +26,40 @@
 #moai-title:hover {
   cursor: pointer;
 }
+.input-group {
+  position: relative;
+  display: inline-block;
+}
+
+input[type="password"], input[type="text"] {
+  width: 200px;
+  padding-right: 30px; /* 아이콘 공간을 확보 */
+  height: 30px;
+}
+
+#togglePassword {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+}
+
+main {
+  display: flex;
+  justify-content: center; /* 수평 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+  height: 100vh; /* 화면 전체 높이 */
+}
+
+input {
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.login-button{
+  margin-top: 10px;
+  width: 40%;
+}

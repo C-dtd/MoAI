@@ -1013,6 +1013,7 @@ app.get('/setting', async (req, res) => {
             user: user,
             profileImage: userData.user_image,
             phone: userData.user_phone // 데이터베이스에서 가져온 전화번호
+            
         });
     } catch (error) {
         console.error("Error querying database:", error);

@@ -1,14 +1,16 @@
-document.querySelector('.show-password').addEventListener('click', function(event) {
+document.querySelector('#togglePassword').addEventListener('click', function(event) {
     event.preventDefault();
 
     const passwordInput = document.getElementById('password');
-    const showPasswordButton = document.querySelector('.show-password');
+    const togglePassword = document.getElementById('togglePassword');
+
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        showPasswordButton.textContent = 'hide';
+        togglePassword.src = '../image/hide.png'; // 눈이 가려진 아이콘으로 변경
     } else {
+        // 비밀번호가 가려진 상태면 다시 'password'로 변경
         passwordInput.type = 'password';
-        showPasswordButton.textContent = 'show';
+        togglePassword.src = '../image/show.png'; // 눈 아이콘으로 변경
     }
 });
 
