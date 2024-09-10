@@ -38,7 +38,7 @@ connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4
 
 # Configuration
 ngrok = ''
-ngrok = 'https://f90a-35-240-141-177.ngrok-free.app'
+ngrok = 'https://3f36-34-124-137-137.ngrok-free.app'
 device = 'cpu'
 
 if ngrok == '':
@@ -53,12 +53,12 @@ else:
     # Load language model
     llm_model = ChatOllama(
         model='meta-llama-3.1',
-        #base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+        base_url=ngrok      # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
     )
     llm_model_json = ChatOllama(
         model='meta-llama-3.1',
         format='json', 
-        #base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
+        base_url=ngrok       # 주석 해제 시 코랩 자원으로 돌아감, # 주석 설정 시 로컬 자원으로 돌아감 
     )
 
 # Load embeddings model
