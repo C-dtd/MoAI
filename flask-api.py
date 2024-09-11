@@ -31,14 +31,14 @@ dbcp = psycopg2.pool.SimpleConnectionPool(1, 20,
 app = Flask(__name__)
 # CORS(app, resources={r'*': {'origins': 'http://localhost:8000'}})
 CORS(app)
-host = 'localhost'
+host = 'localhost'   
 port = 5100
 
 connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres'
 
 # Configuration
 ngrok = ''
-ngrok = 'https://f90a-35-240-141-177.ngrok-free.app'
+ngrok = 'https://028d-34-132-58-241.ngrok-free.app'
 device = 'cpu'
 
 if ngrok == '':
@@ -220,7 +220,7 @@ def process_file(file_path, user_input, user_id):
         condense_question_prompt=rag_prompt,
         memory=memory,
     )
-    res = conversation_chain({'question': question})
+    res = conversation_chain.invoke({'question': question})    # res = conversation_chain({'question': question})
     response = res['chat_history'][1].content.replace('\n', '').lstrip().rstrip()
     response = json.loads(response)
 

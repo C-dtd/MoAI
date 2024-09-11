@@ -14,7 +14,7 @@ const sharedSession = require('socket.io-express-session');
 const twilio = require('twilio');
 const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
 const verificationCodes = {};
-const host = 'localhost';
+const host = '192.168.219.57';
 const bcrypt = require('bcrypt');
 
 //https://colab.research.google.com/drive/1IbRSNeSAZBm_6oszKSRzxABp-PbF9rTF?usp=sharing
@@ -508,10 +508,10 @@ app.get('/aichat/reset', async (req, res) => {
         return;
     }
 
-    await db.query(
-        'delete from ai_chat_logs where user_id=$1',
-        [ user.user_id ]
-    );
+     await db.query(
+         'delete from ai_chat_logs where user_id=$1',
+         [ user.user_id ]
+     );
 
     res.send({
         response: 'ok'
