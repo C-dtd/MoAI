@@ -508,10 +508,10 @@ app.get('/aichat/reset', async (req, res) => {
         return;
     }
 
-    await db.query(
-        'delete from ai_chat_logs where user_id=$1',
-        [ user.user_id ]
-    );
+     await db.query(
+         'delete from ai_chat_logs where user_id=$1',
+         [ user.user_id ]
+     );
 
     res.send({
         response: 'ok'

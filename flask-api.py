@@ -31,7 +31,7 @@ dbcp = psycopg2.pool.SimpleConnectionPool(1, 20,
 app = Flask(__name__)
 # CORS(app, resources={r'*': {'origins': 'http://localhost:8000'}})
 CORS(app)
-host = 'localhost'
+host = 'localhost'   
 port = 5100
 
 # Configuration
@@ -217,7 +217,7 @@ def process_file(file_path, user_input, user_id):
         condense_question_prompt=rag_prompt,
         memory=memory,
     )
-    res = conversation_chain({'question': question})
+    res = conversation_chain.invoke({'question': question})    # res = conversation_chain({'question': question})
     response = res['chat_history'][1].content.replace('\n', '').lstrip().rstrip()
     response = json.loads(response)
 
