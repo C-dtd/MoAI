@@ -12,20 +12,19 @@ const { v4 } = require('uuid');
 const { send } = require('process');
 const sharedSession = require('socket.io-express-session');
 const twilio = require('twilio');
-const twilioClient = twilio('AC834c163f7736ce902b18d8956fa58025', '684a7bd672b415cc00f7a7994407e258');
+const twilioClient = twilio('tw', 'tw');
 const verificationCodes = {};
-const host = 'localhost';
 const bcrypt = require('bcrypt');
 
 //https://colab.research.google.com/drive/1IbRSNeSAZBm_6oszKSRzxABp-PbF9rTF?usp=sharing
 
-// db 객체에 데이터베이스 슈퍼베이스 username, host, database, password 지정 후 대입
+// db 객체에 데이터베이스 username, host, database, password 지정 후 대입
 const db = new Pool({
-    user: 'postgres.vpcdvbdktvvzrvjfyyzm',
-    host: 'aws-0-ap-southeast-1.pooler.supabase.com',
-    database: 'postgres',
-    password: 'Odvv8E1iChKjwai4',
-    port: 6543,
+    user: 'user',
+    host: 'host',
+    database: 'db',
+    password: 'pw',
+    port: 0000,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000
@@ -61,6 +60,7 @@ io.use(sharedSession(_session, {autoSave: true}));
 app.set('view engine', 'ejs');
 
 const port = 8000;
+const host = 'localhost';
 
 server.listen(port, host, function() {
     log(`Server host in http://${host}:${port}`);   // http://localhost + 위에 설정한 port(8000) 연결 후 메세지

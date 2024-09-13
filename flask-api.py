@@ -21,11 +21,11 @@ import psycopg2
 from psycopg2 import pool
 
 dbcp = psycopg2.pool.SimpleConnectionPool(1, 20,
-    user='postgres.vpcdvbdktvvzrvjfyyzm',
-    password='Odvv8E1iChKjwai4',
-    host='aws-0-ap-southeast-1.pooler.supabase.com',
-    port=6543,
-    dbname='postgres'
+    user='user',
+    password='pw',
+    host='host',
+    port=0000,
+    dbname='db'
 )
 
 app = Flask(__name__)
@@ -34,11 +34,8 @@ CORS(app)
 host = 'localhost'
 port = 5100
 
-connection='postgresql+psycopg2://postgres.vpcdvbdktvvzrvjfyyzm:Odvv8E1iChKjwai4@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres'
-
 # Configuration
 ngrok = ''
-ngrok = 'https://b9b3-34-142-171-135.ngrok-free.app'
 device = 'cpu'
 
 if ngrok == '':
